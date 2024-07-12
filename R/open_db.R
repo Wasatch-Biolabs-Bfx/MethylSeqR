@@ -24,7 +24,7 @@ open_dat <- function(path,
       unique()
 
   stopifnot(
-    "Could not find one or more sammples in your path" =
+    "Could not find one or more samples in your path" =
       dir.exists(paste0(path, "/", samples)))
 
   # Set up db connection
