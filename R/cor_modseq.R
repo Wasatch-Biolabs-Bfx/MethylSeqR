@@ -18,17 +18,21 @@ cor_modseq <- function(modseq_dat, plot = FALSE) {
     print(correlation_matrix)
   } else {
     dat_wide <- modseq_dat %>%
-      slice_sample(n = 5000000) %>%
-      mutate(chr_pos = paste(chrom, ref_position, sep = "_")) %>%
-      pivot_wider(names_from = sample_name, values_from = mh_frac) %>%
-      dplyr::select(-cov, -chrom, -ref_position) %>%
+      slice_sample(n = 5000000) |>
+      mutate(chr_pos = paste(chrom, ref_position, sep = "_")) |>
+      pivot_wider(id_cols = chr_pos,
+                  names_from = sample_name, 
+                  values_from = mh_frac) |>
       na.omit()
     
     # Compute Correlation
-    numeric_columns <- dat_wide[, unique(modseq_dat$sample)]
+    meth_columns <- dat_wide[, unique(modseq_dat$sample_name)]
+    print(head(meth_columns))
     # Calculate correlation matrix
-    correlation_matrix <- cor(numeric_columns, use = "pairwise.complete.obs", method = "pearson")
-  
+    correlation_matrix <- cor(meth_columns,
+                              use = "pairwise.complete.obs",
+                              method = "pearson")
+
     # View the correlation matrix
     print(correlation_matrix)
   }
@@ -37,7 +41,7 @@ cor_modseq <- function(modseq_dat, plot = FALSE) {
   # Plot Correlation Matrix with Correlation Values
   if (plot) {
     melted_cor <- melt(correlation_matrix)
-    
+
     ggplot(data = melted_cor, aes(x = Var1, y = Var2, fill = value)) +
     geom_tile() +
     geom_text(aes(label = round(value, 2)), color = "black") + # Add correlation values
