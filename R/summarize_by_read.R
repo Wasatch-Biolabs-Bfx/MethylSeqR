@@ -17,21 +17,22 @@ modseq_dat |>
   summarize(
     .by = c(sample_name, chrom, read_id, read_length),
     cov = n(),
-    c_counts = sum(as.integer(call_code == "-"),
-                   na.rm = TRUE),
-    m_counts = sum(as.integer(call_code == "m"),
-                   na.rm = TRUE),
-    h_counts = sum(as.integer(call_code == "h"),
-                   na.rm = TRUE),
-    mh_counts = sum(as.integer(call_code %in% c("m", "h"))),
-    first_CG_pos = min(ref_position),
-    last_CG_pos = max(ref_position),
-    na.rm = TRUE) |>
+    c_counts  = sum(as.integer(call_code == "-"),
+                    na.rm = TRUE),
+    m_counts  = sum(as.integer(call_code == "m"),
+                    na.rm = TRUE),
+    h_counts  = sum(as.integer(call_code == "h"),
+                    na.rm = TRUE),
+    mh_counts = sum(as.integer(call_code %in% c("m", "h")),
+                    na.rm = TRUE),
+    first_CG_pos = min(ref_position,
+                    na.rm = TRUE),
+    last_CG_pos = max(ref_position,
+                    na.rm = TRUE)) |>
   mutate(
     m_frac = m_counts / cov,
     h_frac = h_counts / cov,
     mh_frac = mh_counts / cov,
     na.rm = TRUE) |>
-  select(selected_columns) #|> collect()
-# return ?
+  dplyr::select(any_of(selected_columns))
 }
