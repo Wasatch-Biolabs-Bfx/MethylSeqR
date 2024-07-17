@@ -1,23 +1,33 @@
-get_cov_stats <- function(modseq_dat, plot = FALSE) {
-  # clean dataframe
+get_cov_stats <- function(modseq_dat, 
+                          plot = FALSE)
+{
+  # Checks
+  stopifnot("Invalid dataframe format. A 'cov' or 'mean_cov' column must be present." =
+              any(c("cov", "mean_cov") %in% colnames(modseq_dat)))
+  
+  # Clean dataframe
   modseq_dat <- na.omit(modseq_dat)
-  # decide if per base or per region
+  
+  # Decide if per base or per region
   regional_dat = "region_name" %in% colnames(modseq_dat)
+  read_dat = "first_CG_pos" %in% colnames(modseq_dat)
 
-  if (!regional_dat) {
-    cov = modseq_dat$cov
+  if (!regional_dat) { 
+# positional and read summarized data will both have a "cov" column...
+    cov = pull(modseq_dat, cov)
   } else {
-    cov = modseq_dat$mean_cov
+    cov = pull(modseq_dat, mean_cov)
   }
 
-  qts=seq(0,0.9,0.1) # get quantiles
-  qts=c(qts,0.95,0.99,0.995,0.999,1)
+  qts <- c(seq(0, 0.9, 0.1), 0.95, 0.99, 0.995, 0.999, 1)
 
   if (!plot) {
     title <- "read coverage statistics per base\n"
 
     if (regional_dat) {
       title <- "read coverage statistics per region\n"
+    } else if (read_dat) {
+      title <- "coverage statistics per read\n"
     }
 
     cat(title)
@@ -26,21 +36,23 @@ get_cov_stats <- function(modseq_dat, plot = FALSE) {
     cat("percentiles:\n")
     print(quantile(cov, p=qts ))
     cat("\n")
-
-  } else if (plot) { # lets make a lil plot
+  } else { 
     x_title <- "log10 of read coverage per base"
     if (regional_dat) {
       x_title <- "log10 of read coverage per region"
+    } else if (read_dat) {
+       x_title <- "log10 of coverage per read"
     }
 
     # Create a data frame from your list
     plot <- data.frame(coverage = log10(cov))
+    
     # Create the histogram
     ggplot(plot, aes(x = coverage)) +
-      geom_histogram(binwidth = 0.25, fill = "chartreuse4", color = "black", linewidth = 0.25) +
-      labs(title = "Histogram of CpG Coverage", x = x_title, y = "Frequency") +
+      geom_histogram(binwidth = 0.25, fill = "chartreuse4", 
+                     color = "black", linewidth = 0.25) +
+      labs(title = "Histogram of CpG Coverage", 
+           x = x_title, y = "Frequency") +
       theme_minimal()
-
   }
-
 }
