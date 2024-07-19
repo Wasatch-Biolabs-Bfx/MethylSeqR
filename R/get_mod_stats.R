@@ -1,7 +1,7 @@
-get_mod_stats <- function(modseq_dat, plot = FALSE) {
+get_mod_stats <- function(modseq_dat, plot = FALSE) 
+{
   # decide if per base or per region 
   regional_dat = "region_name" %in% colnames(modseq_dat)
-  read_dat = "first_CG_pos" %in% colnames(modseq_dat)
   
   # grab mh frac info- prioritize mh_frac over m_frac
   if ("mh_frac" %in% colnames(modseq_dat)) {
@@ -20,8 +20,6 @@ get_mod_stats <- function(modseq_dat, plot = FALSE) {
     title <- "Methylation statistics per base\n"
     if (regional_dat) {
       title <- "Methylation statistics per region\n"
-    } else if (read_dat) {
-      title <- "Methylation statistics per read\n"
     }
     
     cat(title)
@@ -35,12 +33,11 @@ get_mod_stats <- function(modseq_dat, plot = FALSE) {
     x_title <- "% methylation per base"
     if (regional_dat) {
       x_title <- "% methylation per region"
-    } else if (read_dat) {
-      x_title <- "% methylation per read"
     }
     
     # Create a data frame from your list
     plot <- data.frame(methylation_value = goodMeth)
+    
     # Create the histogram
     ggplot(plot, aes(x = methylation_value)) +
     geom_histogram(binwidth = 10, fill = "cornflowerblue", 
