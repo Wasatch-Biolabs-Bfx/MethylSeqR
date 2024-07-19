@@ -16,26 +16,29 @@ cor_modseq <- function(modseq_dat,
     
     # Calculate correlation matrix
     correlation_matrix <- cor(numeric_columns, 
-                              use = "pairwise.complete.obs", method = "pearson")
+                              use = "pairwise.complete.obs", 
+                              method = "pearson")
   
     # View the correlation matrix
     print(correlation_matrix)
   } else {
-    dat_wide <- modseq_dat %>%
-      slice_sample(n = 5000000) %>%
-      mutate(chr_pos = paste(chrom, ref_position, sep = "_")) %>%
-      pivot_wider(names_from = sample_name, values_from = mh_frac) %>%
-      dplyr::select(-cov, -chrom, -ref_position) %>%
+    dat_wide <- modseq_dat |>
+      slice_sample(n = 5000000) |>
+      mutate(chr_pos = paste(chrom, ref_position, sep = "_")) |>
+      pivot_wider(id_cols = chr_pos,
+                  names_from = sample_name, 
+                   values_from = mh_frac) |>
       na.omit()
     
     # Compute Correlation
-    numeric_columns <- dat_wide[, unique(modseq_dat$sample)]
-    
+    numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
+
     # Calculate correlation matrix
-    correlation_matrix <- cor(numeric_columns, 
-                              use = "pairwise.complete.obs", method = "pearson")
-  
-    # View the correlation matrix
+    correlation_matrix <- cor(numeric_columns,
+                              use = "pairwise.complete.obs",
+                              method = "pearson")
+
+    # # View the correlation matrix
     print(correlation_matrix)
   }
   
