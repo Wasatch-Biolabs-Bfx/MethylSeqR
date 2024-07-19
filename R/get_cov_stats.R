@@ -10,10 +10,8 @@ get_cov_stats <- function(modseq_dat,
   
   # Decide if per base or per region
   regional_dat = "region_name" %in% colnames(modseq_dat)
-  read_dat = "first_CG_pos" %in% colnames(modseq_dat)
 
-  if (!regional_dat) { 
-# positional and read summarized data will both have a "cov" column...
+  if (!regional_dat) {
     cov = pull(modseq_dat, cov)
   } else {
     cov = pull(modseq_dat, mean_cov)
@@ -26,8 +24,6 @@ get_cov_stats <- function(modseq_dat,
 
     if (regional_dat) {
       title <- "read coverage statistics per region\n"
-    } else if (read_dat) {
-      title <- "coverage statistics per read\n"
     }
 
     cat(title)
@@ -40,8 +36,6 @@ get_cov_stats <- function(modseq_dat,
     x_title <- "log10 of read coverage per base"
     if (regional_dat) {
       x_title <- "log10 of read coverage per region"
-    } else if (read_dat) {
-       x_title <- "log10 of coverage per read"
     }
 
     # Create a data frame from your list
