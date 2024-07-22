@@ -4,7 +4,7 @@ open_dat <- function(path,
                      min_read_length = 100,
                      min_call_prob = .9,
                      min_base_qual = 10,
-                     max_memory = "6GB",
+                     max_memory = "2GB",
                      max_threads = 4)
 {
   # Perform checks and calcs for arguments
@@ -47,5 +47,5 @@ open_dat <- function(path,
       call_prob >= min_call_prob,
       read_length >= min_read_length,
       base_qual >= min_base_qual) |>
-    to_duckdb(con = db_con)
+    to_duckdb(con = db_con) 
 }

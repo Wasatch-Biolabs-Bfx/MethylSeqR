@@ -1,4 +1,6 @@
-get_mod_stats <- function(modseq_dat, plot = FALSE) 
+
+get_mod_stats <- function(modseq_dat, 
+                          plot = FALSE) 
 {
   # decide if per base or per region 
   regional_dat = "region_name" %in% colnames(modseq_dat)
