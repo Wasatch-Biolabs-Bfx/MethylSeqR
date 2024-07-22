@@ -3,7 +3,6 @@ cor_modseq <- function(modseq_dat,
 {
   # decide if regional or positional data
   regional_dat = "region_name" %in% colnames(modseq_dat)
-  #hello
 
   if (regional_dat) {
     # Aggregate mean_mh_frac by sample and region_name
