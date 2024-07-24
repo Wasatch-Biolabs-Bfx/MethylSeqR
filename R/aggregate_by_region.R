@@ -1,3 +1,11 @@
+#' Aggregate positional methylation data by regions provided with an annotation file.
+#'
+#' @param modseq_dat A duckdb object of methylation data already processed with summarize_by_pos().
+#' @param annot_file Path to an annotation file of regions to aggregate data into- TSV format.
+#' This file is required to have three columns- chrom, start, end. Optional fourth column of region_name can be included.
+#' @return A duckdb object of all regional methylation data to be processed.
+#' @examples
+#' regional_data = aggregate_regions(data, "CpG_islands.tsv")
 aggregate_regions <- function(modseq_dat,
                               annot_file)
 {
