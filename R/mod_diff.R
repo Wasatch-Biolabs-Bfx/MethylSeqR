@@ -1,17 +1,17 @@
-calc_mod_diff <- function(modseq_dat, 
-                          cases, 
-                          controls, 
+calc_mod_diff <- function(modseq_dat,
+                          cases,
+                          controls,
                           mod_type = "mh",
-                          calc_type = "fast_fisher") 
+                          calc_type = "fast_fisher")
 {
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
-  
+
   # Label cases and controls
-  in_dat <- 
+  in_dat <-
     modseq_dat |>
     select(
-      sample_name, any_of(c("chrom", "ref_position", "region_name")), 
+      sample_name, any_of(c("chrom", "ref_position", "region_name")),
       cov, c_counts, mod_counts = !!mod_counts_col) |>
     mutate(
       exp_group = case_when(
@@ -20,7 +20,7 @@ calc_mod_diff <- function(modseq_dat,
         TRUE ~ NA)) |>
     filter(
       !is.na(exp_group))
-  
+
   # Calculate p-vals and diffs
   switch(calc_type,
          fast_fisher = .calc_diff_fisher(in_dat,
@@ -33,25 +33,25 @@ calc_mod_diff <- function(modseq_dat,
 }
 
 
-## Calculate p-values using fisher exact tests. If there are multiple samples, 
-## they will be combined. 
-.calc_diff_fisher <- function(in_dat, 
-                              calc_type) 
+## Calculate p-values using fisher exact tests. If there are multiple samples,
+## they will be combined.
+.calc_diff_fisher <- function(in_dat,
+                              calc_type)
 {
   # Combine replicates and pivot wider
-  dat <- 
+  dat <-
     in_dat |>
     summarize(
       .by = c(exp_group, any_of(c("chrom", "ref_position", "region_name"))),
       c_counts = sum(c_counts),
       mod_counts = sum(mod_counts)) |>
     pivot_wider(
-      names_from = exp_group, 
+      names_from = exp_group,
       values_from = c(c_counts, mod_counts),
-      values_fill = 0) 
-  
+      values_fill = 0)
+
   # Extract matrix and calculate p-vals
-  pvals <- 
+  pvals <-
     dat |>
     select(!any_of(c("chrom", "ref_position", "region_name"))) |>
     distinct() |>
@@ -60,9 +60,9 @@ calc_mod_diff <- function(modseq_dat,
         (mod_counts_case + c_counts_case),
       mod_frac_control = mod_counts_control /
         (mod_counts_control + c_counts_control),
-      meth_diff = mod_counts_case / 
+      meth_diff = mod_counts_case /
         (mod_counts_case + c_counts_case) -
-        mod_counts_control / 
+        mod_counts_control /
         (mod_counts_control + c_counts_control)) |>
     collect() |>
     mutate(
@@ -78,49 +78,49 @@ calc_mod_diff <- function(modseq_dat,
           b = mod_counts_case,
           c = c_counts_control,
           d = c_counts_case)))
-  
+
   dat |>
     inner_join(
       pvals,
-      by = join_by(c_counts_case, c_counts_control, 
+      by = join_by(c_counts_case, c_counts_control,
                    mod_counts_case, mod_counts_control),
-      copy = TRUE) 
+      copy = TRUE)
 }
 
 
-.fast_fisher <- function(q, m, n, k) 
+.fast_fisher <- function(q, m, n, k)
 {
   # derived from https://github.com/al2na/methylKit/issues/96
-  
+
   mat <- cbind(q, m, n, k)
-  
-  apply(mat, 1, 
+
+  apply(mat, 1,
         \(qmnk)
         {
-          dhyper_val <- 0.5 * dhyper(x = qmnk[1], m = qmnk[2], 
+          dhyper_val <- 0.5 * dhyper(x = qmnk[1], m = qmnk[2],
                                      n = qmnk[3], k = qmnk[4])
-          
-          pval_right <- phyper(q = qmnk[1], m = qmnk[2], 
-                               n = qmnk[3], k = qmnk[4], 
+
+          pval_right <- phyper(q = qmnk[1], m = qmnk[2],
+                               n = qmnk[3], k = qmnk[4],
                                lower.tail = FALSE) + dhyper_val
-          
-          pval_left  <- phyper(q = qmnk[1] - 1, m = qmnk[2], 
-                               n = qmnk[3], k = qmnk[4], 
+
+          pval_left  <- phyper(q = qmnk[1] - 1, m = qmnk[2],
+                               n = qmnk[3], k = qmnk[4],
                                lower.tail = TRUE) + dhyper_val
-          
-          return(ifelse(test = pval_right > pval_left, 
-                        yes  = pval_left * 2, 
+
+          return(ifelse(test = pval_right > pval_left,
+                        yes  = pval_left * 2,
                         no   = pval_right * 2))
         })
 }
 
 
-.r_fisher <- function(a, b, c, d) 
+.r_fisher <- function(a, b, c, d)
 {
   mat <- cbind(a, b, c, d)
-  
-  apply(mat, 1, 
-        \(x) 
+
+  apply(mat, 1,
+        \(x)
         {
           fisher.test(matrix(x, 2))$p.val
         })
@@ -129,7 +129,7 @@ calc_mod_diff <- function(modseq_dat,
 
 .calc_diff_logreg <- function(in_dat)
 {
-  pvals <- 
+  pvals <-
     in_dat |>
     mutate(
       cov = c_counts + mod_counts,
@@ -142,12 +142,12 @@ calc_mod_diff <- function(modseq_dat,
       mean_frac_ctrl = mean(mod_frac[exp_group == "control"]),
       mean_diff = mean_frac_case - mean_frac_ctrl,
       p_val = .logreg(mod_frac, cov, exp_group))
-  
+
   # Pivot wider, add pvals, and return
   in_dat |>
     pivot_wider(
       id_cols = c(chrom, ref_position),
-      names_from = sample_name, 
+      names_from = sample_name,
       values_from = c(c_counts, mod_counts),
       values_fill = 0) |>
     inner_join(
@@ -156,16 +156,14 @@ calc_mod_diff <- function(modseq_dat,
 }
 
 
-.logreg <- function(mod_frac, 
-                    cov, 
+.logreg <- function(mod_frac,
+                    cov,
                     exp_group)
 {
   exp_group <- as.numeric(factor(exp_group))
-  fit <- glm.fit(exp_group, mod_frac, 
+  fit <- glm.fit(exp_group, mod_frac,
                  weights = cov / sum(cov), family = binomial())
   deviance <- fit$null.deviance - fit$deviance
-  
+
   pchisq(deviance, 1, lower.tail = FALSE)
 }
-  
-  
