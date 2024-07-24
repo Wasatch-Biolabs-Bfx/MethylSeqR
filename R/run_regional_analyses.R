@@ -1,4 +1,4 @@
-run_pos_analyses <- function(modseq_dat,
+run_regional_analyses <- function(modseq_dat,
                              annot_file,
                              cases,
                              controls) {
