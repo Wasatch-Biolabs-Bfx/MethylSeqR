@@ -7,6 +7,7 @@
 #' summarize_by_pos(data)
 #' summarize_by_pos(data, score = "m")
 #' summarize_by_pos(data, score = c("m", "mh", "h")
+#' @export
 summarize_by_pos <- function(modseq_dat,
                              score = "mh")
 {
