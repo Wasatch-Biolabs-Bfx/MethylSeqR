@@ -1,15 +1,25 @@
 #' Open methylation data from a directory
 #'
 #' @param path Path to database directory
+#'
 #' @param samples Vector of samples to extract methylation data from. Default is all
+#'
 #' @param chrs Vector of chromosomes to extract. Default is all
+#'
 #' @param min_read_length Minimum read length to allow. Filters any read less than this parameter
-#' @param min_base_qual Minimum base quality
-#' @param max_memory Maximum memory to be colllected
-#' @param max_threads Maximum threads to be allowed
+#'
+#' @param min_base_qual Minimum phred scale of base calls.
+#'
+#' @param max_memory Maximum memory of object to be processed.
+#'
+#' @param max_threads Maximum CPU threads.
+#'
 #' @return A duckdb object of all methylation data to be processed.
+#'
 #' @examples
 #' data = open_dat(my_path)
+#'
+#' @export
 open_dat <- function(path,
                      samples = "all",
                      chrs = "all",

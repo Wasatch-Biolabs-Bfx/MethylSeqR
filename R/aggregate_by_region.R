@@ -1,13 +1,21 @@
 #' Aggregate positional methylation data by regions provided with an annotation file.
 #'
 #' @param modseq_dat A duckdb object of methylation data already processed with summarize_by_pos().
+#'
 #' @param annot_file Path to an annotation file of regions to aggregate data into- TSV format.
 #' This file is required to have three columns- chrom, start, end. Optional fourth column of region_name can be included.
+#'
 #' @return A duckdb object of all regional methylation data to be processed.
+#'
 #' @examples
 #' regional_data = aggregate_regions(data, "CpG_islands.tsv")
+#'
+#' @import dplyr
+#'
+#' @export
 aggregate_regions <- function(modseq_dat,
-                              annot_file)
+                              annot_file,
+                              join_type = "inner")
 {
   # Read annotation
   annotation <-
@@ -23,6 +31,10 @@ aggregate_regions <- function(modseq_dat,
   stopifnot("Invalid annotation format. File must have chr, start, end." =
               ncol(annotation) >= 3)
 
+  if (!join_type %in% c("inner", "right", "left", "full")) {
+    stop("Invalid join type")
+  }
+
   if (ncol(annotation == 3)) {
     annotation <-
       annotation |>
@@ -36,10 +48,23 @@ aggregate_regions <- function(modseq_dat,
       .by = c(region_name, chrom),
       ref_position = start:end)
 
-  # Create regional dataframe
+  # Create regional data frame- offer a left, right or inner join
+
+  # left join, if they wanna keep reads that are outside of the annotation table
+
+  # right join, if they want to keep reads that are all in annotation table and
+  # even those regions not included in data frame
+
+  # inner join- regions in both annotation and data frame...
+  my_join <- switch(join_type,
+                    "inner" = inner_join,
+                    "right" = right_join,
+                    "left" = left_join,
+                    "full" = full_join)
+
   modseq_dat |>
     print(head()) |>
-    right_join(
+    my_join( # make join
       annotation,
       by = join_by(chrom, ref_position),
       copy = TRUE) |>
@@ -48,4 +73,5 @@ aggregate_regions <- function(modseq_dat,
       cov = sum(cov),
       across(ends_with("_counts"), sum),
       across(ends_with("_frac"), ~ sum(.x * cov) / sum(cov)))
+
 }
