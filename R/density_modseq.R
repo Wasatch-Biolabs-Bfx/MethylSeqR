@@ -21,7 +21,9 @@ density_modseq <- function(modseq_dat) {
     print("yay regional data!")
 
     plotting_data <- na.omit(modseq_dat) |>
-      dplyr::select(c(region_name, sample_name, mean_mh_frac)) |>
+      dplyr::select(c(region_name,
+                      sample_name,
+                      mean_mh_frac)) |>
       pivot_wider(names_from = sample_name,
                   values_from = mean_mh_frac) |>
       na.omit()
@@ -67,7 +69,9 @@ density_modseq <- function(modseq_dat) {
   combined_density_data <- bind_rows(all_density_data)
 
   # Plot using ggplot2 and geom_raster
-  ggplot(combined_density_data, aes(x = x, y = y, fill = z)) +
+  print(ggplot(combined_density_data, aes(x = x,
+                                          y = y,
+                                          fill = z)) +
     geom_raster() +
     scale_fill_viridis_c(option = "turbo") +  # Using a color scale from the viridis package
     labs(
@@ -77,5 +81,6 @@ density_modseq <- function(modseq_dat) {
       title = "Raster Plot of Methylation Signals"
     ) +
     theme_minimal() +
-    facet_wrap(~ sample1 + sample2, scales = "free")
+    facet_wrap(~ sample1 + sample2,
+               scales = "free"))
 }

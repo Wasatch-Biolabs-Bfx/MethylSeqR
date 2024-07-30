@@ -8,7 +8,8 @@ cor_modseq <- function(modseq_dat,
   if (regional_dat) {
     # Aggregate mean_mh_frac by sample and region_name
     dat_wide <- modseq_dat |>
-      pivot_wider(names_from = sample_name, values_from = mean_mh_frac)
+      pivot_wider(names_from = sample_name,
+                  values_from = mean_mh_frac)
 
     # Compute Correlation
     sample_names <- unique(modseq_dat$sample_name)
@@ -24,15 +25,22 @@ cor_modseq <- function(modseq_dat,
     print(correlation_matrix)
   } else {
     dat_wide <- modseq_dat |>
-      slice_sample(n = 5000000) |>
-      mutate(chr_pos = paste(chrom, ref_position, sep = "_")) |>
+      mutate(chr_pos = paste(chrom,
+                             ref_position,
+                             sep = "_")) |>
       pivot_wider(id_cols = chr_pos,
                   names_from = sample_name,
-                   values_from = mh_frac) |>
-      na.omit()
+                   values_from = mh_frac)
+
+
+    #slice_sample(n = 5000000) |>
+    # just grab a single chromosme
+
+    print(head(dat_wide))
 
     # Compute Correlation
     numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
+    print(head(numeric_columns))
 
     # Calculate correlation matrix
     correlation_matrix <- cor(numeric_columns,
@@ -48,15 +56,26 @@ cor_modseq <- function(modseq_dat,
   if (plot) {
     melted_cor <- melt(correlation_matrix)
 
-    ggplot(data = melted_cor, aes(x = Var1, y = Var2, fill = value)) +
+    print(ggplot(data = melted_cor, aes(x = Var1,
+                                  y = Var2,
+                                  fill = value)) +
     geom_tile() +
-    geom_text(aes(label = round(value, 2)), color = "black") + # Add correlation values
-    scale_fill_gradient2(low = "blue", high = "red", mid = "white",
-                         midpoint = 0, limits = c(-1, 1),
-                         space = "Lab", name = "Pearson\nCorrelation") +
+    geom_text(aes(label = round(value, 2)),
+              color = "black") + # Add correlation values
+    scale_fill_gradient2(low = "blue",
+                         high = "red",
+                         mid = "white",
+                         midpoint = 0,
+                         limits = c(-1, 1),
+                         space = "Lab",
+                         name = "Pearson\nCorrelation") +
     scale_y_discrete(limits = rev(levels(factor(melted_cor$Var2)))) +
     theme_minimal() +
-    labs(title = "Sample Correlation Matrix", x = "Sample", y = "Sample") +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+    labs(title = "Sample Correlation Matrix",
+         x = "Sample",
+         y = "Sample") +
+    theme(axis.text.x = element_text(angle = 45,
+                                     vjust = 1,
+                                     hjust = 1)))
   }
 }

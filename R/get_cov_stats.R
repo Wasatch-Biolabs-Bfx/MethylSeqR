@@ -1,13 +1,13 @@
-get_cov_stats <- function(modseq_dat, 
+get_cov_stats <- function(modseq_dat,
                           plot = FALSE)
 {
   # Checks
   stopifnot("Invalid dataframe format. A 'cov' or 'mean_cov' column must be present." =
               any(c("cov", "mean_cov") %in% colnames(modseq_dat)))
-  
+
   # Clean dataframe
   modseq_dat <- na.omit(modseq_dat)
-  
+
   # Decide if per base or per region
   regional_dat = "region_name" %in% colnames(modseq_dat)
 
@@ -32,7 +32,7 @@ get_cov_stats <- function(modseq_dat,
     cat("percentiles:\n")
     print(quantile(cov, p=qts ))
     cat("\n")
-  } else { 
+  } else {
     x_title <- "log10 of read coverage per base"
     if (regional_dat) {
       x_title <- "log10 of read coverage per region"
@@ -40,13 +40,13 @@ get_cov_stats <- function(modseq_dat,
 
     # Create a data frame from your list
     plot <- data.frame(coverage = log10(cov))
-    
+
     # Create the histogram
-    ggplot(plot, aes(x = coverage)) +
-      geom_histogram(binwidth = 0.25, fill = "chartreuse4", 
+    print(ggplot(plot, aes(x = coverage)) +
+      geom_histogram(binwidth = 0.25, fill = "chartreuse4",
                      color = "black", linewidth = 0.25) +
-      labs(title = "Histogram of CpG Coverage", 
+      labs(title = "Histogram of CpG Coverage",
            x = x_title, y = "Frequency") +
-      theme_minimal()
+      theme_minimal())
   }
 }
