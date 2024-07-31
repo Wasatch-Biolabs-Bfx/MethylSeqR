@@ -10,7 +10,7 @@
 #' @examples
 #' regional_data = aggregate_regions(data, "CpG_islands.tsv")
 #'
-#' @import dplyr
+#' @import dplyr readr
 #'
 #' @export
 aggregate_regions <- function(modseq_dat,

@@ -4,7 +4,7 @@
 \alias{aggregate_regions}
 \title{Aggregate positional methylation data by regions provided with an annotation file.}
 \usage{
-aggregate_regions(modseq_dat, annot_file)
+aggregate_regions(modseq_dat, annot_file, join_type = "inner")
 }
 \arguments{
 \item{modseq_dat}{A duckdb object of methylation data already processed with summarize_by_pos().}
@@ -20,4 +20,5 @@ Aggregate positional methylation data by regions provided with an annotation fil
 }
 \examples{
 regional_data = aggregate_regions(data, "CpG_islands.tsv")
+
 }

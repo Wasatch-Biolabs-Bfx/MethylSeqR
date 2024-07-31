@@ -1,12 +1,24 @@
-#' Summarize methylation data by reference positions
+#' Summarize Methylation Data by Reference Positions
 #'
-#' @param modseq_dat Methylation data in a duckdb object as opened by open_dat().
-#' @param score A methylation score type. Default is mh, can also include m, h, or a vector of score types wanted.
-#' @return A duckdb object of methylation scores summarized by each position.
+#' This function summarizes methylation data by reference positions, calculating
+#' coverage and counts of different methylation states for each sample. It can handle
+#' multiple methylation score types as specified by the user.
+#'
+#' @param modseq_dat A duckdb object containing methylation data, typically opened
+#'                   using the `open_dat()` function.
+#'
+#' @param score A character vector specifying the methylation score types to summarize.
+#'              Default is "mh", but can also include "m", "h", or any combination of
+#'              these scores.
+#'
+#' @return A duckdb object containing methylation scores summarized by each reference position,
+#'         including counts and fractions of methylated and unmethylated bases for each sample.
+#'
 #' @examples
-#' summarize_by_pos(data)
-#' summarize_by_pos(data, score = "m")
-#' summarize_by_pos(data, score = c("m", "mh", "h")
+#' summarized_data <- summarize_by_pos(data)
+#' summarized_data_m <- summarize_by_pos(data, score = "m")
+#' summarized_data_multiple <- summarize_by_pos(data, score = c("m", "mh", "h"))
+#'
 #' @export
 summarize_by_pos <- function(modseq_dat,
                              score = "mh")

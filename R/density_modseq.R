@@ -1,16 +1,24 @@
-#' Aggregate positional methylation data by regions provided with an annotation file.
+#' Generate and Plot Density of Methylation Data
 #'
-#' @param modseq_dat A duckdb object of methylation data already processed with summarize_by_pos().
+#' This function generates density plots for pairs of methylation samples
+#' and visualizes them using raster plots.
 #'
-#' @param annot_file Path to an annotation file of regions to aggregate data into- TSV format.
-#' This file is required to have three columns- chrom, start, end. Optional fourth column of region_name can be included.
+#' @param modseq_dat A data frame containing methylation data. The data frame can
+#' either contain positional or regional data. If it contains regional data, it must
+#' have a column named \code{region_name}.
 #'
-#' @return A duckdb object of all regional methylation data to be processed.
+#' @return None. The function prints density raster plots for pairs of methylation samples.
 #'
 #' @examples
-#' regional_data = aggregate_regions(data, "CpG_islands.tsv")
+#' \dontrun{
+#' density_modseq(modseq_dat)
+#' }
+#'
+#' @import dplyr tidyr ggplot2 MASS
 #'
 #' @importFrom MASS kde2d
+#'
+#' @importFrom ggplot2 ggplot geom_raster scale_fill_viridis_c labs theme_minimal facet_wrap
 #'
 #' @export
 density_modseq <- function(modseq_dat) {

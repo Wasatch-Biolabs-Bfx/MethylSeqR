@@ -1,3 +1,27 @@
+#' Perform Principal Component Analysis (PCA) on Methylation Data
+#'
+#' This function performs PCA on methylation data to reduce dimensionality
+#' and visualize the variance explained by the principal components.
+#'
+#' @param modseq_dat A data frame containing methylation data. It should include
+#'                    sample names, methylation fractions, and may include region names.
+#'
+#' @return A PCA plot showing the first two principal components and the
+#'         variance explained by each component. The PCA summary is also printed
+#'         to the console.
+#'
+#' @examples
+#' pca_modseq(data)
+#'
+#' @importFrom dplyr na.omit select mutate
+#'
+#' @importFrom tidyr pivot_wider
+#'
+#' @importFrom stats prcomp
+#'
+#' @importFrom ggplot2 ggplot aes geom_point labs theme_minimal
+#'
+#' @export
 pca_modseq <- function(modseq_dat)
 {
   # clean

@@ -1,4 +1,29 @@
-
+#' Calculate and Plot Methylation Statistics
+#'
+#' This function calculates and optionally plots statistics for methylation data from
+#' sequencing experiments. It can handle both positional and regional methylation data.
+#'
+#' @param modseq_dat A data frame containing methylation data. It should have one of
+#' the following columns: \code{mh_frac}, \code{mean_mh_frac}, \code{m_frac}, or \code{mean_m_frac}.
+#'
+#' @param plot Logical, if \code{TRUE}, the function will generate a histogram of
+#' the methylation data. Default is \code{FALSE}.
+#'
+#' @return If \code{plot} is \code{FALSE}, the function prints summary statistics
+#' and percentiles of the methylation data. If \code{plot} is \code{TRUE}, it prints a
+#' histogram of the methylation data.
+#'
+#' @examples
+#' \dontrun{
+#' get_mod_stats(modseq_dat)
+#' get_mod_stats(modseq_dat, plot = TRUE)
+#' }
+#'
+#' @import dplyr ggplot2
+#'
+#' @importFrom ggplot2 ggplot aes geom_histogram labs theme_minimal
+#'
+#' @export
 get_mod_stats <- function(modseq_dat,
                           plot = FALSE)
 {

@@ -1,3 +1,24 @@
+#' Cluster Methylation Data
+#'
+#' This function clusters methylation data using hierarchical clustering
+#' and plots a dendrogram to visualize the clustering.
+#'
+#' @param modseq_dat A data frame containing methylation data. The data frame can
+#' either contain positional or regional data. If it contains regional data, it must
+#' have a column named \code{region_name}.
+#'
+#' @return None. The function plots a dendrogram.
+#'
+#' @examples
+#' \dontrun{
+#' cluster_modseq(modseq_dat)
+#' }
+#'
+#' @import dplyr tidyr
+#' @importFrom stats dist hclust as.dendrogram
+#' @importFrom graphics plot
+#'
+#' @export
 cluster_modseq <- function(modseq_dat)
 {
   # Decide if regional or positional data

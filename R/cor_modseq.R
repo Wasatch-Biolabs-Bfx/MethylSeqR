@@ -1,4 +1,27 @@
-
+#' Compute and Optionally Plot Correlation Matrix of Methylation Data
+#'
+#' This function computes the Pearson correlation matrix of methylation data
+#' and optionally plots the correlation matrix.
+#'
+#' @param modseq_dat A data frame containing methylation data. The data frame can
+#' either contain positional or regional data. If it contains regional data, it must
+#' have a column named \code{region_name}.
+#'
+#' @param plot A logical value indicating whether to plot the correlation matrix.
+#' Default is \code{FALSE}.
+#'
+#' @return The correlation matrix of the methylation data.
+#'
+#' @examples
+#' \dontrun{
+#' correlation_matrix <- cor_modseq(modseq_dat, plot = TRUE)
+#' }
+#'
+#' @import dplyr tidyr ggplot2 reshape2
+#'
+#' @importFrom stats cor
+#'
+#' @export
 cor_modseq <- function(modseq_dat,
                        plot = FALSE)
 {

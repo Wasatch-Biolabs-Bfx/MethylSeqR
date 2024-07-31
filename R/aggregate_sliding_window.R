@@ -1,24 +1,42 @@
+#' Compute Sliding Windows for All Chromosomes
+#'
+#' This function sets up a database, iterates over all chromosomes,
+#' calls `.compute_windows_chr` for each, and returns the final table
+#' of sliding windows.
+#'
+#' @param modseq_dat A DuckDB object of methylation data already processed.
+#' @param window_size The size of the sliding window. Default is 500.
+#'
+#' @return A DuckDB table of sliding windows.
+#'
+#' @examples
+#' sliding_windows <- compute_sliding_windows(modseq_dat, 500)
+#'
+#' @import dplyr
+#' @importFrom DBI dbConnect dbRemoveTable
+#'
+#' @export
 .compute_windows_chr <- function(cur_chrom,
                                  db_con,
                                  modseq_dat,
                                  window_size)
 {
-  chrom_dat <- 
+  chrom_dat <-
     modseq_dat |>
     filter(chrom == cur_chrom)
-  
+
   positions <- tibble(ref_position = 1:max(pull(chrom_dat, ref_position)))
-  
+
   # Join tables
-  dat <- 
+  dat <-
     chrom_dat |>
     right_join(
-      positions, 
+      positions,
       by = join_by(ref_position),
       copy = TRUE) |>
     tidier::mutate(
       across(c(cov, ends_with("_counts")), sum),
-      across(ends_with("_frac"), ~ sum(.x * cov, na.rm = TRUE) / 
+      across(ends_with("_frac"), ~ sum(.x * cov, na.rm = TRUE) /
                                    sum(cov, na.rm = TRUE)),
       .by = sample_name,
       .order_by = ref_position,
@@ -29,11 +47,11 @@
       .before = end,
       start = end - window_size + 1) |>
     collect()
-  
+
   message("Finished ", cur_chrom, ": ", nrow(dat), " windows have data.")
-  
+
   if (nrow(dat) == 0) return()
-  
+
   if (dbExistsTable(db_con, "sliding_windows")) {
     dbAppendTable(db_con, "sliding_windows", dat)
   } else {
@@ -46,23 +64,23 @@ compute_sliding_windows <- function(modseq_dat,
 {
   # Setup DB
   db_con <- dbConnect(duckdb(tempfile()))
-  
+
   if(dbExistsTable(db_con, "sliding_windows")) {
     dbRemoveTable(db_con, "sliding_windows")
   }
-  
+
   # Get vector of chromosome names
-  chrs <- 
+  chrs <-
     modseq_dat |>
     select(chrom) |>
     distinct() |>
     arrange(chrom) |>
     pull()
-  
-  return_vals <- lapply(chrs, .compute_windows_chr, 
-                        db_con = db_con, 
-                        modseq_dat = modseq_dat, 
+
+  return_vals <- lapply(chrs, .compute_windows_chr,
+                        db_con = db_con,
+                        modseq_dat = modseq_dat,
                         window_size = window_size)
-  
+
   tbl(db_con, "sliding_windows")
 }

@@ -1,23 +1,37 @@
-#' Open methylation data from a directory
+#' Open Methylation Data from a Directory
 #'
-#' @param path Path to database directory
+#' This function opens methylation data stored in a specified directory and applies filters
+#' based on sample names, chromosomes, read length, base quality, and call probability.
 #'
-#' @param samples Vector of samples to extract methylation data from. Default is all
+#' @param path Path to the database directory containing methylation data.
 #'
-#' @param chrs Vector of chromosomes to extract. Default is all
+#' @param samples A vector of sample names to extract methylation data from.
+#'                Default is "all", which retrieves data from all available samples.
 #'
-#' @param min_read_length Minimum read length to allow. Filters any read less than this parameter
+#' @param chrs A vector of chromosome names to extract. Default is "all",
+#'              which retrieves data from all available chromosomes.
 #'
-#' @param min_base_qual Minimum phred scale of base calls.
+#' @param min_read_length Minimum read length to allow. Filters out any reads
+#'                        shorter than this length. Default is 100.
 #'
-#' @param max_memory Maximum memory of object to be processed.
+#' @param min_call_prob Minimum probability for base call. Default is 0.9.
 #'
-#' @param max_threads Maximum CPU threads.
+#' @param min_base_qual Minimum Phred quality score for base calls. Default is 10.
 #'
-#' @return A duckdb object of all methylation data to be processed.
+#' @param max_memory Maximum memory allocation for the database connection.
+#'                   Default is "8GB".
+#'
+#' @param max_threads Maximum number of CPU threads to use for processing. Default is 4.
+#'
+#' @return A DuckDB object containing all methylation data that meets the specified
+#'         filtering criteria.
 #'
 #' @examples
-#' data = open_dat(my_path)
+#' data = open_dat("path/to/database")
+#' data = open_dat("path/to/database", samples = c("sample1", "sample2"), chrs = c("chr1", "chr2"))
+#'
+#' @importFrom DBI dbConnect dbExecute
+#' @import duckdb
 #'
 #' @export
 open_dat <- function(path,

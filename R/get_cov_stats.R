@@ -1,3 +1,30 @@
+#' Calculate and Plot Coverage Statistics
+#'
+#' This function calculates and optionally plots statistics for coverage data from
+#' methylation sequencing experiments. It can handle both positional and regional
+#' methylation data.
+#'
+#' @param modseq_dat A data frame containing methylation data. It should have a
+#' column named \code{cov} for positional data or \code{mean_cov} for regional data.
+#'
+#' @param plot Logical, if \code{TRUE}, the function will generate a histogram of
+#' the coverage data. Default is \code{FALSE}.
+#'
+#' @return If \code{plot} is \code{FALSE}, the function prints summary statistics
+#' and percentiles of the coverage data. If \code{plot} is \code{TRUE}, it prints a
+#' histogram of the log-transformed coverage data.
+#'
+#' @examples
+#' \dontrun{
+#' get_cov_stats(modseq_dat)
+#' get_cov_stats(modseq_dat, plot = TRUE)
+#' }
+#'
+#' @import dplyr ggplot2
+#'
+#' @importFrom ggplot2 ggplot aes geom_histogram labs theme_minimal
+#'
+#' @export
 get_cov_stats <- function(modseq_dat,
                           plot = FALSE)
 {
