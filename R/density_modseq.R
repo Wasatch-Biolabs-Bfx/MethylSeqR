@@ -26,14 +26,13 @@ density_modseq <- function(modseq_dat) {
   regional_dat = "region_name" %in% colnames(modseq_dat)
 
   if (regional_dat) {
-    print("yay regional data!")
 
     plotting_data <- na.omit(modseq_dat) |>
       dplyr::select(c(region_name,
                       sample_name,
-                      mean_mh_frac)) |>
+                      mh_frac)) |>
       pivot_wider(names_from = sample_name,
-                  values_from = mean_mh_frac) |>
+                  values_from = mh_frac) |>
       na.omit()
   } else {
     plotting_data <- modseq_dat |>

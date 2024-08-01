@@ -34,9 +34,9 @@ pca_modseq <- function(modseq_dat)
     # Aggregate mean_mh_frac by sample and region_name
     test_wide <-
       modseq_dat |>
-      select(c(region_name, sample_name, mean_mh_frac)) |>
+      dplyr::select(c(region_name, sample_name, mh_frac)) |>
       pivot_wider(names_from = sample_name,
-                  values_from = mean_mh_frac) |>
+                  values_from = mh_frac) |>
       na.omit()
   } else {
     # Aggregate mean_mh_frac by sample and region_name

@@ -32,12 +32,11 @@ cor_modseq <- function(modseq_dat,
     # Aggregate mean_mh_frac by sample and region_name
     dat_wide <- modseq_dat |>
       pivot_wider(names_from = sample_name,
-                  values_from = mean_mh_frac)
+                  values_from = mh_frac)
 
     # Compute Correlation
-    sample_names <- unique(modseq_dat$sample_name)
-    sample_names <- sample_names[!is.na(sample_names)]  # Remove NA values
-    numeric_columns <- dat_wide[, sample_names, drop = FALSE]
+    #sample_names <- sample_names[!is.na(sample_names)]  # Remove NA values
+    numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
 
     # Calculate correlation matrix
     correlation_matrix <- cor(numeric_columns,
@@ -58,8 +57,6 @@ cor_modseq <- function(modseq_dat,
 
     #slice_sample(n = 5000000) |>
     # just grab a single chromosme
-
-    print(head(dat_wide))
 
     # Compute Correlation
     numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]

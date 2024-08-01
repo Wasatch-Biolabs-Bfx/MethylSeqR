@@ -38,11 +38,11 @@ get_cov_stats <- function(modseq_dat,
   # Decide if per base or per region
   regional_dat = "region_name" %in% colnames(modseq_dat)
 
-  if (!regional_dat) {
+  # if (!regional_dat) {
     cov = pull(modseq_dat, cov)
-  } else {
-    cov = pull(modseq_dat, mean_cov)
-  }
+  # } else {
+  #   cov = pull(modseq_dat, mean_cov)
+  # }
 
   qts <- c(seq(0, 0.9, 0.1), 0.95, 0.99, 0.995, 0.999, 1)
 

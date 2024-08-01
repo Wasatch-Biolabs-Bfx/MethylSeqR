@@ -27,11 +27,11 @@ cluster_modseq <- function(modseq_dat)
   if (regional_dat) {
     data_matrix <-
       na.omit(modseq_dat) |>
-      select(
-        c(region_name, sample_name, mean_mh_frac)) |>
+      dplyr::select(
+        c(region_name, sample_name, mh_frac)) |>
       pivot_wider(
         names_from = sample_name,
-        values_from = mean_mh_frac) |>
+        values_from = mh_frac) |>
       dplyr::select(
         -region_name) |>
       as.matrix()
