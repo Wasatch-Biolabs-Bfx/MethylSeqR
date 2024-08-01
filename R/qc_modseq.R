@@ -15,9 +15,7 @@
 #' @examples
 #' qc_modseq(data)
 #'
-#' @importFrom dplyr print
-#'
-#' @importFrom magrittr %>%
+#' @import dplyr
 #'
 #' @export
 qc_modseq <- function(modseq_dat, plot = TRUE) {

@@ -13,13 +13,9 @@
 #' @examples
 #' pca_modseq(data)
 #'
-#' @importFrom dplyr na.omit select mutate
-#'
-#' @importFrom tidyr pivot_wider
+#' @import dplyr tidyr ggplot2
 #'
 #' @importFrom stats prcomp
-#'
-#' @importFrom ggplot2 ggplot aes geom_point labs theme_minimal
 #'
 #' @export
 pca_modseq <- function(modseq_dat)
