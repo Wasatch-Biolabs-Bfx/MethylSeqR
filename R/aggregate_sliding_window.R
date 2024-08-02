@@ -14,6 +14,7 @@
 #'
 #' @import dplyr
 #' @importFrom DBI dbConnect dbRemoveTable
+#' @importFrom tidier mutate
 #'
 #' @export
 .compute_windows_chr <- function(cur_chrom,
@@ -72,7 +73,7 @@ compute_sliding_windows <- function(modseq_dat,
   # Get vector of chromosome names
   chrs <-
     modseq_dat |>
-    select(chrom) |>
+    dplyr::select(chrom) |>
     distinct() |>
     arrange(chrom) |>
     pull()

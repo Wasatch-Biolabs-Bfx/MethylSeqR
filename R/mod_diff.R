@@ -11,7 +11,8 @@
 #'
 #' @param mod_type A string specifying the type of methylation data, either "mh" or "m".
 #'
-#' @param calc_type A string specifying the calculation type, either "fast_fisher", "r_fisher", or "log_reg".
+#' @param calc_type A string specifying the calculation type, either
+#' "fast_fisher", "r_fisher", or "log_reg".
 #'
 #' @return A data frame with p-values and differential methylation statistics.
 #'

@@ -21,7 +21,8 @@ calc_mod_diff(
 
 \item{mod_type}{A string specifying the type of methylation data, either "mh" or "m".}
 
-\item{calc_type}{A string specifying the calculation type, either "fast_fisher", "r_fisher", or "log_reg".}
+\item{calc_type}{A string specifying the calculation type, either
+"fast_fisher", "r_fisher", or "log_reg".}
 }
 \value{
 A data frame with p-values and differential methylation statistics.

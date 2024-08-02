@@ -18,8 +18,6 @@
 #'
 #' @importFrom MASS kde2d
 #'
-#' @importFrom ggplot2 ggplot geom_raster scale_fill_viridis_c labs theme_minimal facet_wrap
-#'
 #' @export
 density_modseq <- function(modseq_dat) {
   # decide if per base or per region
