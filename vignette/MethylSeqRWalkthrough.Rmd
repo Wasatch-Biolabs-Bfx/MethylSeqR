@@ -1,5 +1,5 @@
 ---
-title: "Using the MethylSeqR package"
+title: "Using the methylseqR package"
 author: "Jonathon T. Hill, PhD and Hailey Johnson"
 output:
   BiocStyle::html_document:
@@ -8,7 +8,7 @@ output:
     toc_float: true
     css: "bioconductor2.css"
   vignette: >
-    %\VignetteIndexEntry{Using the MethylSeqR package}
+    %\VignetteIndexEntry{Using the methylseqR package}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}  
 ---
@@ -25,7 +25,7 @@ opts_chunk$set(tidy=TRUE, tidy.opts=list(width.cutoff=70))
 
 # Introduction
 
-The `sangerseqR` package provides basic functions for importing and 
+The `methylseqR` package provides basic functions for importing and 
 working with sanger sequencing data files. It currently functions with Scf and 
 ABIF files. The Scf file specification is an open source, although somewhat 
 limited, data file type. Several tools designed to view and or edit chromatogram
