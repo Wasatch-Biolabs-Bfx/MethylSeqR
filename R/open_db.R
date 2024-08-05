@@ -34,7 +34,7 @@
 #' @import duckdb
 #'
 #' @export
-open_dat <- function(path,
+open_db <- function(path,
                      samples = "all",
                      chrs = "all",
                      min_read_length = 100,
