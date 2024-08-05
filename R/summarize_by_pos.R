@@ -45,5 +45,6 @@ summarize_by_pos <- function(modseq_dat,
       h_frac = h_counts / cov,
       mh_frac = mh_counts / cov) |>
     select(
-      sample_name, chrom, ref_position, cov, c_counts, !!!score_cols)
+      sample_name, chrom, ref_position, cov, c_counts, !!!score_cols) %>%
+    collect()
 }
