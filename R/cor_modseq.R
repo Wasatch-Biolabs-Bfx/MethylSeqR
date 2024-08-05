@@ -29,10 +29,13 @@ cor_modseq <- function(modseq_dat,
   regional_dat = "region_name" %in% colnames(modseq_dat)
 
   if (regional_dat) {
+    print("regional data")
     # Aggregate mean_mh_frac by sample and region_name
     dat_wide <- modseq_dat |>
       pivot_wider(names_from = sample_name,
                   values_from = mh_frac)
+
+    print(head(dat_wide))
 
     # Compute Correlation
     #sample_names <- sample_names[!is.na(sample_names)]  # Remove NA values
@@ -60,7 +63,6 @@ cor_modseq <- function(modseq_dat,
 
     # Compute Correlation
     numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
-    print(head(numeric_columns))
 
     # Calculate correlation matrix
     correlation_matrix <- cor(numeric_columns,
