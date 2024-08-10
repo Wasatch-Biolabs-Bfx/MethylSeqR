@@ -1,9 +1,9 @@
-
+# unneccessary right now
 summarize_by_read <- function(modseq_dat,
                               score = "mh",
                               include_ID = FALSE)
-{ 
-  score_cols <- 
+{
+  score_cols <-
     expand.grid(score, c("counts", "frac")) |>
     unite("x") |>
     unlist() |>
@@ -11,10 +11,10 @@ summarize_by_read <- function(modseq_dat,
 
 # determine which columns to be collected later once we have summarized by read
 if (include_ID == TRUE) {
-  selected_columns = c("sample_name", "chrom", "first_CG_pos", 
+  selected_columns = c("sample_name", "chrom", "first_CG_pos",
                        "last_CG_pos", "read_length", score_cols, "read_id")
 } else if (include_ID == FALSE) {
-  selected_columns = c("sample_name", "chrom", "first_CG_pos", 
+  selected_columns = c("sample_name", "chrom", "first_CG_pos",
                        "last_CG_pos", "read_length", score_cols)
 }
 

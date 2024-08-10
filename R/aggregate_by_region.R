@@ -10,7 +10,7 @@
 #' @examples
 #' regional_data = aggregate_regions(data, "CpG_islands.tsv")
 #'
-#' @import dplyr
+#' @import dplyr readr
 #'
 #' @export
 aggregate_regions <- function(modseq_dat,
@@ -19,7 +19,7 @@ aggregate_regions <- function(modseq_dat,
 {
   # Read annotation
   annotation <-
-    read_tsv(annot_file,
+    read_csv(annot_file,
              col_names = c("chrom", "start", "end", "region_name"),
              show_col_types = FALSE)
 
@@ -28,8 +28,10 @@ aggregate_regions <- function(modseq_dat,
     annotation = annotation[-1, ]
   }
 
-  stopifnot("Invalid annotation format. File must have chr, start, end." =
-              ncol(annotation) >= 3)
+  if (ncol(annotation) < 3 || ncol(annotation) > 4) {
+    stop("Invalid annotation format. File must have 3 or 4 columns:
+         chr, start, end, region_name (optional) annotation.")
+  }
 
   if (!join_type %in% c("inner", "right", "left", "full")) {
     stop("Invalid join type")
@@ -63,7 +65,6 @@ aggregate_regions <- function(modseq_dat,
                     "full" = full_join)
 
   modseq_dat |>
-    print(head()) |>
     my_join( # make join
       annotation,
       by = join_by(chrom, ref_position),
@@ -72,6 +73,7 @@ aggregate_regions <- function(modseq_dat,
       .by = c(sample_name, region_name),
       cov = sum(cov),
       across(ends_with("_counts"), sum),
-      across(ends_with("_frac"), ~ sum(.x * cov) / sum(cov)))
+      across(ends_with("_frac"), ~ sum(.x * cov) / sum(cov))) %>%
+    collect()
 
 }

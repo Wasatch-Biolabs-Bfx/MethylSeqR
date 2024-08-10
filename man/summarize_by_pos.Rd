@@ -2,23 +2,30 @@
 % Please edit documentation in R/summarize_by_pos.R
 \name{summarize_by_pos}
 \alias{summarize_by_pos}
-\title{Summarize methylation data by reference positions}
+\title{Summarize Methylation Data by Reference Positions}
 \usage{
 summarize_by_pos(modseq_dat, score = "mh")
 }
 \arguments{
-\item{modseq_dat}{Methylation data in a duckdb object as opened by open_dat().}
+\item{modseq_dat}{A duckdb object containing methylation data, typically opened
+using the `open_dat()` function.}
 
-\item{score}{A methylation score type. Default is mh, can also include m, h, or a vector of score types wanted.}
+\item{score}{A character vector specifying the methylation score types to summarize.
+Default is "mh", but can also include "m", "h", or any combination of
+these scores.}
 }
 \value{
-A duckdb object of methylation scores summarized by each position.
+A duckdb object containing methylation scores summarized by each reference position,
+        including counts and fractions of methylated and unmethylated bases for each sample.
 }
 \description{
-Summarize methylation data by reference positions
+This function summarizes methylation data by reference positions, calculating
+coverage and counts of different methylation states for each sample. It can handle
+multiple methylation score types as specified by the user.
 }
 \examples{
-summarize_by_pos(data)
-summarize_by_pos(data, score = "m")
-summarize_by_pos(data, score = c("m", "mh", "h")
+summarized_data <- summarize_by_pos(data)
+summarized_data_m <- summarize_by_pos(data, score = "m")
+summarized_data_multiple <- summarize_by_pos(data, score = c("m", "mh", "h"))
+
 }

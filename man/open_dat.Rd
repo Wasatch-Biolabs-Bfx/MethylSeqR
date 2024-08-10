@@ -2,7 +2,7 @@
 % Please edit documentation in R/open_db.R
 \name{open_dat}
 \alias{open_dat}
-\title{Open methylation data from a directory}
+\title{Open Methylation Data from a Directory}
 \usage{
 open_dat(
   path,
@@ -11,31 +11,41 @@ open_dat(
   min_read_length = 100,
   min_call_prob = 0.9,
   min_base_qual = 10,
-  max_memory = "2GB",
+  max_memory = "8GB",
   max_threads = 4
 )
 }
 \arguments{
-\item{path}{Path to database directory}
+\item{path}{Path to the database directory containing methylation data.}
 
-\item{samples}{Vector of samples to extract methylation data from. Default is all}
+\item{samples}{A vector of sample names to extract methylation data from.
+Default is "all", which retrieves data from all available samples.}
 
-\item{chrs}{Vector of chromosomes to extract. Default is all}
+\item{chrs}{A vector of chromosome names to extract. Default is "all",
+which retrieves data from all available chromosomes.}
 
-\item{min_read_length}{Minimum read length to allow. Filters any read less than this parameter}
+\item{min_read_length}{Minimum read length to allow. Filters out any reads
+shorter than this length. Default is 100.}
 
-\item{min_base_qual}{Minimum base quality}
+\item{min_call_prob}{Minimum probability for base call. Default is 0.9.}
 
-\item{max_memory}{Maximum memory to be colllected}
+\item{min_base_qual}{Minimum Phred quality score for base calls. Default is 10.}
 
-\item{max_threads}{Maximum threads to be allowed}
+\item{max_memory}{Maximum memory allocation for the database connection.
+Default is "8GB".}
+
+\item{max_threads}{Maximum number of CPU threads to use for processing. Default is 4.}
 }
 \value{
-A duckdb object of all methylation data to be processed.
+A DuckDB object containing all methylation data that meets the specified
+        filtering criteria.
 }
 \description{
-Open methylation data from a directory
+This function opens methylation data stored in a specified directory and applies filters
+based on sample names, chromosomes, read length, base quality, and call probability.
 }
 \examples{
-data = open_dat(my_path)
+data = open_dat("path/to/database")
+data = open_dat("path/to/database", samples = c("sample1", "sample2"), chrs = c("chr1", "chr2"))
+
 }
