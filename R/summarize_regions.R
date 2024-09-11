@@ -54,10 +54,9 @@ summarize_regions <- function(ch3_db,
   
   # Create regional data frame- offer a left, right or inner join
   
-  # left join, if they wanna keep reads that are outside of the annotation table
+  # left join- keep reads that are outside of the annotation table
   
-  # right join, if they want to keep reads that are all in annotation table and
-  # even those regions not included in data frame
+  # right join- keep reads in annotation table + regions not included in data frame
   
   # inner join- regions in both annotation and data frame...
   my_join <- switch(join_type,
@@ -66,39 +65,57 @@ summarize_regions <- function(ch3_db,
                     "left" = left_join,
                     "full" = full_join)
   
-  # Initialize progress bar (for the number of regions to be processed)
-  # pb <- progress_bar$new(
-  #   format = "[:bar] :percent [Elapsed time: :elapsed]",
-  #   total = nrow(annotation),  # Progress based on number of annotation regions
-  #   complete = "=",   
-  #   incomplete = "-", 
-  #   current = ">",    
-  #   clear = FALSE,    
-  #   width = 100
-  # )
+  regions <- tbl(db_con, "positions") # open the data
   
-  # make a loop through chr
-  # "diff_meth" 
+  # Create Progress Bar
+  pb <- progress_bar$new(
+    format = "[:bar] :percent [Elapsed time: :elapsed]",
+    total = length(ch3_files) + 1,
+    complete = "=",
+    incomplete = "-",
+    current = ">",
+    clear = FALSE,
+    width = 100)
   
-  # Begin summarizing by region
-  # Perform the join and aggregation
-  regional_data <- tbl(db_con, "positions") |>
-    my_join(annotation, 
-            by = join_by(chrom, 
-                         ref_position), 
-            copy = TRUE) |>
-    summarize(
-      .by = c(sample_name, region_name),
-      cov = sum(cov),
-      across(ends_with("_counts"), sum),
-      across(ends_with("_frac"), ~ sum(.x * cov) / sum(cov))) |>
-    compute(name = "temp_table", temporary = TRUE)
+  pb$tick()
   
-  # Update progress bar for each iteration (in this case, for each region)
-  # pb$tick()
+  # Create regions table by unique chrs
+  chroms <-
+    annotation |>
+    select(chrom) |>
+    distinct() |>
+    pull()
   
-  # Write the aggregated data to the database (if needed)
-  dbWriteTable(conn = db_con, name = "regions", value = regional_data, overwrite = TRUE)
+  for (chr in chroms) {
+    # Begin summarizing by region- perform the join and aggregation
+    tbl(db_con, "positions") |>
+      filter(chrom == chr) |>
+      my_join(annotation, 
+              by = join_by(chrom, 
+                           ref_position), 
+              copy = TRUE) |>
+      summarize(
+        .by = c(sample_name, region_name),
+        cov = sum(cov),
+        across(ends_with("_counts"), sum),
+        across(ends_with("_frac"), ~ sum(.x * cov) / sum(cov))) |>
+      compute(name = "temp_table", temporary = TRUE)
+    
+    # Create or append table
+    dbExecute(db_con, 
+              "CREATE TABLE IF NOT EXISTS regions AS 
+              SELECT * FROM temp_table WHERE 1=0")
+    
+    dbExecute(db_con, 
+              "INSERT INTO regions SELECT * FROM temp_table")
+    
+    dbRemoveTable(db_con, "temp_table")
+    
+    pb$tick()
+  }
+  
+  # Close progress bar
+  pb$terminate()
   
   # Finish up: update table list and close the connection
   ch3_db$tables <- dbListTables(db_con)
