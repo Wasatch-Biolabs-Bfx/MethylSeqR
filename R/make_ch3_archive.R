@@ -14,7 +14,7 @@ make_ch3_archive <- function(file_name,
   start_time <- Sys.time()
 
   stopifnot("Invalid file_name" = 
-            !file.exists(file_name))
+            file.exists(file_name))
 
   # Read data as arrow table
   meth_data <- 
