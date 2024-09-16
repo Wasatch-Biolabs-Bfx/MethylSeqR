@@ -7,6 +7,7 @@ library(dplyr)
 library(dbplyr)
 library(duckdb)
 library(duckplyr)
+library(progress)
 
 # Function
 make_pos_db <- function(ch3_files, 
