@@ -26,6 +26,7 @@
 #' @importFrom ggplot2 ggplot aes geom_histogram labs theme_minimal
 #'
 #' @export
+
 get_cov_stats <- function(ch3_db,
                           call_type = c("positions", "regions"),
                           plot = FALSE)
@@ -50,9 +51,6 @@ get_cov_stats <- function(ch3_db,
   if (!(call_type %in% ch3_db$tables)) {
     stop(paste0(call_type, " Table does not exist. You can create it by..."))
   }
-  
-  if (dbExistsTable(db_con, call_type) & overwrite)
-    dbRemoveTable(db_con, call_type)
   
   modseq_dat = tbl(db_con, call_type) 
   
