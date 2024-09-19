@@ -15,21 +15,8 @@ calc_windows <- function(ch3_db,
                          step_size = 10,
                          overwrite = TRUE) 
 {
-  # If a character file name is provided, then make ch3 class obj
-  if (inherits(ch3_db, "character")) {
-    ch3_db <- list(db_file = ch3_db)
-    class(ch3_db) <- "ch3_db"
-    db_con <- dbConnect(duckdb(ch3_db$db_file), read_only = FALSE)
-    ch3_db$tables <- dbListTables(db_con)
-  } else if (inherits(ch3_db, "character")) {
-    db_con <- dbConnect(duckdb(ch3_db$db_file), read_only = FALSE)
-  } else {
-    stop("Invalid ch3_db class. Must be character or ch3_db.")
-  }
-  
-  # Check if needed table exists
-  # stopifnot("X Table does not exist. You can create it by..." =
-  #             "X" %in% ch3_db$tables)
+  # Open the database connection
+  db_con <- helper_connectDB(ch3_db)
   
   if (dbExistsTable(db_con, "windows") & overwrite)
     dbRemoveTable(db_con, "windows")

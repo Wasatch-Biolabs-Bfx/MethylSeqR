@@ -7,6 +7,11 @@ calc_mod_diff <- function(ch3_db,
   # Open the database connection
   db_con <- helper_connectDB(ch3_db)
   
+  # check for windows function
+  if (!dbExistsTable(db_con, "windows")) {
+    stop(paste0("Windows table does not exist. You can create it by calling calc_windows()."))
+  }
+  
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
 
