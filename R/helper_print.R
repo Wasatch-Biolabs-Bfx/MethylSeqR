@@ -5,6 +5,11 @@ helper_print <- function(ch3_db, tables = c("positions"))
   
   # List all tables in the database
   all_tables <- dbListTables(db_con)
+  message(paste0("All tables currently in database: "))
+  
+  for (tbl_name in all_tables) {
+    print(tbl_name)
+  }
   
   for (tb_name in tables) {
     if (tb_name %in% all_tables) {
