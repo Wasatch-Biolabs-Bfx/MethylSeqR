@@ -19,12 +19,20 @@
 #' @importFrom graphics plot
 #'
 #' @export
-cluster_modseq <- function(modseq_dat)
+cluster_modseq <- function(ch3_db,
+                           call_type = c("positions"))
 {
-  # Decide if regional or positional data
-  regional_dat <- "region_name" %in% colnames(modseq_dat)
+  # If a character file name is provided, then make ch3 class obj
+  db_con = helper_connectDB(ch3_db)
+  
+  # Check for specific table and connect to it in the database
+  if (!dbExistsTable(db_con, call_type)) {
+    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+  }
+  
+  modseq_dat = tbl(db_con, call_type) 
 
-  if (regional_dat) {
+  if (call_type == "regions") {
     data_matrix <-
       na.omit(modseq_dat) |>
       dplyr::select(
@@ -59,4 +67,7 @@ cluster_modseq <- function(modseq_dat)
 
   # Plot the dendrogram using base R plot
   print(plot(dend, main = "Dendrogram of Methylation Samples"))
+  
+  # Finish up: close the connection
+  dbDisconnect(db_con, shutdown = TRUE)
 }

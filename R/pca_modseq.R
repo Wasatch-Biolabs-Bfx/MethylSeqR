@@ -18,15 +18,16 @@
 #' @importFrom stats prcomp
 #'
 #' @export
-pca_modseq <- function(modseq_dat)
+pca_modseq <- function(ch3_db, call_type = c("positions"))
 {
+  # If a character file name is provided, then make ch3 class obj
+  db_con = helper_connectDB(ch3_db)
+  
+  modseq_dat = tbl(db_con, call_type) 
   # clean
   modseq_dat = na.omit(modseq_dat)
 
-  # decide if per base or per region
-  regional_dat = "region_name" %in% colnames(modseq_dat)
-
-  if (regional_dat) {
+  if (call_type == "regions") {
     # Aggregate mean_mh_frac by sample and region_name
     test_wide <-
       modseq_dat |>

@@ -13,6 +13,7 @@ helper_print <- function(ch3_db, tables = c("positions"))
       
       # Fetch the first few rows and print them
       print(tbl(db_con, tb_name) %>% head())
+
     } else {
       # Print a message if the table does not exist
       message(paste0("Table '", tb_name, "' does not exist in the database."))

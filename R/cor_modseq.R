@@ -22,13 +22,25 @@
 #' @importFrom stats cor
 #'
 #' @export
-cor_modseq <- function(modseq_dat,
+cor_modseq <- function(ch3_db,
+                       call_type = c("positions"),
                        plot = FALSE)
 {
-  # decide if regional or positional data
-  regional_dat = "region_name" %in% colnames(modseq_dat)
+  # If a character file name is provided, then make ch3 class obj
+  db_con = helper_connectDB(ch3_db)
+  
+  if (length(call_type) > 1) {
+    call_type = c("positions")
+  }
+  
+  # Check for specific table and connect to it in the database
+  if (!dbExistsTable(db_con, call_type)) {
+    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+  }
+  
+  modseq_dat = tbl(db_con, call_type) 
 
-  if (regional_dat) {
+  if (call_type == "regions") {
     print("regional data")
     # Aggregate mean_mh_frac by sample and region_name
     dat_wide <- modseq_dat |>
@@ -100,4 +112,8 @@ cor_modseq <- function(modseq_dat,
                                      vjust = 1,
                                      hjust = 1)))
   }
+  
+  
+  # Finish up: close the connection
+  dbDisconnect(db_con, shutdown = TRUE)
 }

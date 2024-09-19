@@ -9,7 +9,7 @@ library(duckplyr)
 library(progress)
 
 # Function
-calc_windows <- function(db_folder,
+calc_windows <- function(ch3_db,
                          call_type = "positions",
                          window_size = 1000,
                          step_size = 10,
@@ -28,14 +28,17 @@ calc_windows <- function(db_folder,
   }
   
   # Check if needed table exists
-  stopifnot("X Table does not exist. You can create it by..." =
-              "X" %in% ch3_db$tables)
+  # stopifnot("X Table does not exist. You can create it by..." =
+  #             "X" %in% ch3_db$tables)
   
   if (dbExistsTable(db_con, "windows") & overwrite)
     dbRemoveTable(db_con, "windows")
   
   if (dbExistsTable(db_con, "temp_table"))
     dbRemoveTable(db_con, "temp_table")
+  
+  # Calc windows in each frame
+  offsets <- seq(1, window_size - 1, by = step_size)
   
   # Create Progress Bar
   pb <- progress_bar$new(
@@ -45,10 +48,7 @@ calc_windows <- function(db_folder,
     incomplete = "-", 
     current = ">",    
     clear = FALSE,    
-    width = 100)   
-  
-  # Calc windows in each frame
-  offsets <- seq(1, window_size - 1, by = step_size)
+    width = 100)
   
   # Tick progress bar to make it show up (first loop can be long)
   pb$tick()

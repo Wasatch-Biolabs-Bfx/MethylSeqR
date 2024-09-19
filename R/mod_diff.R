@@ -1,49 +1,21 @@
-#' Calculate Differential Methylation
-#'
-#' This function calculates differential methylation between cases and controls
-#' using either Fisher's exact test or logistic regression.
-#'
-#' @param modseq_dat A data frame containing methylation data.
-#'
-#' @param cases A vector of sample names to be treated as cases.
-#'
-#' @param controls A vector of sample names to be treated as controls.
-#'
-#' @param mod_type A string specifying the type of methylation data, either "mh" or "m".
-#'
-#' @param calc_type A string specifying the calculation type, either
-#' "fast_fisher", "r_fisher", or "log_reg".
-#'
-#' @return A data frame with p-values and differential methylation statistics.
-#'
-#' @examples
-#' \dontrun{
-#' calc_mod_diff(modseq_dat, cases, controls)
-#' calc_mod_diff(modseq_dat, cases, controls, mod_type = "m", calc_type = "log_reg")
-#' }
-#'
-#' @import dplyr tidyr
-#'
-#' @importFrom stats fisher.test glm.fit pchisq
-#'
-#' @importFrom utils head
-#'
-#' @export
-calc_mod_diff <- function(modseq_dat,
+calc_mod_diff <- function(ch3_db,
                           cases,
                           controls,
                           mod_type = "mh",
                           calc_type = "fast_fisher")
 {
+  # Open the database connection
+  db_con <- helper_connectDB(ch3_db)
+  
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
 
   # Label cases and controls
   in_dat <-
-    modseq_dat |>
+    tbl(db_con, "windows") |>
     select(
       sample_name, any_of(c("chrom", "ref_position", "region_name")),
-      cov, c_counts, mod_counts = !!mod_counts_col) |>
+      total_calls, c_counts, mod_counts = !!mod_counts_col) |>
     mutate(
       exp_group = case_when(
         sample_name %in% cases ~ "case",
