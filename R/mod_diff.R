@@ -1,4 +1,5 @@
 calc_mod_diff <- function(ch3_db,
+                          call_type = "positions",
                           cases,
                           controls,
                           mod_type = "mh",
@@ -8,8 +9,8 @@ calc_mod_diff <- function(ch3_db,
   db_con <- helper_connectDB(ch3_db)
   
   # check for windows function
-  if (!dbExistsTable(db_con, "windows")) {
-    stop(paste0("Windows table does not exist. You can create it by calling calc_windows()."))
+  if (!dbExistsTable(db_con, call_type)) {
+    stop(paste0(call_type, " table does not exist."))
   }
   
   # Set stat to use
@@ -17,7 +18,7 @@ calc_mod_diff <- function(ch3_db,
 
   # Label cases and controls
   in_dat <-
-    tbl(db_con, "windows") |>
+    tbl(db_con, call_type) |>
     select(
       sample_name, any_of(c("chrom", "ref_position", "region_name")),
       total_calls, c_counts, mod_counts = !!mod_counts_col) |>

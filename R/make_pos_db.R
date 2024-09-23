@@ -31,6 +31,9 @@ make_pos_db <- function(ch3_files,
   if (dbExistsTable(db_con, "positions"))
     dbRemoveTable(db_con, "positions")
   
+  if (dbExistsTable(db_con, "windows"))
+    dbRemoveTable(db_con, "windows")
+  
   # Loop through files to add to db
   # Create Progress Bar
   pb <- progress_bar$new(

@@ -11,6 +11,10 @@ helper_print <- function(ch3_db, tables = c("positions"))
     print(tbl_name)
   }
   
+  # if (tables == "all") {
+  #   tables = all_tables
+  # }
+  
   for (tb_name in tables) {
     if (tb_name %in% all_tables) {
       # Print the table name
