@@ -1,4 +1,4 @@
-helper_print <- function(ch3_db, tables = c("positions"))
+helper_print <- function(ch3_db, tables = "all")
 {
   # Open the database connection
   db_con <- helper_connectDB(ch3_db)
@@ -11,9 +11,9 @@ helper_print <- function(ch3_db, tables = c("positions"))
     print(tbl_name)
   }
   
-  # if (tables == "all") {
-  #   tables = all_tables
-  # }
+  if (tables == "all") {
+    tables = all_tables
+  }
   
   for (tb_name in tables) {
     if (tb_name %in% all_tables) {
