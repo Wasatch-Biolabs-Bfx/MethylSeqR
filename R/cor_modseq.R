@@ -1,75 +1,61 @@
-#' Compute and Optionally Plot Correlation Matrix of Methylation Data
-#'
-#' This function computes the Pearson correlation matrix of methylation data
-#' and optionally plots the correlation matrix.
-#'
-#' @param modseq_dat A data frame containing methylation data. The data frame can
-#' either contain positional or regional data. If it contains regional data, it must
-#' have a column named \code{region_name}.
-#'
-#' @param plot A logical value indicating whether to plot the correlation matrix.
-#' Default is \code{FALSE}.
-#'
-#' @return The correlation matrix of the methylation data.
-#'
-#' @examples
-#' \dontrun{
-#' correlation_matrix <- cor_modseq(modseq_dat, plot = TRUE)
-#' }
-#'
-#' @import dplyr tidyr ggplot2 reshape2
-#'
-#' @importFrom stats cor
-#'
-#' @export
-cor_modseq <- function(modseq_dat,
+library(tidyr)
+library(reshape2)
+
+cor_modseq <- function(ch3_db,
+                       call_type = c("positions"),
                        plot = FALSE)
 {
-  # decide if regional or positional data
-  regional_dat = "region_name" %in% colnames(modseq_dat)
+  # Connect to the database
+  db_con <- helper_connectDB(ch3_db)
+  
+  if (length(call_type) > 1) {
+    call_type = c("positions")
+  }
+  
+  # Check if the call_type table exists in the database
+  if (!dbExistsTable(db_con, call_type)) {
+    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+  }
+  
+  # Retrieve the 'positions' table
+  modseq_dat <- tbl(db_con, call_type) %>% collect()
 
-  if (regional_dat) {
+  if (call_type == "regions") {
     print("regional data")
     # Aggregate mean_mh_frac by sample and region_name
     dat_wide <- modseq_dat |>
       pivot_wider(names_from = sample_name,
                   values_from = mh_frac)
-
-    print(head(dat_wide))
-
     # Compute Correlation
-    #sample_names <- sample_names[!is.na(sample_names)]  # Remove NA values
     numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
-
     # Calculate correlation matrix
     correlation_matrix <- cor(numeric_columns,
                               use = "pairwise.complete.obs",
                               method = "pearson")
-
     # View the correlation matrix
     print(correlation_matrix)
   } else {
-    dat_wide <- modseq_dat |>
-      mutate(chr_pos = paste(chrom,
-                             ref_position,
-                             sep = "_")) |>
+    # Create a 'chr_pos' identifier for each genomic position
+    dat_wide <- modseq_dat %>%
+      mutate(chr_pos = paste(chrom, ref_position, sep = "_")) %>%
       pivot_wider(id_cols = chr_pos,
-                  names_from = sample_name,
-                   values_from = mh_frac)
-
-
-    #slice_sample(n = 5000000) |>
-    # just grab a single chromosme
-
-    # Compute Correlation
-    numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
-
-    # Calculate correlation matrix
-    correlation_matrix <- cor(numeric_columns,
-                              use = "pairwise.complete.obs",
-                              method = "pearson")
-
-    # # View the correlation matrix
+                  names_from = sample_name,  # Each sample (barcode) becomes a column
+                  values_from = mh_frac)     # Values are the 'mh_frac' for each sample
+    
+    # Convert the sample columns to numeric (if needed)
+    numeric_columns <- dat_wide %>%
+      select(-chr_pos) %>%
+      mutate(across(everything(), as.numeric))  # Convert all columns to numeric
+    
+    # Check if conversion was successful
+    if (!all(sapply(numeric_columns, is.numeric))) {
+      stop("Some columns could not be converted to numeric.")
+    }
+    
+    # Calculate the correlation matrix
+    correlation_matrix <- cor(numeric_columns, use = "pairwise.complete.obs", method = "pearson")
+    
+    # Print the correlation matrix
     print(correlation_matrix)
   }
 
@@ -100,4 +86,8 @@ cor_modseq <- function(modseq_dat,
                                      vjust = 1,
                                      hjust = 1)))
   }
+  
+  
+  # Finish up: close the connection
+  dbDisconnect(db_con, shutdown = TRUE)
 }

@@ -24,9 +24,25 @@
 #' @importFrom ggplot2 ggplot aes geom_histogram labs theme_minimal
 #'
 #' @export
-get_mod_stats <- function(modseq_dat,
+get_mod_stats <- function(ch3_db,
+                          call_type = c("positions", "regions"),
                           plot = FALSE)
 {
+  
+  # If a character file name is provided, then make ch3 class obj
+  db_con = helper_connectDB(ch3_db)
+  
+  if (length(call_type) > 1) {
+    call_type = c("positions")
+  }
+  
+  # Check for specific table and connect to it in the database
+  if (!dbExistsTable(db_con, call_type)) {
+    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+  }
+  
+  modseq_dat = tbl(db_con, call_type) 
+  
   # decide if per base or per region
   regional_dat = "region_name" %in% colnames(modseq_dat)
 
@@ -73,4 +89,7 @@ get_mod_stats <- function(modseq_dat,
          x = x_title, y = "Frequency") +
     theme_minimal())
   }
+  
+  # Finish up: close the connection
+  dbDisconnect(db_con, shutdown = TRUE)
 }
