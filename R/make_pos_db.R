@@ -54,7 +54,8 @@ make_pos_db <- function(ch3_files,
       filter(
         call_prob >= min_call_prob,
         read_length >= min_length,
-        base_qual >= min_base_qual) |>
+        base_qual >= min_base_qual,
+        nchar(chrom) < 6) |> # remove unneccessary chromosomes
       summarize(
         .by = c(sample_name, chrom, ref_position),
         cov = n(),

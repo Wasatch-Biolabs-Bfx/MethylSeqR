@@ -8,13 +8,33 @@ calc_mod_diff <- function(ch3_db,
   # Open the database connection
   db_con <- helper_connectDB(ch3_db)
   
-  # check for windows function
+  # check for the table in the database...
   if (!dbExistsTable(db_con, call_type)) {
     stop(paste0(call_type, " table does not exist."))
   }
-  
+  # remove meth_diff if already there
   if (dbExistsTable(db_con, "meth_diff"))
     dbRemoveTable(db_con, "meth_diff")
+  
+  # CHECK: Are all case and controls actually in the data? 
+  # Retrieve all sample names
+  all_samples <- tbl(db_con, call_type) |>
+    select(sample_name) |>
+    distinct() |>
+    collect() |>
+    pull(sample_name)
+  # Check if all case samples are present
+  missing_cases <- setdiff(cases, all_samples)
+  if (length(missing_cases) > 0) {
+    stop(paste("Data is missing case samples:", 
+               paste(missing_cases, collapse = ", ")))
+  }
+  # Check if all control samples are present
+  missing_controls <- setdiff(controls, all_samples)
+  if (length(missing_controls) > 0) {
+    stop(paste("Data is missing control samples:", 
+               paste(missing_controls, collapse = ", ")))
+  }
   
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
