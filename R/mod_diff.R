@@ -17,24 +17,10 @@ calc_mod_diff <- function(ch3_db,
     dbRemoveTable(db_con, "meth_diff")
   
   # CHECK: Are all case and controls actually in the data? 
-  # Retrieve all sample names
-  all_samples <- tbl(db_con, call_type) |>
-    select(sample_name) |>
-    distinct() |>
-    collect() |>
-    pull(sample_name)
-  # Check if all case samples are present
-  missing_cases <- setdiff(cases, all_samples)
-  if (length(missing_cases) > 0) {
-    stop(paste("Data is missing case samples:", 
-               paste(missing_cases, collapse = ", ")))
-  }
-  # Check if all control samples are present
-  missing_controls <- setdiff(controls, all_samples)
-  if (length(missing_controls) > 0) {
-    stop(paste("Data is missing control samples:", 
-               paste(missing_controls, collapse = ", ")))
-  }
+  # Check for missing case samples
+  .check_missing_samples(db_con, call_type, cases, "case")
+  # Check for missing control samples
+  .check_missing_samples(db_con, call_type, controls, "control")
   
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
@@ -234,4 +220,20 @@ calc_mod_diff <- function(ch3_db,
   deviance <- fit$null.deviance - fit$deviance
   
   pchisq(deviance, 1, lower.tail = FALSE)
+}
+
+.check_missing_samples <- function(db_con, call_type, samples, sample_type) {
+  # Retrieve all distinct sample names from the database
+  all_samples <- tbl(db_con, call_type) |>
+    select(sample_name) |>
+    distinct() |>
+    collect() |>
+    pull(sample_name)
+  
+  # Find samples that are not in the database at all
+  missing_samples <- setdiff(samples, all_samples)
+  
+  if (length(missing_samples) > 0) {
+    stop(paste("Missing", sample_type, "samples:", paste(missing_samples, collapse = ", ")))
+  }
 }
