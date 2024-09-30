@@ -9,7 +9,7 @@ library(duckplyr)
 library(progress)
 
 # Function
-calc_windows <- function(ch3_db,
+summarize_windows <- function(ch3_db,
                          call_type = "positions",
                          window_size = 1000,
                          step_size = 10,
