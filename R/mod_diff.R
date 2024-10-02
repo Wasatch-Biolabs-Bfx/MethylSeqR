@@ -85,7 +85,9 @@ calc_mod_diff <- function(ch3_db,
   dat <-
     in_dat |>
     summarize(
-      .by = c(exp_group, any_of(c("chrom", "ref_position", "region_name"))),
+      .by = c(exp_group, any_of(c("chrom", "start", "end",
+                                  "ref_position", 
+                                  "region_name"))),
       c_counts = sum(c_counts),
       mod_counts = sum(mod_counts)) |>
     pivot_wider(
@@ -96,7 +98,9 @@ calc_mod_diff <- function(ch3_db,
   # Extract matrix and calculate p-vals
   pvals <-
     dat |>
-    select(!any_of(c("chrom", "ref_position", "region_name"))) |>
+    select(!any_of(c("chrom", "start", "end",
+                     "ref_position", 
+                     "region_name"))) |>
     distinct() |>
     mutate(
       mod_frac_case = mod_counts_case /
