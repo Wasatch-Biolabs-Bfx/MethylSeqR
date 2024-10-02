@@ -50,33 +50,7 @@ summarize_windows <- function(ch3_db,
   tryCatch(
     {
       for (offset in offsets) {
-        db_tbl |>
-          mutate(
-            start = ref_position - ((ref_position - offset) %% window_size),
-            na.rm = TRUE) |>
-          filter(
-            start > 0) |>
-          summarize(
-            .by = c(sample_name, chrom, start),
-            total_calls = sum(cov, na.rm = TRUE),
-            across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
-            across(ends_with("_frac"), ~sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE)),
-            na.rm = TRUE) |>
-          mutate(
-            end = start + window_size - 1) |>
-          compute(name = "temp_table", temporary = TRUE,
-                  na.rm = TRUE)
-        
-        # Create or append table
-        dbExecute(db_con, 
-                  "CREATE TABLE IF NOT EXISTS windows AS 
-              SELECT * FROM temp_table WHERE 1=0")
-        
-        dbExecute(db_con, 
-                  "INSERT INTO windows SELECT * FROM temp_table")
-        
-        dbRemoveTable(db_con, "temp_table")
-        
+        .make_window(db_tbl, db_con, offset, window_size)
         # Advance progress bar
         pb$tick()
       }
@@ -98,4 +72,34 @@ summarize_windows <- function(ch3_db,
         dbDisconnect(db_con, shutdown = TRUE)
       })
   return(ch3_db)
+}
+
+.make_window <- function(db_tbl, db_con, offset, window_size)
+{
+  db_tbl |>
+    mutate(
+      start = ref_position - ((ref_position - offset) %% window_size),
+      na.rm = TRUE) |>
+    filter(
+      start > 0) |>
+    summarize(
+      .by = c(sample_name, chrom, start),
+      total_calls = sum(cov, na.rm = TRUE),
+      across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
+      across(ends_with("_frac"), ~sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE)),
+      na.rm = TRUE) |>
+    mutate(
+      end = start + window_size - 1) |>
+    compute(name = "temp_table", temporary = TRUE,
+            na.rm = TRUE)
+  
+  # Create or append table
+  dbExecute(db_con, 
+            "CREATE TABLE IF NOT EXISTS windows AS 
+              SELECT * FROM temp_table WHERE 1=0")
+  
+  dbExecute(db_con, 
+            "INSERT INTO windows SELECT * FROM temp_table")
+  
+  dbRemoveTable(db_con, "temp_table")
 }
