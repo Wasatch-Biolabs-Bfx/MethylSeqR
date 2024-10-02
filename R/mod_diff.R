@@ -1,3 +1,4 @@
+# calculate differential methylation
 calc_mod_diff <- function(ch3_db,
                           call_type = "positions",
                           cases,
@@ -7,84 +8,69 @@ calc_mod_diff <- function(ch3_db,
 {
   # Open the database connection
   db_con <- helper_connectDB(ch3_db)
-  # check for the table in the database...
+  
+  # check for windows function
   if (!dbExistsTable(db_con, call_type)) {
     stop(paste0(call_type, " table does not exist."))
   }
-  # remove meth_diff if already there
+  
   if (dbExistsTable(db_con, "meth_diff"))
     dbRemoveTable(db_con, "meth_diff")
-  
-  # CHECK: Are all case and controls actually in the data? 
-  # Check for missing case samples
-  .check_missing_samples(db_con, call_type, cases, "case")
-  # Check for missing control samples
-  .check_missing_samples(db_con, call_type, controls, "control")
   
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
   
-  tryCatch(
-    {
-      # Label cases and controls
-      in_dat <-
-        tbl(db_con, call_type) |>
-        select(
-          sample_name, any_of(c("chrom", "start", "end", 
-                                "ref_position", 
-                                "region_name")), # removed total_calls,
-          c_counts, mod_counts = !!mod_counts_col) |>
-        mutate(
-          exp_group = case_when(
-            sample_name %in% cases ~ "case",
-            sample_name %in% controls ~ "control",
-            TRUE ~ NA)) |>
-        filter(
-          !is.na(exp_group))
-      
-      # Calculate p-vals and diffs
-      result <- switch(calc_type,
-                       fast_fisher = .calc_diff_fisher(in_dat,
-                                                       calc_type = "fast_fisher"),
-                       r_fisher    = .calc_diff_fisher(in_dat,
-                                                       calc_type = "r_fisher"),
-                       log_reg     = .calc_diff_logreg(in_dat)) |>
-        rename_with(
-          ~ gsub("mod", mod_type[1], .x))
-      
-      # Collect the result and write to the database
-      result |>
-        collect() |>
-        dbWriteTable(
-          conn = db_con, 
-          name = "meth_diff", 
-          append = TRUE
-        )
-      
-      # Finish up: clean up database tables, close the connection and update tables in ch3_db
-      db_tables <- dbListTables(db_con)
-      potential_tables <- c("positions", 
-                            "windows",
-                            "regions",
-                            "meth_diff")
-      
-      # Remove tables that are not in the 'potential_tables' list
-      for (table in db_tables) {
-        if (!(table %in% potential_tables)) {
-          dbRemoveTable(db_con, table)
-        }
-      }
-    }, 
-    error = function(e) 
-    {
-      # Print custom error message
-      message("An error occurred: ", e$message)
-    }, 
-    finally = 
-      {
-        ch3_db$tables <- dbListTables(db_con)
-        dbDisconnect(db_con, shutdown = TRUE)
-      })
+  # Label cases and controls
+  in_dat <-
+    tbl(db_con, call_type) |>
+    select(
+      sample_name, any_of(c("chrom", "start", "end", 
+                            "ref_position", 
+                            "region_name")), # removed total_calls,
+      c_counts, mod_counts = !!mod_counts_col) |>
+    mutate(
+      exp_group = case_when(
+        sample_name %in% cases ~ "case",
+        sample_name %in% controls ~ "control",
+        TRUE ~ NA)) |>
+    filter(
+      !is.na(exp_group))
+  
+  # Calculate p-vals and diffs
+  result <- switch(calc_type,
+                   fast_fisher = .calc_diff_fisher(in_dat,
+                                                   calc_type = "fast_fisher"),
+                   r_fisher    = .calc_diff_fisher(in_dat,
+                                                   calc_type = "r_fisher"),
+                   log_reg     = .calc_diff_logreg(in_dat)) |>
+    rename_with(
+      ~ gsub("mod", mod_type[1], .x))
+  
+  # Collect the result and write to the database
+  result |>
+    collect() |>
+    dbWriteTable(
+      conn = db_con, 
+      name = "meth_diff", 
+      append = TRUE
+    )
+  
+  # Finish up: clean up database tables, close the connection and update tables in ch3_db
+  db_tables <- dbListTables(db_con)
+  potential_tables <- c("positions", 
+                        "windows",
+                        "regions",
+                        "meth_diff")
+  
+  # Remove tables that are not in the 'potential_tables' list
+  for (table in db_tables) {
+    if (!(table %in% potential_tables)) {
+      dbRemoveTable(db_con, table)
+    }
+  }
+  
+  ch3_db$tables <- dbListTables(db_con)
+  dbDisconnect(db_con, shutdown = TRUE)
   
   return(ch3_db)
 }
@@ -99,9 +85,7 @@ calc_mod_diff <- function(ch3_db,
   dat <-
     in_dat |>
     summarize(
-      .by = c(exp_group, any_of(c("chrom", "start", "end",
-                                  "ref_position", 
-                                  "region_name"))),
+      .by = c(exp_group, any_of(c("chrom", "ref_position", "region_name"))),
       c_counts = sum(c_counts),
       mod_counts = sum(mod_counts)) |>
     pivot_wider(
@@ -112,9 +96,7 @@ calc_mod_diff <- function(ch3_db,
   # Extract matrix and calculate p-vals
   pvals <-
     dat |>
-    select(!any_of(c("chrom", "start", "end",
-                     "ref_position", 
-                     "region_name"))) |>
+    select(!any_of(c("chrom", "ref_position", "region_name"))) |>
     distinct() |>
     mutate(
       mod_frac_case = mod_counts_case /
@@ -229,20 +211,4 @@ calc_mod_diff <- function(ch3_db,
   deviance <- fit$null.deviance - fit$deviance
   
   pchisq(deviance, 1, lower.tail = FALSE)
-}
-
-.check_missing_samples <- function(db_con, call_type, samples, sample_type) {
-  # Retrieve all distinct sample names from the database
-  all_samples <- tbl(db_con, call_type) |>
-    select(sample_name) |>
-    distinct() |>
-    collect() |>
-    pull(sample_name)
-  
-  # Find samples that are not in the database at all
-  missing_samples <- setdiff(samples, all_samples)
-  
-  if (length(missing_samples) > 0) {
-    stop(paste("Missing", sample_type, "samples:", paste(missing_samples, collapse = ", ")))
-  }
 }
