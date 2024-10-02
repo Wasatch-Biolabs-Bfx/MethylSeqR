@@ -62,7 +62,11 @@ cor_modseq <- function(ch3_db,
       
       # Plot Correlation Matrix with Correlation Values
       if (plot) {
-        melted_cor <- melt(correlation_matrix)
+        # melted_cor <- melt(correlation_matrix)
+        # Replace `melt(correlation_matrix)` with `pivot_longer()`
+        melted_cor <- as.data.frame(correlation_matrix) %>%
+          mutate(Var1 = rownames(correlation_matrix)) %>%  # Add row names as a new column
+          pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")  # Pivot to long format
         
         print(ggplot(data = melted_cor, aes(x = Var1,
                                             y = Var2,
