@@ -1,12 +1,38 @@
-library(tidyr)
-library(reshape2)
+#' Correlation Matrix of Modified Sequence Data
+#'
+#' This function calculates and optionally plots a correlation matrix for methylation or other modification fraction data 
+#' from genomic positions. It can handle both position-based and region-based calls and supports visualization using ggplot2.
+#'
+#' @param ch3_db A string. The path to the database containing ch3 files from nanopore data.
+#' @param call_type A character vector specifying the type of data to retrieve from the database. Default is "positions". Can alo be "regions".
+#' @param plot A logical value. If TRUE, a correlation heatmap with correlation values is plotted. Default is FALSE.
+#'
+#' @details
+#' This function connects to the ch3 files database, retrieves either position or region-based modification fraction data, 
+#' and computes the Pearson correlation matrix for each sample. If `call_type` is "regions", it aggregates data by sample 
+#' and region name before computing the correlation matrix. If `plot = TRUE`, the function generates a heatmap using 
+#' ggplot2 with the correlation values displayed.
+#'
+#' @note The function assumes that the database has tables named according to the `call_type` parameter (e.g., "positions", 
+#' "regions"). The correlation matrix is calculated using the `pairwise.complete.obs` method, which handles missing data.
+#'
+#' @importFrom stats cor
+#' @import DBI tidyr ggplot2
+#' 
+#' @return A correlation matrix of modification fractions across samples. If `plot = TRUE`, a ggplot object of the correlation 
+#' matrix heatmap is also printed.
+#'
+#' @examples
+#' cor_modseq(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
+#'
+#' @export
 
 cor_modseq <- function(ch3_db,
                        call_type = c("positions"),
                        plot = FALSE)
 {
   # Connect to the database
-  db_con <- helper_connectDB(ch3_db)
+  db_con <- .helper_connectDB(ch3_db)
   if (length(call_type) > 1) {
     call_type = c("positions")
   }
@@ -62,8 +88,6 @@ cor_modseq <- function(ch3_db,
       
       # Plot Correlation Matrix with Correlation Values
       if (plot) {
-        # melted_cor <- melt(correlation_matrix)
-        # Replace `melt(correlation_matrix)` with `pivot_longer()`
         melted_cor <- as.data.frame(correlation_matrix) %>%
           mutate(Var1 = rownames(correlation_matrix)) %>%  # Add row names as a new column
           pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")  # Pivot to long format

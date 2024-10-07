@@ -1,12 +1,34 @@
-## Make Archive
-
-# Dependencies
-library(arrow)
-library(tidyr)
-library(dplyr)
-library(dbplyr)
-
-# Function
+#' Create CH3 Archive from Methylation Data
+#'
+#' This function reads methylation data from a specified file and creates an archive of the data 
+#' in CH3 format, storing it in a designated output path. It processes the data by selecting relevant 
+#' columns and mutating the reference position based on the modification strand.
+#'
+#' @param file_name A string representing the path to the input file containing methylation data.
+#' @param sample_name A string representing the name of the sample. This name will be included in 
+#' the output files.
+#' @param out_path A string representing the path where the output CH3 dataset will be stored.
+#'
+#' @details
+#' The function uses the Arrow package to read the input TSV dataset and select specific columns. 
+#' It then adjusts the reference position based on the modification strand before writing the dataset 
+#' to the specified output path. The output files are named using the provided `sample_name` and a 
+#' unique index.
+#'
+#' @return A string representing the path of the created archive file, useful for piping or assignment.
+#' The function is designed to be used as a part of a data processing pipeline.
+#'
+#' @import arrow
+#' @import dplyr
+#' @import dbplyr
+#' @import tidyr
+#'
+#' @examples
+#' make_ch3_archive(file_name = "path/to/data.tsv", 
+#'                  sample_name = "Sample1", 
+#'                  out_path = "path/to/output")
+#'
+#' @export
 make_ch3_archive <- function(file_name, 
                              sample_name,
                              out_path) 

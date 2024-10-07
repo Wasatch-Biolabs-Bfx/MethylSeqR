@@ -1,6 +1,30 @@
+#' Perform PCA on Methylation Data
+#'
+#' This function performs Principal Component Analysis (PCA) on methylation data retrieved from a DuckDB database.
+#' It aggregates the methylation fraction data based on the specified call type and prepares it for PCA analysis.
+#'
+#' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
+#' @param call_type A string representing the name of the table in the database from which to pull the data. 
+#' Default is "positions".
+#'
+#' @details
+#' The function connects to the specified DuckDB database, retrieves the methylation data from the specified call type table, 
+#' and aggregates the data either by regions or chromosomal positions. PCA is then performed on the aggregated data, and 
+#' a scatter plot of the first two principal components is generated.
+#'
+#' @return A PCA plot is produced, showing the first two principal components of the methylation data.
+#' The function also prints a summary of the PCA results and the PCA data used for plotting.
+#'
+#' @import dbplyr
+#' @import ggplot2
+#'
+#' @examples
+#' pca_modseq(ch3_db = my_ch3_db, call_type = "positions")
+#'
+#' @export
 pca_modseq <- function(ch3_db, call_type = "positions") {
   # Connect to the database
-  db_con <- helper_connectDB(ch3_db)
+  db_con <- .helper_connectDB(ch3_db)
   
   tryCatch(
     {

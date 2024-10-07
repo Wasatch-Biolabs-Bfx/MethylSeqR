@@ -1,27 +1,31 @@
-#' Calculate and Plot Methylation Statistics
+#' Get Methylation Statistics from the ch3 Database
 #'
-#' This function calculates and optionally plots statistics for methylation data from
-#' sequencing experiments. It can handle both positional and regional methylation data.
+#' This function retrieves and calculates methylation statistics (mean methylation fractions) 
+#' from a specified table in the ch3 database. It can either return summary statistics or plot 
+#' a histogram of the methylation values, depending on the user's preference. 
 #'
-#' @param modseq_dat A data frame containing methylation data. It should have one of
-#' the following columns: \code{mh_frac}, \code{mean_mh_frac}, \code{m_frac}, or \code{mean_m_frac}.
+#' @param ch3_db A string. The path to the database containing ch3 files from nanopore data.
+#' @param call_type A character vector specifying the type of data to retrieve from the database. 
+#'                  Default is "positions". Can also be "regions".
+#' @param plot A logical value. If TRUE, a histogram of methylation values is plotted. Default is FALSE.
 #'
-#' @param plot Logical, if \code{TRUE}, the function will generate a histogram of
-#' the methylation data. Default is \code{FALSE}.
+#' @details
+#' The function connects to the specified database, checks for the existence of the relevant table, 
+#' and retrieves methylation fraction data. If the table contains methylation data, it prioritizes 
+#' the `mh_frac` column over others. Depending on the `call_type`, it can compute statistics 
+#' for either per base or per region. If `plot` is set to TRUE, it generates a histogram of the 
+#' methylation values.
 #'
-#' @return If \code{plot} is \code{FALSE}, the function prints summary statistics
-#' and percentiles of the methylation data. If \code{plot} is \code{TRUE}, it prints a
-#' histogram of the methylation data.
+#' @note The function assumes that the database has tables named according to the `call_type` parameter 
+#' (e.g., "positions", "regions"). It also expects specific columns for methylation data to exist.
+#'
+#' @import DBI dplyr ggplot2
+#'
+#' @return If `plot` is FALSE, the function prints a summary of the methylation statistics and quantiles. 
+#' If `plot` is TRUE, it displays a histogram of methylation values.
 #'
 #' @examples
-#' \dontrun{
-#' get_mod_stats(modseq_dat)
-#' get_mod_stats(modseq_dat, plot = TRUE)
-#' }
-#'
-#' @import dplyr ggplot2
-#'
-#' @importFrom ggplot2 ggplot aes geom_histogram labs theme_minimal
+#' get_mod_stats(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
 #'
 #' @export
 get_mod_stats <- function(ch3_db,
@@ -30,7 +34,7 @@ get_mod_stats <- function(ch3_db,
 {
   
   # If a character file name is provided, then make ch3 class obj
-  db_con = helper_connectDB(ch3_db)
+  db_con = .helper_connectDB(ch3_db)
   
   tryCatch(
     {

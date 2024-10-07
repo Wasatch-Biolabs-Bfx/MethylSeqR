@@ -1,4 +1,35 @@
-# calculate differential methylation
+#' Calculate Differential Methylation
+#'
+#' This function calculates differential methylation between specified case and control groups using various statistical methods. 
+#' The results are stored in a DuckDB database for further analysis.
+#'
+#' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
+#' @param call_type A string representing the name of the table in the database from which to pull the data. 
+#' Default is "positions".
+#' @param cases A character vector containing the sample names for the case group.
+#' @param controls A character vector containing the sample names for the control group.
+#' @param mod_type A string indicating the type of modification to analyze. 
+#' Default is "mh" for methylation/hydroxymethylation.
+#' @param calc_type A string specifying the statistical method to use for calculating p-values. 
+#' Options include "fast_fisher", "r_fisher", and "log_reg". Default is "fast_fisher".
+#'
+#' @details
+#' The function connects to the specified DuckDB database and retrieves methylation data from the specified call type table. 
+#' It summarizes the data for cases and controls, calculates p-values based on the specified method, and stores the results in the 
+#' "meth_diff" table. 
+#'
+#' @return A list containing the updated "ch3_db" object with the latest tables in the database, including "meth_diff".
+#'
+#' @import dbplyr
+#' @import duckdb
+#'
+#' @examples
+#' calc_mod_diff(ch3_db = my_ch3_db, 
+#'                call_type = "positions", 
+#'                cases = c("sample1", "sample2"), 
+#'                controls = c("sample3", "sample4"))
+#'
+#' @export
 calc_mod_diff <- function(ch3_db,
                           call_type = "positions",
                           cases,
@@ -7,7 +38,7 @@ calc_mod_diff <- function(ch3_db,
                           calc_type = "fast_fisher")
 {
   # Open the database connection
-  db_con <- helper_connectDB(ch3_db)
+  db_con <- .helper_connectDB(ch3_db)
   
   # check for windows function
   if (!dbExistsTable(db_con, call_type)) {

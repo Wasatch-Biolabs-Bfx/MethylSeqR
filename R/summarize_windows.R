@@ -3,12 +3,38 @@
 # Dependencies
 library(tidyr)
 library(dplyr)
-library(dbplyr)
-library(duckdb)
-library(duckplyr)
-library(progress)
-
-# Function
+#' Summarize Methylation Data using a Sliding Window
+#'
+#' This function summarizes methylation data from a DuckDB database by creating 
+#' sliding windows over the specified genomic regions. It allows for the adjustment 
+#' of window size and step size to control the granularity of the summarization.
+#'
+#' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
+#' @param call_type A string indicating the type of data to summarize. Default is "positions".
+#' @param window_size An integer specifying the size of the sliding window in base pairs. Default is 1000.
+#' @param step_size An integer specifying the number of base pairs to step forward with each window. Default is 10.
+#' @param overwrite A logical indicating whether to overwrite the existing "windows" table if it exists. Default is TRUE.
+#'
+#' @details
+#' The function connects to a DuckDB database and removes any existing "windows" and "temp_table" tables if necessary. 
+#' It creates a sequence of offsets based on the specified window and step sizes, and then it iterates through 
+#' these offsets to generate sliding windows of methylation data. A progress bar is displayed during the operation.
+#'
+#' The function utilizes the helper function `.make_window` to perform the actual window calculation and summarization.
+#' The resulting summarized data is stored in a table called "windows" within the database.
+#'
+#' @return The updated `ch3_db` object with the summarized windows data added to the DuckDB database.
+#'
+#' @import dplyr
+#' @import dbplyr
+#' @import duckdb
+#' @import duckplyr
+#' @import progress
+#' 
+#' @examples
+#' summarize_windows(ch3_db = my_ch3_db, call_type = "positions", window_size = 1000, step_size = 10)
+#'
+#' @export
 summarize_windows <- function(ch3_db,
                          call_type = "positions",
                          window_size = 1000,
@@ -16,7 +42,7 @@ summarize_windows <- function(ch3_db,
                          overwrite = TRUE) 
 {
   # Open the database connection
-  db_con <- helper_connectDB(ch3_db)
+  db_con <- .helper_connectDB(ch3_db)
   
   if (dbExistsTable(db_con, "windows") & overwrite)
     dbRemoveTable(db_con, "windows")

@@ -1,9 +1,38 @@
+#' Export Tables from the ch3 Database
+#'
+#' This function exports specified tables from the ch3 database to CSV files. It checks whether each table exists in the database 
+#' before exporting, and provides informative messages for any missing tables. The output CSV files are saved at the specified path.
+#'
+#' @param ch3_db A string. The path to the database containing ch3 files from nanopore data.
+#' @param tables A character vector specifying the tables to be exported from the database. Default is "positions".
+#' @param out_path A string. The path where the CSV files will be saved.
+#'
+#' @details
+#' The function connects to the specified database and iterates through the list of table names provided in the `tables` parameter. 
+#' For each table that exists in the database, it reads the table into R and writes it as a CSV file to the location specified by `out_path`. 
+#' If a table does not exist in the database, a message is printed indicating this.
+#'
+#' In case of any error during the execution, a custom error message is displayed. The function ensures that the database connection 
+#' is closed safely using the `finally` block.
+#'
+#' @note The function assumes that the tables specified in `tables` exist in the database and can be accessed via the `DBI` package.
+#'
+#' @importFrom DBI dbListTables
+#' @importFrom dplyr tbl
+#' @import utils
+#' 
+#' @return NULL. The function writes the specified tables to CSV files.
+#'
+#' @examples
+#' export_tables(ch3_db = "path/to/database.db", tables = c("positions", "regions"), out_path = "output_directory/")
+#'
+#' @export
 export_tables <- function(ch3_db,
                          tables = c("positions"),
                         out_path) 
 {
   # Open the database connection
-  db_con <- helper_connectDB(ch3_db)
+  db_con <- .helper_connectDB(ch3_db)
   
   tryCatch(
     {
@@ -30,6 +59,6 @@ export_tables <- function(ch3_db,
     }, 
     finally = 
       {
-        helper_closeDB(ch3_db, db_con)
+        .helper_closeDB(ch3_db, db_con)
       })
 }

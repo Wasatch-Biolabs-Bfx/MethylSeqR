@@ -5,9 +5,7 @@
 #' methylation data.
 #'
 #' @param ch3_db A data base either linking to the file name or of class ch3_db.
-#' 
 #' @param call_type Either positions or regions data to analyze coverage on.
-#'
 #' @param plot Logical, if \code{TRUE}, the function will generate a histogram of
 #' the coverage data. Default is \code{FALSE}.
 #'
@@ -23,8 +21,6 @@
 #'
 #' @import dplyr ggplot2
 #'
-#' @importFrom ggplot2 ggplot aes geom_histogram labs theme_minimal
-#'
 #' @export
 
 get_cov_stats <- function(ch3_db,
@@ -32,7 +28,7 @@ get_cov_stats <- function(ch3_db,
                           plot = FALSE)
 {
   # If a character file name is provided, then make ch3 class obj
-  db_con = helper_connectDB(ch3_db)
+  db_con = .helper_connectDB(ch3_db)
   
   tryCatch(
     {
