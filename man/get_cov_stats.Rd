@@ -4,11 +4,12 @@
 \alias{get_cov_stats}
 \title{Calculate and Plot Coverage Statistics}
 \usage{
-get_cov_stats(modseq_dat, plot = FALSE)
+get_cov_stats(ch3_db, call_type = c("positions", "regions"), plot = FALSE)
 }
 \arguments{
-\item{modseq_dat}{A data frame containing methylation data. It should have a
-column named \code{cov} for positional data or \code{mean_cov} for regional data.}
+\item{ch3_db}{A data base either linking to the file name or of class ch3_db.}
+
+\item{call_type}{Either positions or regions data to analyze coverage on.}
 
 \item{plot}{Logical, if \code{TRUE}, the function will generate a histogram of
 the coverage data. Default is \code{FALSE}.}

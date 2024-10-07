@@ -2,28 +2,36 @@
 % Please edit documentation in R/cor_modseq.R
 \name{cor_modseq}
 \alias{cor_modseq}
-\title{Compute and Optionally Plot Correlation Matrix of Methylation Data}
+\title{Correlation Matrix of Modified Sequence Data}
 \usage{
-cor_modseq(modseq_dat, plot = FALSE)
+cor_modseq(ch3_db, call_type = c("positions"), plot = FALSE)
 }
 \arguments{
-\item{modseq_dat}{A data frame containing methylation data. The data frame can
-either contain positional or regional data. If it contains regional data, it must
-have a column named \code{region_name}.}
+\item{ch3_db}{A string. The path to the database containing ch3 files from nanopore data.}
 
-\item{plot}{A logical value indicating whether to plot the correlation matrix.
-Default is \code{FALSE}.}
+\item{call_type}{A character vector specifying the type of data to retrieve from the database. Default is "positions". Can alo be "regions".}
+
+\item{plot}{A logical value. If TRUE, a correlation heatmap with correlation values is plotted. Default is FALSE.}
 }
 \value{
-The correlation matrix of the methylation data.
+A correlation matrix of modification fractions across samples. If `plot = TRUE`, a ggplot object of the correlation 
+matrix heatmap is also printed.
 }
 \description{
-This function computes the Pearson correlation matrix of methylation data
-and optionally plots the correlation matrix.
+This function calculates and optionally plots a correlation matrix for methylation or other modification fraction data 
+from genomic positions. It can handle both position-based and region-based calls and supports visualization using ggplot2.
+}
+\details{
+This function connects to the ch3 files database, retrieves either position or region-based modification fraction data, 
+and computes the Pearson correlation matrix for each sample. If `call_type` is "regions", it aggregates data by sample 
+and region name before computing the correlation matrix. If `plot = TRUE`, the function generates a heatmap using 
+ggplot2 with the correlation values displayed.
+}
+\note{
+The function assumes that the database has tables named according to the `call_type` parameter (e.g., "positions", 
+"regions"). The correlation matrix is calculated using the `pairwise.complete.obs` method, which handles missing data.
 }
 \examples{
-\dontrun{
-correlation_matrix <- cor_modseq(modseq_dat, plot = TRUE)
-}
+cor_modseq(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
 
 }

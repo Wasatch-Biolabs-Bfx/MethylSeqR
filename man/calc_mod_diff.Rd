@@ -5,7 +5,8 @@
 \title{Calculate Differential Methylation}
 \usage{
 calc_mod_diff(
-  modseq_dat,
+  ch3_db,
+  call_type = "positions",
   cases,
   controls,
   mod_type = "mh",
@@ -13,28 +14,37 @@ calc_mod_diff(
 )
 }
 \arguments{
-\item{modseq_dat}{A data frame containing methylation data.}
+\item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
 
-\item{cases}{A vector of sample names to be treated as cases.}
+\item{call_type}{A string representing the name of the table in the database from which to pull the data. 
+Default is "positions".}
 
-\item{controls}{A vector of sample names to be treated as controls.}
+\item{cases}{A character vector containing the sample names for the case group.}
 
-\item{mod_type}{A string specifying the type of methylation data, either "mh" or "m".}
+\item{controls}{A character vector containing the sample names for the control group.}
 
-\item{calc_type}{A string specifying the calculation type, either
-"fast_fisher", "r_fisher", or "log_reg".}
+\item{mod_type}{A string indicating the type of modification to analyze. 
+Default is "mh" for methylation/hydroxymethylation.}
+
+\item{calc_type}{A string specifying the statistical method to use for calculating p-values. 
+Options include "fast_fisher", "r_fisher", and "log_reg". Default is "fast_fisher".}
 }
 \value{
-A data frame with p-values and differential methylation statistics.
+A list containing the updated "ch3_db" object with the latest tables in the database, including "meth_diff".
 }
 \description{
-This function calculates differential methylation between cases and controls
-using either Fisher's exact test or logistic regression.
+This function calculates differential methylation between specified case and control groups using various statistical methods. 
+The results are stored in a DuckDB database for further analysis.
+}
+\details{
+The function connects to the specified DuckDB database and retrieves methylation data from the specified call type table. 
+It summarizes the data for cases and controls, calculates p-values based on the specified method, and stores the results in the 
+"meth_diff" table.
 }
 \examples{
-\dontrun{
-calc_mod_diff(modseq_dat, cases, controls)
-calc_mod_diff(modseq_dat, cases, controls, mod_type = "m", calc_type = "log_reg")
-}
+calc_mod_diff(ch3_db = my_ch3_db, 
+               call_type = "positions", 
+               cases = c("sample1", "sample2"), 
+               controls = c("sample3", "sample4"))
 
 }

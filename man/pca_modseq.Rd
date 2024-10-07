@@ -2,24 +2,30 @@
 % Please edit documentation in R/pca_modseq.R
 \name{pca_modseq}
 \alias{pca_modseq}
-\title{Perform Principal Component Analysis (PCA) on Methylation Data}
+\title{Perform PCA on Methylation Data}
 \usage{
-pca_modseq(modseq_dat)
+pca_modseq(ch3_db, call_type = "positions")
 }
 \arguments{
-\item{modseq_dat}{A data frame containing methylation data. It should include
-sample names, methylation fractions, and may include region names.}
+\item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
+
+\item{call_type}{A string representing the name of the table in the database from which to pull the data. 
+Default is "positions".}
 }
 \value{
-A PCA plot showing the first two principal components and the
-        variance explained by each component. The PCA summary is also printed
-        to the console.
+A PCA plot is produced, showing the first two principal components of the methylation data.
+The function also prints a summary of the PCA results and the PCA data used for plotting.
 }
 \description{
-This function performs PCA on methylation data to reduce dimensionality
-and visualize the variance explained by the principal components.
+This function performs Principal Component Analysis (PCA) on methylation data retrieved from a DuckDB database.
+It aggregates the methylation fraction data based on the specified call type and prepares it for PCA analysis.
+}
+\details{
+The function connects to the specified DuckDB database, retrieves the methylation data from the specified call type table, 
+and aggregates the data either by regions or chromosomal positions. PCA is then performed on the aggregated data, and 
+a scatter plot of the first two principal components is generated.
 }
 \examples{
-pca_modseq(data)
+pca_modseq(ch3_db = my_ch3_db, call_type = "positions")
 
 }

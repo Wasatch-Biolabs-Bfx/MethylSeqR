@@ -4,7 +4,7 @@
 \alias{cluster_modseq}
 \title{Cluster Methylation Data}
 \usage{
-cluster_modseq(modseq_dat)
+cluster_modseq(ch3_db, call_type = c("positions"))
 }
 \arguments{
 \item{modseq_dat}{A data frame containing methylation data. The data frame can
