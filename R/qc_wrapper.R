@@ -23,7 +23,7 @@
 #' }
 #'
 #' @export
-qc_wrapper <- function(ch3_db, call_typ, plot = TRUE) {
+qc_wrapper <- function(ch3_db, call_type, plot = TRUE) {
   print("calculating coverage stats...")
   get_cov_stats(ch3_db, call_type, plot = plot)
   print("calculating mod stats...")
