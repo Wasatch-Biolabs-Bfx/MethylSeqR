@@ -51,7 +51,8 @@ cor_modseq <- function(ch3_db,
         print("regional data")
         # Aggregate mean_mh_frac by sample and region_name
         dat_wide <- modseq_dat |>
-          pivot_wider(names_from = sample_name,
+          pivot_wider(id_cols = region_name,
+                      names_from = sample_name,
                       values_from = mh_frac)
         # Compute Correlation
         numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
