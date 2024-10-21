@@ -116,8 +116,7 @@ summarize_windows <- function(ch3_db,
       na.rm = TRUE) |>
     mutate(
       end = start + window_size - 1) |>
-    compute(name = "temp_table", temporary = TRUE,
-            na.rm = TRUE)
+    compute(name = "temp_table", temporary = TRUE)
   
   # Create or append table
   dbExecute(db_con, 
