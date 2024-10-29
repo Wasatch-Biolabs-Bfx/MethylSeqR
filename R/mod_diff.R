@@ -40,72 +40,84 @@ calc_mod_diff <- function(ch3_db,
   # Open the database connection
   db_con <- .helper_connectDB(ch3_db)
   
-  # check for windows function
-  if (!dbExistsTable(db_con, call_type)) {
-    stop(paste0(call_type, " table does not exist."))
-  }
-  
-  if (dbExistsTable(db_con, "meth_diff"))
-    dbRemoveTable(db_con, "meth_diff")
-  
-  # Set stat to use
-  mod_counts_col <- paste0(mod_type[1], "_counts")
-  
-  # Label cases and controls
-  in_dat <-
-    tbl(db_con, call_type) |>
-    select(
-      sample_name, any_of(c("chrom", "start", "end", 
-                            "ref_position", 
-                            "region_name")), # removed total_calls,
-      c_counts, mod_counts = !!mod_counts_col) |>
-    mutate(
-      exp_group = case_when(
-        sample_name %in% cases ~ "case",
-        sample_name %in% controls ~ "control",
-        TRUE ~ NA)) |>
-    filter(
-      !is.na(exp_group))
-  
-  # Calculate p-vals and diffs
-  result <- switch(calc_type,
-                   fast_fisher = .calc_diff_fisher(in_dat,
-                                                   calc_type = "fast_fisher"),
-                   r_fisher    = .calc_diff_fisher(in_dat,
-                                                   calc_type = "r_fisher"),
-                   log_reg     = .calc_diff_logreg(in_dat)) |>
-    rename_with(
-      ~ gsub("mod", mod_type[1], .x))
-  
-  # Collect the result and write to the database
-  result |>
-    collect() |>
-    dbWriteTable(
-      conn = db_con, 
-      name = "meth_diff", 
-      append = TRUE
-    )
-  
-  # Finish up: clean up database tables, close the connection and update tables in ch3_db
-  db_tables <- dbListTables(db_con)
-  potential_tables <- c("positions", 
-                        "windows",
-                        "regions",
-                        "meth_diff")
-  
-  # Remove tables that are not in the 'potential_tables' list
-  for (table in db_tables) {
-    if (!(table %in% potential_tables)) {
-      dbRemoveTable(db_con, table)
+  tryCatch({
+    # check for windows function
+    if (!dbExistsTable(db_con, call_type)) {
+      stop(paste0(call_type, " table does not exist."))
     }
-  }
-  
-  ch3_db$tables <- dbListTables(db_con)
-  dbDisconnect(db_con, shutdown = TRUE)
-  
-  return(ch3_db)
+    
+    if (dbExistsTable(db_con, "meth_diff"))
+      dbRemoveTable(db_con, "meth_diff")
+    
+    # Set stat to use
+    mod_counts_col <- paste0(mod_type[1], "_counts")
+    print(colnames(tbl(db_con, call_type)))
+    # Label cases and controls
+    in_dat <-
+      tbl(db_con, call_type) |>
+      select(
+        sample_name, any_of(c("chrom", "start", "end", 
+                              "ref_position", 
+                              "region_name")), # removed total_calls,
+        c_counts, mod_counts = !!mod_counts_col) |>
+      mutate(
+        exp_group = case_when(
+          sample_name %in% cases ~ "case",
+          sample_name %in% controls ~ "control",
+          TRUE ~ NA)) |>
+      filter(
+        !is.na(exp_group))
+    
+    # Calculate p-vals and diffs
+    result <- switch(calc_type,
+                     fast_fisher = .calc_diff_fisher(in_dat,
+                                                     calc_type = "fast_fisher"),
+                     r_fisher    = .calc_diff_fisher(in_dat,
+                                                     calc_type = "r_fisher"),
+                     log_reg     = .calc_diff_logreg(in_dat)) |>
+      rename_with(
+        ~ gsub("mod", mod_type[1], .x))
+    
+    # Collect the result and write to the database
+    result |>
+      collect() |>
+      dbWriteTable(
+        conn = db_con, 
+        name = "meth_diff", 
+        append = TRUE
+      )
+    
+  }, 
+  error = function(e) 
+  {
+    # Print custom error message
+    message("An error occurred: ", e$message)
+    
+    if ("meth_diff" %in% dbListTables(db_con)) {
+      dbRemoveTable(db_con, "meth_diff")
+    }
+  }, 
+  finally = 
+    {
+      # Finish up: clean up database tables, close the connection and update tables in ch3_db
+      db_tables <- dbListTables(db_con)
+      potential_tables <- c("positions", 
+                            "windows",
+                            "regions",
+                            "meth_diff")
+      
+      # Remove tables that are not in the 'potential_tables' list
+      for (table in db_tables) {
+        if (!(table %in% potential_tables)) {
+          dbRemoveTable(db_con, table)
+        }
+      }
+      
+      ch3_db$tables <- dbListTables(db_con)
+      dbDisconnect(db_con, shutdown = TRUE)
+      return(ch3_db)
+    })
 }
-
 
 ## Calculate p-values using fisher exact tests. If there are multiple samples,
 ## they will be combined.
