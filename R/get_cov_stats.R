@@ -8,6 +8,7 @@
 #' @param call_type Either positions or regions data to analyze coverage on.
 #' @param plot Logical, if \code{TRUE}, the function will generate a histogram of
 #' the coverage data. Default is \code{FALSE}.
+#' @param save_path Pathway to save the plot to. Usually .pdf or .png.
 #'
 #' @return If \code{plot} is \code{FALSE}, the function prints summary statistics
 #' and percentiles of the coverage data. If \code{plot} is \code{TRUE}, it prints a

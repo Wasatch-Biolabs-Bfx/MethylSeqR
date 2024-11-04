@@ -6,6 +6,7 @@
 #' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
 #' @param call_type A string representing the name of the table in the database from which to pull the data. 
 #' Default is "positions".
+#' @param save_path Pathway to save the plot to. Usually .pdf or .png.
 #'
 #' @details
 #' The function connects to the specified DuckDB database, retrieves the methylation data from the specified call type table, 

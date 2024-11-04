@@ -8,6 +8,7 @@
 #' @param call_type A character vector specifying the type of data to retrieve from the database. 
 #'                  Default is "positions". Can also be "regions".
 #' @param plot A logical value. If TRUE, a histogram of methylation values is plotted. Default is FALSE.
+#' @param save_path Pathway to save the plot to. Usually .pdf or .png.
 #'
 #' @details
 #' The function connects to the specified database, checks for the existence of the relevant table, 

@@ -6,6 +6,7 @@
 #' @param ch3_db A string. The path to the database containing ch3 files from nanopore data.
 #' @param call_type A character vector specifying the type of data to retrieve from the database. Default is "positions". Can alo be "regions".
 #' @param plot A logical value. If TRUE, a correlation heatmap with correlation values is plotted. Default is FALSE.
+#' @param save_path Pathway to save the plot to. Usually .pdf or .png.
 #'
 #' @details
 #' This function connects to the ch3 files database, retrieves either position or region-based modification fraction data, 
