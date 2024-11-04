@@ -75,14 +75,20 @@ pca_modseq <- function(ch3_db, call_type = "positions") {
       print(pca_data)
       
       # Plot PCA
-      print(ggplot(pca_data, aes(x = PC1, y = PC2, color = sample_name)) +
+      p <- ggplot(pca_data, aes(x = PC1, y = PC2, color = sample_name)) +
               geom_point(size = 3) +
               theme_minimal() +
               labs(
                 title = "PCA Plot of Methylation Data",
                 x = paste0("PC1 (", pc1_var, "% variance)"),
                 y = paste0("PC2 (", pc2_var, "% variance)")
-              ))
+              )
+      print(p)
+      # Save the plot if save_path is specified
+      if (!is.null(save_path)) {
+        ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
+        cat("PCA plot saved to ", save_path, "\n")
+      }
     }, 
     error = function(e) 
     {

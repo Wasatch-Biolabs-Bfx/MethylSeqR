@@ -24,8 +24,9 @@
 #' @export
 
 get_cov_stats <- function(ch3_db,
-                          call_type = c("positions", "regions"),
-                          plot = FALSE)
+                          call_type = "positions",
+                          plot = FALSE,
+                          save_path = NULL)
 {
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
@@ -85,12 +86,19 @@ get_cov_stats <- function(ch3_db,
         plot <- data.frame(coverage = log10(cov))
         
         # Create the histogram
-        print(ggplot(plot, aes(x = coverage)) +
+        p <- ggplot(plot, aes(x = coverage)) +
                 geom_histogram(binwidth = 0.25, fill = "chartreuse4",
                                color = "black", linewidth = 0.25) +
                 labs(title = "Histogram of CpG Coverage",
                      x = x_title, y = "Frequency") +
-                theme_minimal())
+                theme_minimal()
+        print(p)
+        
+        # Save the plot if save_path is specified
+        if (!is.null(save_path)) {
+          ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
+          cat("Coverage plot saved to ", save_path, "\n")
+        }
       }
     }, 
     error = function(e) 

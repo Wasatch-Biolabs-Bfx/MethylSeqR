@@ -95,7 +95,7 @@ cor_modseq <- function(ch3_db,
           mutate(Var1 = rownames(correlation_matrix)) %>%  # Add row names as a new column
           pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")  # Pivot to long format
         
-        print(ggplot(data = melted_cor, aes(x = Var1,
+        p <- ggplot(data = melted_cor, aes(x = Var1,
                                             y = Var2,
                                             fill = value)) +
                 geom_tile() +
@@ -115,7 +115,14 @@ cor_modseq <- function(ch3_db,
                      y = "Sample") +
                 theme(axis.text.x = element_text(angle = 45,
                                                  vjust = 1,
-                                                 hjust = 1)))
+                                                 hjust = 1))
+        print(p)
+        
+        # Save the plot if save_path is specified
+        if (!is.null(save_path)) {
+          ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
+          cat("Correlation plot saved to ", save_path, "\n")
+        }
       }
       
     }, 

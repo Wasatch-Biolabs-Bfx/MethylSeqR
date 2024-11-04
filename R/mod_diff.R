@@ -40,7 +40,6 @@ calc_mod_diff <- function(ch3_db,
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
-  # ch3_db <- database$ch3_db
   
   tryCatch({
     # check for windows function
