@@ -31,8 +31,10 @@ cor_modseq <- function(ch3_db,
                        call_type = c("positions"),
                        plot = FALSE)
 {
-  # Connect to the database
-  db_con <- .helper_connectDB(ch3_db)
+  # Open the database connection
+  database <- .helper_connectDB(ch3_db)
+  db_con <- database$db_con
+  
   if (length(call_type) > 1) {
     call_type = c("positions")
   }
@@ -127,7 +129,7 @@ cor_modseq <- function(ch3_db,
     finally = 
       {
         # Finish up: close the connection
-        dbDisconnect(db_con, shutdown = TRUE)
+        .helper_closeDB(database)
       }
   )
 }

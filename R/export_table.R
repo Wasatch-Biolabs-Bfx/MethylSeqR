@@ -32,7 +32,8 @@ export_tables <- function(ch3_db,
                         out_path) 
 {
   # Open the database connection
-  db_con <- .helper_connectDB(ch3_db)
+  database <- .helper_connectDB(ch3_db)
+  db_con <- database$db_con
   
   tryCatch(
     {
@@ -59,6 +60,8 @@ export_tables <- function(ch3_db,
     }, 
     finally = 
       {
-        .helper_closeDB(ch3_db, db_con)
+        # Finish Up
+        .helper_closeDB(database)
+        return(database)
       })
 }

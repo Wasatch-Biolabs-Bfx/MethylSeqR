@@ -23,8 +23,9 @@
 #'
 #' @export
 pca_modseq <- function(ch3_db, call_type = "positions") {
-  # Connect to the database
-  db_con <- .helper_connectDB(ch3_db)
+  # Open the database connection
+  database <- .helper_connectDB(ch3_db)
+  db_con <- database$db_con
   
   tryCatch(
     {
@@ -91,6 +92,6 @@ pca_modseq <- function(ch3_db, call_type = "positions") {
     finally = 
       {
         # Finish up: close the connection
-        dbDisconnect(db_con, shutdown = TRUE)
+        .helper_closeDB(database)
       })
 }

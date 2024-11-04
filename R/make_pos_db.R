@@ -45,10 +45,9 @@ make_pos_db <- function(ch3_files,
   if (!grepl(".ch3.db$", ch3_db))
     ch3_db <- paste0(ch3_db, ".ch3.db")
   
-  ch3_db <- list(db_file = ch3_db)
-  class(ch3_db) <- "ch3_db"
-  db_con <- dbConnect(duckdb(ch3_db$db_file), read_only = FALSE)
-  ch3_db$tables <- dbListTables(db_con)
+  # Open the database connection
+  database <- .helper_connectDB(ch3_db)
+  db_con <- database$db_con
   
   ch3_files <- list.files(ch3_files, pattern = "\\.ch3$", full.names = TRUE)
   
@@ -63,6 +62,7 @@ make_pos_db <- function(ch3_files,
     {
       # Loop through files to add to db
       # Create Progress Bar
+      cat("Building positions table...")
       pb <- progress_bar$new(
         format = "[:bar] :percent [Elapsed time: :elapsed]",
         total = length(ch3_files) + 1,
@@ -120,8 +120,9 @@ make_pos_db <- function(ch3_files,
     finally = 
       {
         # Finish Up
-        ch3_db$tables <- dbListTables(db_con) # Update table list
-        dbDisconnect(db_con, shutdown = TRUE)
+        database$last_table = "positions"
+        .helper_closeDB(database)
+        return(database)
       })
-  return(ch3_db)
+  # return(ch3_db)
 }

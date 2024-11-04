@@ -27,8 +27,9 @@ get_cov_stats <- function(ch3_db,
                           call_type = c("positions", "regions"),
                           plot = FALSE)
 {
-  # If a character file name is provided, then make ch3 class obj
-  db_con = .helper_connectDB(ch3_db)
+  # Open the database connection
+  database <- .helper_connectDB(ch3_db)
+  db_con <- database$db_con
   
   tryCatch(
     {
@@ -100,6 +101,6 @@ get_cov_stats <- function(ch3_db,
     finally = 
       {
         # Finish up: close the connection
-        dbDisconnect(db_con, shutdown = TRUE)
+        .helper_closeDB(database)
       })
 }

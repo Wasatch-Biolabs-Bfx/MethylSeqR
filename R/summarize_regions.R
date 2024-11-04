@@ -67,7 +67,8 @@ summarize_regions <- function(ch3_db,
   tryCatch(
     {
       # Open the database connection
-      db_con <- .helper_connectDB(ch3_db)
+      database <- .helper_connectDB(ch3_db)
+      db_con <- database$db_con
       # Create regional data frame- offer a left, right or inner join
       
       # left join- keep reads that are outside of the annotation table
@@ -94,6 +95,7 @@ summarize_regions <- function(ch3_db,
         filter(nchar(chrom) < 6) |>
         pull()
       
+      cat("Building regions table...")
       # Create Progress Bar
       pb <- progress_bar$new(
         format = "[:bar] :percent [Elapsed time: :elapsed]",
@@ -118,9 +120,9 @@ summarize_regions <- function(ch3_db,
                   copy = TRUE) |>
           summarize(
             .by = c(sample_name, region_name),
-            cov = sum(cov),
-            across(ends_with("_counts"), sum),
-            across(ends_with("_frac"), ~ sum(.x * cov) / sum(cov))) |>
+            cov = sum(cov, na.rm = TRUE),
+            across(ends_with("_counts"), ~ sum(.x, na.rm = TRUE)),
+            across(ends_with("_frac"), ~ sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE))) |>
           compute(name = "temp_table", temporary = TRUE)
         
         # Create or append table
@@ -148,18 +150,12 @@ summarize_regions <- function(ch3_db,
       {
         # Finish up: purge extra tables & update table list and close the connection
         keep_tables = c("positions", "regions", "windows", "meth_diff")
-        # List all tables in the database
-        all_tables <- dbListTables(db_con)
-        # Remove tables that are not in the 'keep_tables' list
-        for (table in all_tables) {
-          if (!(table %in% keep_tables)) {
-            dbRemoveTable(db_con, table)
-          }
-        }
+        .helper_purgeTables(db_con, keep_tables)
         
-        .helper_closeDB(ch3_db, db_con)
+        # Finish Up
+        database$last_table = "regions"
+        .helper_closeDB(database)
+        return(database)
       }
   )
-
-  return(ch3_db)
 }

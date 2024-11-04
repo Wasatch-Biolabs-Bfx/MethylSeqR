@@ -42,7 +42,8 @@ summarize_windows <- function(ch3_db,
                          overwrite = TRUE) 
 {
   # Open the database connection
-  db_con <- .helper_connectDB(ch3_db)
+  database <- .helper_connectDB(ch3_db)
+  db_con <- database$db_con
   
   if (dbExistsTable(db_con, "windows") & overwrite)
     dbRemoveTable(db_con, "windows")
@@ -56,6 +57,7 @@ summarize_windows <- function(ch3_db,
   # Calc windows in each frame
   offsets <- seq(1, window_size - 1, by = step_size)
   
+  cat("Building windows table...")
   # Create Progress Bar
   pb <- progress_bar$new(
     format = "[:bar] :percent [Elapsed time: :elapsed]",
@@ -94,10 +96,10 @@ summarize_windows <- function(ch3_db,
         # Close progress bar
         pb$terminate()
         # Finish Up
-        ch3_db$tables <- dbListTables(db_con) # Update table list
-        dbDisconnect(db_con, shutdown = TRUE)
+        database$last_table = "windows"
+        .helper_closeDB(database)
+        return(database)
       })
-  return(ch3_db)
 }
 
 .make_window <- function(db_tbl, db_con, offset, window_size)
@@ -112,10 +114,10 @@ summarize_windows <- function(ch3_db,
       .by = c(sample_name, chrom, start),
       total_calls = sum(cov, na.rm = TRUE),
       across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
-      across(ends_with("_frac"), ~sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE)),
-      na.rm = TRUE) |>
+      across(ends_with("_frac"), ~sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE))) |>
     mutate(
       end = start + window_size - 1) |>
+    select(sample_name, chrom, start, end, everything()) |>
     compute(name = "temp_table", temporary = TRUE)
   
   # Create or append table

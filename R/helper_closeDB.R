@@ -18,9 +18,14 @@
 #' helper_closeDB(ch3_db, db_con)
 #'
 #' @export
-.helper_closeDB <- function(ch3_db, db_con)
+.helper_closeDB <- function(ch3_db)
 {
+  # add this on every function for CONSISTENCY
   # Finish up: update table list and close the connection
-  ch3_db$tables <- dbListTables(db_con)
-  dbDisconnect(db_con, shutdown = TRUE)
+  ch3_db$tables <- dbListTables(ch3_db$db_con)
+  
+  dbDisconnect(ch3_db$db_con, shutdown = TRUE)
+  ch3_db$db_con = NULL
+  
+  return(ch3_db)
 }

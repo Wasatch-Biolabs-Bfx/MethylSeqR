@@ -38,11 +38,13 @@ calc_mod_diff <- function(ch3_db,
                           calc_type = "fast_fisher")
 {
   # Open the database connection
-  db_con <- .helper_connectDB(ch3_db)
+  database <- .helper_connectDB(ch3_db)
+  db_con <- database$db_con
+  # ch3_db <- database$ch3_db
   
   tryCatch({
     # check for windows function
-    if (!dbExistsTable(db_con, call_type)) {
+    if (!dbExistsTable(db_con, call_type)) { # add db_con into object and put in every function...
       stop(paste0(call_type, " table does not exist."))
     }
     
@@ -99,23 +101,17 @@ calc_mod_diff <- function(ch3_db,
   }, 
   finally = 
     {
-      # Finish up: clean up database tables, close the connection and update tables in ch3_db
-      db_tables <- dbListTables(db_con)
+      # Finish up: clean up database tables, close the connection and update tables in the database
       potential_tables <- c("positions", 
                             "windows",
                             "regions",
                             "meth_diff")
       
-      # Remove tables that are not in the 'potential_tables' list
-      for (table in db_tables) {
-        if (!(table %in% potential_tables)) {
-          dbRemoveTable(db_con, table)
-        }
-      }
+      .helper_purgeTables(db_con, potential_tables)
       
-      ch3_db$tables <- dbListTables(db_con)
-      dbDisconnect(db_con, shutdown = TRUE)
-      return(ch3_db)
+      database$last_table = "meth_diff"
+      .helper_closeDB(database)
+      return(database)
     })
 }
 
