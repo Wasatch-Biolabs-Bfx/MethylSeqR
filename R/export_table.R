@@ -44,7 +44,7 @@ export_tables <- function(ch3_db,
           # Print the table name
           message(paste0("Writing out ", tbl, " table..."))
           # write out table to path given
-          write.csv(tbl(db_con, tbl), file = out_path, row.names = FALSE)
+          write.csv(tbl(db_con, tbl), file = out_path, row.names = FALSE, quote = FALSE)
           
           
         } else {
