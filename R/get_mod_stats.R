@@ -26,7 +26,9 @@
 #' If `plot` is TRUE, it displays a histogram of methylation values.
 #'
 #' @examples
+#'  \dontrun{
 #' get_mod_stats(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
+#' }
 #'
 #' @export
 get_mod_stats <- function(ch3_db,

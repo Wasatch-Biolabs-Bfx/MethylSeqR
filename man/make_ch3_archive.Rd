@@ -29,9 +29,3 @@ It then adjusts the reference position based on the modification strand before w
 to the specified output path. The output files are named using the provided `sample_name` and a 
 unique index.
 }
-\examples{
-make_ch3_archive(file_name = "path/to/data.tsv", 
-                 sample_name = "Sample1", 
-                 out_path = "path/to/output")
-
-}

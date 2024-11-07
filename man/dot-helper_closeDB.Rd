@@ -4,7 +4,7 @@
 \alias{.helper_closeDB}
 \title{Close Database Connection}
 \usage{
-.helper_closeDB(ch3_db, db_con)
+.helper_closeDB(ch3_db)
 }
 \arguments{
 \item{ch3_db}{An object containing information about the database, including the list of tables.}
@@ -20,9 +20,4 @@ This function updates the table list in the `ch3_db` object and closes the datab
 \details{
 The function updates the `tables` attribute of the `ch3_db` object with the current list of tables in the connected database 
 before closing the connection.
-}
-\examples{
-# Assuming `ch3_db` is an object and `db_con` is a valid database connection
-helper_closeDB(ch3_db, db_con)
-
 }

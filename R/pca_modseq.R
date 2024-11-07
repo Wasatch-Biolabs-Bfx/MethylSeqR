@@ -19,8 +19,6 @@
 #' @import dbplyr
 #' @import ggplot2
 #'
-#' @examples
-#' pca_modseq(ch3_db = my_ch3_db, call_type = "positions")
 #'
 #' @export
 pca_modseq <- function(ch3_db, call_type = "positions") {

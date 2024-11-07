@@ -16,10 +16,6 @@
 #' 
 #' @return A database connection object.
 #'
-#' @examples
-#' # db_con <- .helper_connectDB("path/to/database.db")
-#' # db_con <- .helper_connectDB(ch3_db_object)
-#'
 #' @keywords internal
 #' 
 .helper_connectDB <- function(ch3_db)

@@ -30,9 +30,6 @@ library(dplyr)
 #' @import duckdb
 #' @import duckplyr
 #' @import progress
-#' 
-#' @examples
-#' summarize_windows(ch3_db = my_ch3_db, call_type = "positions", window_size = 1000, step_size = 10)
 #'
 #' @export
 summarize_windows <- function(ch3_db,

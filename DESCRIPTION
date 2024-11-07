@@ -9,5 +9,5 @@ Description: MethylseqR creates methylation databases, and processes it with uni
     The package also offers quality control functions, differential methylation, and a sliding window analysis.
 License: What license is it under?
 Encoding: UTF-8
-LazyData: true
+LazyData: false
 RoxygenNote: 7.3.2

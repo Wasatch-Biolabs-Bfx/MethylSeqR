@@ -28,7 +28,3 @@ It connects to the DuckDB database, creates a summarized table of methylation da
 regions, and performs the join operation according to the specified join type. A progress bar is displayed 
 during the summarization process. The resulting data is stored in a table called "regions" within the database.
 }
-\examples{
-summarize_regions(ch3_db = my_ch3_db, region_bed = "path/to/regions.bed", join_type = "left")
-
-}

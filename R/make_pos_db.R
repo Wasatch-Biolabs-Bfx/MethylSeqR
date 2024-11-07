@@ -30,10 +30,6 @@
 #' @import duckplyr
 #' @import progress
 #'
-#' @examples
-#' make_pos_db(ch3_files = "path/to/ch3_files", 
-#'              ch3_db = "path/to/database")
-#'
 #' @export
 make_pos_db <- function(ch3_files, 
                         ch3_db,

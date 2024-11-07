@@ -23,12 +23,6 @@
 #' @import dbplyr
 #' @import duckdb
 #'
-#' @examples
-#' calc_mod_diff(ch3_db = my_ch3_db, 
-#'                call_type = "positions", 
-#'                cases = c("sample1", "sample2"), 
-#'                controls = c("sample3", "sample4"))
-#'
 #' @export
 calc_mod_diff <- function(ch3_db,
                           call_type = "positions",

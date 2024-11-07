@@ -16,12 +16,6 @@
 #'          statistics with `get_mod_stats()`, follows up with correlation analysis via `cor_modseq()`, and finally
 #'          runs principal component analysis with `pca_modseq()`.
 #'
-#' @examples
-#' \dontrun{
-#' # Example usage of the qc_wrapper function
-#' qc_wrapper(my_db, "positions", plot = TRUE)
-#' }
-#'
 #' @export
 qc_wrapper <- function(ch3_db, call_type, plot = TRUE) {
   print("calculating coverage stats...")

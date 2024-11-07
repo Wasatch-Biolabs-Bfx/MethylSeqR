@@ -4,13 +4,13 @@
 \alias{.helper_purgeTables}
 \title{Internal Function to Purge Unwanted Tables from Database}
 \usage{
-.helper_purgeTables(ch3_db, keep_tables = c("positions"))
+.helper_purgeTables(db_con, keep_tables = c("positions"))
 }
 \arguments{
-\item{ch3_db}{A character string or an object of class `ch3_db` representing the DuckDB database to connect to.}
-
 \item{keep_tables}{A character vector of table names to keep in the database. Defaults to keeping only 
 the "positions" table.}
+
+\item{ch3_db}{A character string or an object of class `ch3_db` representing the DuckDB database to connect to.}
 }
 \value{
 None. This function is called for its side effects (modifying the database).

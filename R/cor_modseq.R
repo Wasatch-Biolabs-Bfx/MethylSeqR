@@ -24,7 +24,9 @@
 #' matrix heatmap is also printed.
 #'
 #' @examples
+#'  \dontrun{
 #' cor_modseq(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
+#'}
 #'
 #' @export
 

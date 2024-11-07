@@ -4,7 +4,12 @@
 \alias{get_mod_stats}
 \title{Get Methylation Statistics from the ch3 Database}
 \usage{
-get_mod_stats(ch3_db, call_type = c("positions", "regions"), plot = FALSE)
+get_mod_stats(
+  ch3_db,
+  call_type = c("positions", "regions"),
+  plot = FALSE,
+  save_path = NULL
+)
 }
 \arguments{
 \item{ch3_db}{A string. The path to the database containing ch3 files from nanopore data.}
@@ -13,6 +18,8 @@ get_mod_stats(ch3_db, call_type = c("positions", "regions"), plot = FALSE)
 Default is "positions". Can also be "regions".}
 
 \item{plot}{A logical value. If TRUE, a histogram of methylation values is plotted. Default is FALSE.}
+
+\item{save_path}{Pathway to save the plot to. Usually .pdf or .png.}
 }
 \value{
 If `plot` is FALSE, the function prints a summary of the methylation statistics and quantiles. 
@@ -35,6 +42,8 @@ The function assumes that the database has tables named according to the `call_t
 (e.g., "positions", "regions"). It also expects specific columns for methylation data to exist.
 }
 \examples{
+ \dontrun{
 get_mod_stats(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
+}
 
 }

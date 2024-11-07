@@ -11,6 +11,8 @@ pca_modseq(ch3_db, call_type = "positions")
 
 \item{call_type}{A string representing the name of the table in the database from which to pull the data. 
 Default is "positions".}
+
+\item{save_path}{Pathway to save the plot to. Usually .pdf or .png.}
 }
 \value{
 A PCA plot is produced, showing the first two principal components of the methylation data.
@@ -24,8 +26,4 @@ It aggregates the methylation fraction data based on the specified call type and
 The function connects to the specified DuckDB database, retrieves the methylation data from the specified call type table, 
 and aggregates the data either by regions or chromosomal positions. PCA is then performed on the aggregated data, and 
 a scatter plot of the first two principal components is generated.
-}
-\examples{
-pca_modseq(ch3_db = my_ch3_db, call_type = "positions")
-
 }

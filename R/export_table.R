@@ -23,9 +23,6 @@
 #' 
 #' @return NULL. The function writes the specified tables to CSV files.
 #'
-#' @examples
-#' export_tables(ch3_db = "path/to/database.db", tables = c("positions", "regions"), out_path = "output_directory/")
-#'
 #' @export
 export_tables <- function(ch3_db,
                          tables = c("positions"),

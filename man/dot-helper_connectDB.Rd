@@ -24,9 +24,4 @@ connection to the database.
 \note{
 This function is intended for internal use within the package.
 }
-\examples{
-# db_con <- .helper_connectDB("path/to/database.db")
-# db_con <- .helper_connectDB(ch3_db_object)
-
-}
 \keyword{internal}

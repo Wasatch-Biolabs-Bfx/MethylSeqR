@@ -13,10 +13,6 @@
 #'
 #' @return None. This function is called for its side effects (updating the `ch3_db` object and closing the connection).
 #'
-#' @examples
-#' # Assuming `ch3_db` is an object and `db_con` is a valid database connection
-#' helper_closeDB(ch3_db, db_con)
-#'
 #' @export
 .helper_closeDB <- function(ch3_db)
 {

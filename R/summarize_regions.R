@@ -24,8 +24,6 @@
 #' @import duckplyr
 #' @import progress
 #'
-#' @examples
-#' summarize_regions(ch3_db = my_ch3_db, region_bed = "path/to/regions.bed", join_type = "left")
 #'
 #' @export
 summarize_regions <- function(ch3_db,

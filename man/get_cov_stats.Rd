@@ -4,7 +4,7 @@
 \alias{get_cov_stats}
 \title{Calculate and Plot Coverage Statistics}
 \usage{
-get_cov_stats(ch3_db, call_type = c("positions", "regions"), plot = FALSE)
+get_cov_stats(ch3_db, call_type = "positions", plot = FALSE, save_path = NULL)
 }
 \arguments{
 \item{ch3_db}{A data base either linking to the file name or of class ch3_db.}
@@ -13,6 +13,8 @@ get_cov_stats(ch3_db, call_type = c("positions", "regions"), plot = FALSE)
 
 \item{plot}{Logical, if \code{TRUE}, the function will generate a histogram of
 the coverage data. Default is \code{FALSE}.}
+
+\item{save_path}{Pathway to save the plot to. Usually .pdf or .png.}
 }
 \value{
 If \code{plot} is \code{FALSE}, the function prints summary statistics

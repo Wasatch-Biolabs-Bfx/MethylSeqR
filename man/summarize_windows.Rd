@@ -39,7 +39,3 @@ these offsets to generate sliding windows of methylation data. A progress bar is
 The function utilizes the helper function `.make_window` to perform the actual window calculation and summarization.
 The resulting summarized data is stored in a table called "windows" within the database.
 }
-\examples{
-summarize_windows(ch3_db = my_ch3_db, call_type = "positions", window_size = 1000, step_size = 10)
-
-}

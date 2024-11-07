@@ -41,10 +41,3 @@ The function connects to the specified DuckDB database and retrieves methylation
 It summarizes the data for cases and controls, calculates p-values based on the specified method, and stores the results in the 
 "meth_diff" table.
 }
-\examples{
-calc_mod_diff(ch3_db = my_ch3_db, 
-               call_type = "positions", 
-               cases = c("sample1", "sample2"), 
-               controls = c("sample3", "sample4"))
-
-}

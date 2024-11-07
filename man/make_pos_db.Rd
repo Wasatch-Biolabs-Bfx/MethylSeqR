@@ -42,8 +42,3 @@ The function connects to a DuckDB database and processes each CH3 file to extrac
 The data is filtered according to the specified thresholds and summarized by sample name, chromosome, and reference position. 
 The final summary statistics, including counts and fractions for methylated and hydroxymethylated bases, are written to the database.
 }
-\examples{
-make_pos_db(ch3_files = "path/to/ch3_files", 
-             ch3_db = "path/to/database")
-
-}

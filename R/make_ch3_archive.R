@@ -23,11 +23,6 @@
 #' @import dbplyr
 #' @import tidyr
 #'
-#' @examples
-#' make_ch3_archive(file_name = "path/to/data.tsv", 
-#'                  sample_name = "Sample1", 
-#'                  out_path = "path/to/output")
-#'
 #' @export
 make_ch3_archive <- function(file_name, 
                              sample_name,

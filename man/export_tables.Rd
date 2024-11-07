@@ -31,7 +31,3 @@ is closed safely using the `finally` block.
 \note{
 The function assumes that the tables specified in `tables` exist in the database and can be accessed via the `DBI` package.
 }
-\examples{
-export_tables(ch3_db = "path/to/database.db", tables = c("positions", "regions"), out_path = "output_directory/")
-
-}
