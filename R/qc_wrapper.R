@@ -19,7 +19,6 @@
 #'  @examples
 #'  # Specify the path to the database
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
-#'  ch3_db <- file.path(ch3_db, "my_data.ch3.db")  # Path to the pre-existing database
 #'  
 #'  # Run quality control wrapper
 #'  qc_qrapper(ch3_db, call_type = "positions", plot = TRUE)

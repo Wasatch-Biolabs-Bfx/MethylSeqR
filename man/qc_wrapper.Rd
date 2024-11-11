@@ -4,7 +4,7 @@
 \alias{qc_wrapper}
 \title{Quality Control Wrapper for Methylation Data}
 \usage{
-qc_wrapper(ch3_db, call_type, plot = TRUE)
+qc_wrapper(ch3_db, call_type = "positions", plot = TRUE)
 }
 \arguments{
 \item{ch3_db}{A database connection or object containing methylation data.}
@@ -27,4 +27,11 @@ and performs principal component analysis (PCA).
 The function first calculates coverage statistics using `get_cov_stats()`, then computes modification
          statistics with `get_mod_stats()`, follows up with correlation analysis via `cor_modseq()`, and finally
          runs principal component analysis with `pca_modseq()`.
+
+ @examples
+ # Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ 
+ # Run quality control wrapper
+ qc_qrapper(ch3_db, call_type = "positions", plot = TRUE)
 }

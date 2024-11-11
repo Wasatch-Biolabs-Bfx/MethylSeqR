@@ -26,8 +26,8 @@
 #' @examples
 #'  # Specify the path to the database
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
-#'  ch3_db <- file.path(ch3_db, "my_data.ch3.db")  # Path to the pre-existing database
 #'  
+#'  print(ch3_db)
 #'  # Run the correlation matrix function using the 'positions' call type and plot the results
 #'  cor_modseq(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 #'
@@ -35,7 +35,8 @@
 
 cor_modseq <- function(ch3_db,
                        call_type = c("positions"),
-                       plot = FALSE)
+                       plot = FALSE,
+                       save_path = NULL)
 {
   # Open the database connection
   database <- .helper_connectDB(ch3_db)

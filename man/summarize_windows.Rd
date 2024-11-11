@@ -39,3 +39,11 @@ these offsets to generate sliding windows of methylation data. A progress bar is
 The function utilizes the helper function `.make_window` to perform the actual window calculation and summarization.
 The resulting summarized data is stored in a table called "windows" within the database.
 }
+\examples{
+ # Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ 
+ # Calculate windows
+ summarize_windows(ch3_db)
+
+}

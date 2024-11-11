@@ -42,8 +42,10 @@ The function assumes that the database has tables named according to the `call_t
 (e.g., "positions", "regions"). It also expects specific columns for methylation data to exist.
 }
 \examples{
- \dontrun{
-get_mod_stats(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
-}
+ # Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ 
+ # Get methylation statistics for the 'positions' call type without plotting
+ get_mod_stats(ch3_db = ch3_db, call_type = "positions")
 
 }

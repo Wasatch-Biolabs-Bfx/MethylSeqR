@@ -27,9 +27,13 @@ methylation sequencing experiments. It can handle both positional and regional
 methylation data.
 }
 \examples{
-\dontrun{
-get_cov_stats(modseq_dat)
-get_cov_stats(modseq_dat, plot = TRUE)
-}
+ # Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ 
+ # Get coverage statistics for the 'positions' call type without plotting
+ get_cov_stats(ch3_db = ch3_db, call_type = "positions")
+ 
+ # Get coverage statistics for the 'positions' call type with plotting
+ get_cov_stats(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 
 }

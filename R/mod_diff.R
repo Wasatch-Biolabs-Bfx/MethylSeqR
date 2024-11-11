@@ -26,7 +26,6 @@
 #'  @examples
 #'  # Specify the path to the database
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
-#'  ch3_db <- file.path(ch3_db, "my_data.ch3.db")  # Path to the pre-existing database
 #'  
 #'  # Get methylation statistics for the 'positions' call type without plotting
 #'  calc_mod_diff(ch3_db = ch3_db, 

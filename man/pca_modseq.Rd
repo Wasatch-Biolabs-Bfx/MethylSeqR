@@ -4,7 +4,7 @@
 \alias{pca_modseq}
 \title{Perform PCA on Methylation Data}
 \usage{
-pca_modseq(ch3_db, call_type = "positions")
+pca_modseq(ch3_db, call_type = "positions", save_path = NULL)
 }
 \arguments{
 \item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
@@ -26,4 +26,12 @@ It aggregates the methylation fraction data based on the specified call type and
 The function connects to the specified DuckDB database, retrieves the methylation data from the specified call type table, 
 and aggregates the data either by regions or chromosomal positions. PCA is then performed on the aggregated data, and 
 a scatter plot of the first two principal components is generated.
+}
+\examples{
+ # Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ 
+ # Calculate PCA
+ pca_modseq(ch3_db)
+
 }

@@ -4,7 +4,7 @@
 \alias{cor_modseq}
 \title{Correlation Matrix of Modified Sequence Data}
 \usage{
-cor_modseq(ch3_db, call_type = c("positions"), plot = FALSE)
+cor_modseq(ch3_db, call_type = c("positions"), plot = FALSE, save_path = NULL)
 }
 \arguments{
 \item{ch3_db}{A string. The path to the database containing ch3 files from nanopore data.}
@@ -34,8 +34,11 @@ The function assumes that the database has tables named according to the `call_t
 "regions"). The correlation matrix is calculated using the `pairwise.complete.obs` method, which handles missing data.
 }
 \examples{
- \dontrun{
-cor_modseq(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
-}
+ # Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ 
+ print(ch3_db)
+ # Run the correlation matrix function using the 'positions' call type and plot the results
+ cor_modseq(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 
 }
