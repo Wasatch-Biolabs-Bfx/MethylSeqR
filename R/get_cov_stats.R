@@ -15,10 +15,15 @@
 #' histogram of the log-transformed coverage data.
 #'
 #' @examples
-#' \dontrun{
-#' get_cov_stats(modseq_dat)
-#' get_cov_stats(modseq_dat, plot = TRUE)
-#' }
+#'  # Specify the path to the database
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+#'  ch3_db <- file.path(ch3_db, "my_data.ch3.db")  # Path to the pre-existing database
+#'  
+#'  # Get coverage statistics for the 'positions' call type without plotting
+#'  get_cov_stats(ch3_db = ch3_db, call_type = "positions")
+#'  
+#'  # Get coverage statistics for the 'positions' call type with plotting
+#'  get_cov_stats(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 #'
 #' @import dplyr ggplot2
 #'

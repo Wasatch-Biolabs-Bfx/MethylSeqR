@@ -30,6 +30,14 @@ library(dplyr)
 #' @import duckdb
 #' @import duckplyr
 #' @import progress
+#' 
+#' @examples
+#'  # Specify the path to the database
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+#'  ch3_db <- file.path(ch3_db, "my_data.ch3.db")  # Path to the pre-existing database
+#'  
+#'  # Calculate windows
+#'  summarize_windows(ch3_db)
 #'
 #' @export
 summarize_windows <- function(ch3_db,

@@ -24,9 +24,12 @@
 #' matrix heatmap is also printed.
 #'
 #' @examples
-#'  \dontrun{
-#' cor_modseq(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
-#'}
+#'  # Specify the path to the database
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+#'  ch3_db <- file.path(ch3_db, "my_data.ch3.db")  # Path to the pre-existing database
+#'  
+#'  # Run the correlation matrix function using the 'positions' call type and plot the results
+#'  cor_modseq(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 #'
 #' @export
 

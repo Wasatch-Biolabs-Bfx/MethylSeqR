@@ -16,8 +16,16 @@
 #'          statistics with `get_mod_stats()`, follows up with correlation analysis via `cor_modseq()`, and finally
 #'          runs principal component analysis with `pca_modseq()`.
 #'
+#'  @examples
+#'  # Specify the path to the database
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+#'  ch3_db <- file.path(ch3_db, "my_data.ch3.db")  # Path to the pre-existing database
+#'  
+#'  # Run quality control wrapper
+#'  qc_qrapper(ch3_db, call_type = "positions", plot = TRUE)
+#'   
 #' @export
-qc_wrapper <- function(ch3_db, call_type, plot = TRUE) {
+qc_wrapper <- function(ch3_db, call_type = "positions", plot = TRUE) {
   print("calculating coverage stats...")
   get_cov_stats(ch3_db, call_type, plot = plot)
   print("calculating mod stats...")

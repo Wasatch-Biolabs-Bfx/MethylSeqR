@@ -26,9 +26,15 @@
 #' If `plot` is TRUE, it displays a histogram of methylation values.
 #'
 #' @examples
-#'  \dontrun{
-#' get_mod_stats(ch3_db = "path/to/database.db", call_type = "positions", plot = TRUE)
-#' }
+#'  # Specify the path to the database
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+#'  ch3_db <- file.path(ch3_db, "my_data.ch3.db")  # Path to the pre-existing database
+#'  
+#'  # Get methylation statistics for the 'positions' call type without plotting
+#'  get_mod_stats(ch3_db = ch3_db, call_type = "positions")
+#'
+#'  # Save the histogram plot to a file (e.g., "methylation_plot.png")
+#'  get_mod_stats(ch3_db = ch3_db, call_type = "positions", plot = TRUE, save_path = "methylation_plot.png")
 #'
 #' @export
 get_mod_stats <- function(ch3_db,
