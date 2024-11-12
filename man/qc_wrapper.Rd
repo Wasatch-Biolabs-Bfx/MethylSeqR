@@ -33,6 +33,6 @@ The function first calculates coverage statistics using `get_cov_stats()`, then 
  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
  
  # Run quality control wrapper
- qc_qrapper(ch3_db, call_type = "positions", plot = TRUE)
+ qc_wrapper(ch3_db, call_type = "positions", plot = TRUE)
   
 }
