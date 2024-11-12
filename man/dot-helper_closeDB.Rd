@@ -21,3 +21,4 @@ This function updates the table list in the `ch3_db` object and closes the datab
 The function updates the `tables` attribute of the `ch3_db` object with the current list of tables in the connected database 
 before closing the connection.
 }
+\keyword{internal}

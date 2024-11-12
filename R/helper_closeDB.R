@@ -13,7 +13,7 @@
 #'
 #' @return None. This function is called for its side effects (updating the object and closing the connection).
 #'
-#' @export
+#' @keywords internal
 .helper_closeDB <- function(ch3_db)
 {
   # add this on every function for CONSISTENCY
