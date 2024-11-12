@@ -3,7 +3,7 @@ Type: Package
 Title: Process & Analyze Nanopore Sequencing Methylation Data
 Version: 0.0.5
 Author: Jonathan Hill PhD, Hailey Johnson Zimmerman
-Maintainer: Jonathan Hill <jonathon@wasatchbiolabs.com> and Hailey Johnson Zimemrman <hailey@renewbt.com>
+Maintainer: Jonathan Hill <jonathon@wasatchbiolabs.com> and Hailey Johnson Zimmerman <hailey@renewbt.com>
 Description: MethylseqR creates methylation databases, and processes it with unique options.
     Data can be summarized by posiitons, windows, or provided an annotation bed file, by unique genomic regions.
     The package also offers quality control functions, differential methylation, and a sliding window analysis.
