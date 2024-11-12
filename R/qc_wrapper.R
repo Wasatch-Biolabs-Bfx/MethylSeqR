@@ -21,7 +21,7 @@
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
 #'  
 #'  # Run quality control wrapper
-#'  qc_qrapper(ch3_db, call_type = "positions", plot = TRUE)
+#'  qc_wrapper(ch3_db, call_type = "positions", plot = TRUE)
 #'   
 #' @export
 qc_wrapper <- function(ch3_db, call_type = "positions", plot = TRUE) {
