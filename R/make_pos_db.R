@@ -27,7 +27,6 @@
 #' @import dplyr
 #' @import dbplyr
 #' @import duckdb
-#' @import duckplyr
 #' @import progress
 #'
 #' @examples
