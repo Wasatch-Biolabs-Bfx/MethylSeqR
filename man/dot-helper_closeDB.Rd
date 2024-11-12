@@ -12,7 +12,7 @@
 \item{db_con}{A database connection object. This should be a connection created by a database connection function.}
 }
 \value{
-None. This function is called for its side effects (updating the `ch3_db` object and closing the connection).
+None. This function is called for its side effects (updating the object and closing the connection).
 }
 \description{
 This function updates the table list in the `ch3_db` object and closes the database connection.

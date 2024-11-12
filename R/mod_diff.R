@@ -23,7 +23,7 @@
 #' @import dbplyr
 #' @import duckdb
 #' 
-#'  @examples
+#' @examples
 #'  # Specify the path to the database
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
 #'  

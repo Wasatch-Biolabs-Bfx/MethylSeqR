@@ -16,7 +16,7 @@
 #'          statistics with `get_mod_stats()`, follows up with correlation analysis via `cor_modseq()`, and finally
 #'          runs principal component analysis with `pca_modseq()`.
 #'
-#'  @examples
+#' @examples
 #'  # Specify the path to the database
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
 #'  

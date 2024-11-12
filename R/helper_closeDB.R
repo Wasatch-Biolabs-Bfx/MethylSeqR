@@ -11,7 +11,7 @@
 #'
 #' @import DBI
 #'
-#' @return None. This function is called for its side effects (updating the `ch3_db` object and closing the connection).
+#' @return None. This function is called for its side effects (updating the object and closing the connection).
 #'
 #' @export
 .helper_closeDB <- function(ch3_db)

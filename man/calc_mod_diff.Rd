@@ -41,3 +41,14 @@ The function connects to the specified DuckDB database and retrieves methylation
 It summarizes the data for cases and controls, calculates p-values based on the specified method, and stores the results in the 
 "meth_diff" table.
 }
+\examples{
+ # Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ 
+ # Get methylation statistics for the 'positions' call type without plotting
+ calc_mod_diff(ch3_db = ch3_db, 
+               call_type = "positions",
+               cases = c("chr21_5xSample_BloodA", "chr21_5xSample_BloodE", "chr21_5xSample_BloodT"),
+               controls = c("chr21_5xSample_SpermA", "chr21_5xSample_SpermB", "chr21_5xSample_SpermD"))
+
+}
