@@ -7,7 +7,7 @@ Maintainer: Jonathan Hill <jonathon@wasatchbiolabs.com>
 Description: MethylseqR creates methylation databases, and processes it with unique options.
     Data can be summarized by posiitons, windows, or provided an annotation bed file, by unique genomic regions.
     The package also offers quality control functions, differential methylation, and a sliding window analysis.
-License: None
+License: GPL-3
 Encoding: UTF-8
 LazyData: false
 RoxygenNote: 7.3.2
