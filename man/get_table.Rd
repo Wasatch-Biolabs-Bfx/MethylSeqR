@@ -25,7 +25,7 @@ the data, regardless of success or failure.
 }
 \examples{
 # Assuming ch3_db is a valid database object and "positions" is a table in the database
-ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 positions = get_table(ch3_db, "positions")
 
 }
