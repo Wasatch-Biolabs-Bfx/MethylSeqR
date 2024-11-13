@@ -41,7 +41,7 @@ get_table <- function(ch3_db,
     finally = 
       {
         dbDisconnect(db_con, shutdown = TRUE)
+        return(dat)
       })
   
-  return(dat)
 }
