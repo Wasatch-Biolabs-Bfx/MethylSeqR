@@ -12,7 +12,14 @@ Encoding: UTF-8
 LazyData: false
 RoxygenNote: 7.3.2
 Imports:
+    arrow,
+    DBI,
     dplyr,
     dbplyr,
     duckdb,
-    duckplyr
+    duckplyr,
+    ggplot2,
+    progress,
+    tidyr,
+    utils,
+    readr
