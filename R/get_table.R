@@ -33,8 +33,13 @@ get_table <- function(ch3_db,
   
   tryCatch(
     {
-      dat <- tbl(db_con, table_name) |>
-        collect()
+      if (table_name %in% dbListTables(db_con)) {
+        # write out table to path given
+        dat <- tbl(db_con, table_name) |> collect()
+      } else {
+        # Print a message if the table does not exist
+        message(paste0("Table '", tbl, "' does not exist in the database."))
+      }
     }, 
     error = function(e) 
     {
