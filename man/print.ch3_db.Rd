@@ -30,6 +30,6 @@ table does not exist, a message is printed to indicate this.
  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
  # Print out tables in the database
- print.ch3(ch3_db)
+ print(ch3_db, tables = "all")
 
 }

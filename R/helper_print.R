@@ -22,7 +22,7 @@
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 #'  
 #'  # Print out tables in the database
-#'  print.ch3(ch3_db)
+#'  print(ch3_db, tables = "all")
 #'
 #' @export
 
