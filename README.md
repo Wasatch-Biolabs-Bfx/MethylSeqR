@@ -1,4 +1,4 @@
-<img src="inst/wbl_main_logo.png" alt="Main Logo" width="600" height="200">
+<img src="inst/wbl_main_logo.png" alt="Main Logo" width="500" height="150">
 
 # MethylSeqR
 
