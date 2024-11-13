@@ -22,11 +22,11 @@
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 #'  
 #'  # Print out tables in the database
-#'  print_db(ch3_db, tables = "all")
+#'  print.ch3_db(ch3_db, tables = "all")
 #'
-#' @export
+#' @keywords internal
 
-print_db <- function(ch3_db, tables = "all") {
+print.ch3_db <- function(ch3_db, tables = "") {
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
