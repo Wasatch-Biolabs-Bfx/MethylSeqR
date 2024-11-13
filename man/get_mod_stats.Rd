@@ -43,7 +43,7 @@ The function assumes that the database has tables named according to the `call_t
 }
 \examples{
  # Specify the path to the database
- ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
  # Get methylation statistics for the 'positions' call type without plotting
  get_mod_stats(ch3_db = ch3_db, call_type = "positions")

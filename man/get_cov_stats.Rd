@@ -28,7 +28,7 @@ methylation data.
 }
 \examples{
  # Specify the path to the database
- ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
  # Get coverage statistics for the 'positions' call type without plotting
  get_cov_stats(ch3_db = ch3_db, call_type = "positions")

@@ -26,10 +26,10 @@
 #'
 #' @examples
 #'  # Specify the path to the database
-#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 #'  
-#'  region_bed = system.file("Islands_hg38_test.csv", package = "MethylseqR")
-#'  # Summarize Regions using anotation table
+#'  region_bed = system.file("Islands_hg38_test.csv", package = "MethylSeqR")
+#'  # Summarize Regions using annotation table
 #'  summarize_regions(ch3_db, region_bed)
 #'
 #' @export

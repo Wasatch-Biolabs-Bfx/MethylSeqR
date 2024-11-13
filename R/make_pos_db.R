@@ -31,7 +31,7 @@
 #'
 #' @examples
 #' # Set up the file path for the test data located in inst/test_data/
-#' ch3_files <- system.file("test_data", package = "MethylseqR")
+#' ch3_files <- system.file("test_data", package = "MethylSeqR")
 #' ch3_db <- tempfile("example_db")
 #' 
 #' # Run the function with the example data

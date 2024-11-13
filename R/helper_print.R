@@ -16,6 +16,13 @@
 #' @return None. This function is called for its side effects (printing information).
 #'
 #' @import DBI
+#' 
+#' @examples 
+#' # Specify the path to the database
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+#'  
+#'  # Print out tables in the database
+#'  print.ch3(ch3_db)
 #'
 #' @export
 

@@ -25,3 +25,11 @@ The function establishes a connection to the database, retrieves the list of tab
 names. If the specified table exists, it also prints the first few rows of that table. If a specified 
 table does not exist, a message is printed to indicate this.
 }
+\examples{
+# Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+ # Print out tables in the database
+ print.ch3(ch3_db)
+
+}
