@@ -22,7 +22,8 @@
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 #'  
 #'  # Print out tables in the database
-#'  print.ch3_db(ch3_db, tables = "all")
+#'  make_pos_db(ch3_files, ch3_db) %>%
+#'         print(tables = "all")
 #'
 #' @export
 
