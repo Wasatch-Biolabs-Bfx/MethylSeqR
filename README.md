@@ -12,6 +12,7 @@ MethylSeqR is an R package managing Direct Whole Methylome Sequencing (dWMS) dat
 ```{r, eval = FALSE}
 # Install the devtools package if necessary
 # install.packages("devtools")
+# library(devtools)
 
 # Install MethylSeqR from GitHub
 devtools::install_github("https://github.com/Wasatch-BioLabs/MethylSeqR.git")
