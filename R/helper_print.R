@@ -19,10 +19,11 @@
 #' 
 #' @examples 
 #' # Specify the path to the database
-#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+#'  ch3_files <- system.file("test_data", package = "MethylSeqR")
+#'  ch3_db <- tempfile("example_db")
 #'  
 #'  # Print out tables in the database
-#'  print.ch3_db(ch3_db, tables = "all")
+#'  make_pos_db(ch3_files, ch3_db) |> print()
 #'
 #' @export
 
