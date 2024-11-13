@@ -1,10 +1,10 @@
 #' Export Tables from the ch3 Database
 #'
-#' This function exports specified tables from the ch3 database to CSV files. It checks whether each table exists in the database 
+#' This function exports specified tables from the ch3 database to CSV files. Can export one or multiple tables as a time. It checks whether each table exists in the database 
 #' before exporting, and provides informative messages for any missing tables. The output CSV files are saved at the specified path.
 #'
 #' @param ch3_db A string. The path to the database containing ch3 files from nanopore data.
-#' @param tables A character vector specifying the tables to be exported from the database. Default is "positions".
+#' @param tables A character vector specifying the table/tables to be exported from the database. Default is "positions".
 #' @param out_path A string. The path where the CSV files will be saved.
 #'
 #' @details
