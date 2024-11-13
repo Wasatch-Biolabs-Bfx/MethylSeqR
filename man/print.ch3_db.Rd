@@ -4,7 +4,7 @@
 \alias{print.ch3_db}
 \title{Helper Function to Print Database Tables}
 \usage{
-\method{print}{ch3_db}(ch3_db, tables = "all")
+\method{print}{ch3_db}(ch3_db, tables = "")
 }
 \arguments{
 \item{ch3_db}{A character string or an object of class `ch3_db` representing the DuckDB database to connect to.}
