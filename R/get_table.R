@@ -29,6 +29,8 @@ get_table <- function(ch3_db,
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
+  dat <- tibble()  # Initialize an empty tibble to return if there's an error
+  
   tryCatch(
     {
       dat <- tbl(db_con, table_name) |>
@@ -41,8 +43,8 @@ get_table <- function(ch3_db,
     finally = 
       {
         dbDisconnect(db_con, shutdown = TRUE)
-        
-        return(dat)
       })
+  
+  return(dat)
   
 }
