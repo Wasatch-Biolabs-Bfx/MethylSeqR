@@ -23,5 +23,5 @@ library(MethylSeqR)
 ```
 
 ## Paradigm 
-Begin with CH3 files using the `make_pos_db()` function to generate a database. This will at first hold a positions table. After that, you can use `qc_wrapper()` to visually assess positional data, or summarize by region (`summarize_regions()`) or windows (`summarize_windows`). A differential methylation analysis can be conducted using `calc_mod_diff`.
+Begin with CH3 files using the `make_pos_db()` function to generate a database. This will at first hold a positions table. After that, you can use `qc_wrapper()` to visually assess positional data, or summarize by region (`summarize_regions()`) or windows (`summarize_windows`). A differential methylation analysis can be conducted using `calc_mod_diff()`.
 
