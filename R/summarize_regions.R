@@ -1,16 +1,16 @@
 #' Summarize Methylation Data by Regions
 #'
 #' This function summarizes methylation data from a DuckDB database based on specified regions 
-#' defined in a BED file. It performs a join operation between the methylation data and the regions 
-#' specified in the annotation file, allowing for different types of joins.
+#' defined in a BED, TSV, or CSV file. It performs a join operation between the methylation data and 
+#' the regions specified in the annotation file, allowing for different types of joins.
 #'
 #' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
-#' @param region_bed A string representing the path to the BED file that contains the region annotations.
+#' @param region_file A string representing the path to the BED or CSV file that contains the region annotations.
 #' @param join_type A string indicating the type of join to perform. Options are "inner", "left", 
 #' "right", or "full". Default is "inner".
 #'
 #' @details
-#' The function reads the region annotations from the specified BED file and checks for its validity.
+#' The function reads the region annotations from the regional annotation file and checks for its validity.
 #' It connects to the DuckDB database, creates a summarized table of methylation data based on the specified 
 #' regions, and performs the join operation according to the specified join type. A progress bar is displayed 
 #' during the summarization process. The resulting data is stored in a table called "regions" within the database.
@@ -34,18 +34,25 @@
 #'
 #' @export
 summarize_regions <- function(ch3_db,
-                              region_bed,
+                              region_file,
                               join_type = "inner")
 {
-  # Read annotation
-  annotation <-
-    read_csv(region_bed,
-             col_names = c("chrom", "start", 
-                           "end", 
-                           "region_name"),
-             show_col_types = FALSE)
+  # Determine the file type (csv, tsv, or bed)
+  file_ext <- tools::file_ext(region_file)
   
-  # make sure column names did not get included and mess up code...
+  if (file_ext == "csv") {
+    annotation <- read_csv(region_file,
+                           col_names = c("chrom", "start", "end", "region_name"),
+                           show_col_types = FALSE)
+  } else if (file_ext %in% c("bed", "tsv")) {
+    annotation <- read_tsv(region_file,
+                           col_names = c("chrom", "start", "end", "region_name"),
+                           show_col_types = FALSE)
+  } else {
+    stop("Invalid file type. Only CSV, TSV, or BED files are supported.")
+  }
+  
+  # Ensure proper column names and remove header row if needed
   if (annotation[1,1] %in% c("chr", "Chr", "chrom", "Chrom")) {
     annotation = annotation[-1, ]
   }
