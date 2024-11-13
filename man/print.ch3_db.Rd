@@ -7,7 +7,7 @@
 \method{print}{ch3_db}(ch3_db, tables = "")
 }
 \arguments{
-\item{ch3_db}{A character string or an object of class `ch3_db` representing the DuckDB database to connect to.}
+\item{ch3_db}{A character string or an object of class ch3_db representing the DuckDB database to connect to.}
 
 \item{tables}{A character vector specifying the names of tables to print. Defaults to the last table given, which 
 will print all tables. If specific table names are provided, it will only print those (ex. "positions", "regions", "meth_diff").
@@ -33,4 +33,3 @@ table does not exist, a message is printed to indicate this.
  print.ch3_db(ch3_db, tables = "all")
 
 }
-\keyword{internal}

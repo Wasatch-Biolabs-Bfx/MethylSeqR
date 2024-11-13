@@ -3,7 +3,7 @@
 #' This function connects to a DuckDB database and prints the names of all tables currently in the 
 #' database. It can also print the first few rows of specific tables.
 #'
-#' @param ch3_db A character string or an object of class `ch3_db` representing the DuckDB database to connect to.
+#' @param ch3_db A character string or an object of class ch3_db representing the DuckDB database to connect to.
 #' @param tables A character vector specifying the names of tables to print. Defaults to the last table given, which 
 #' will print all tables. If specific table names are provided, it will only print those (ex. "positions", "regions", "meth_diff").
 #' If tables ="all", the function will print out all table sin the database...
@@ -24,7 +24,7 @@
 #'  # Print out tables in the database
 #'  print.ch3_db(ch3_db, tables = "all")
 #'
-#' @keywords internal
+#' @export
 
 print.ch3_db <- function(ch3_db, tables = "") {
   # Open the database connection
