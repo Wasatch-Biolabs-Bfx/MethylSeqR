@@ -4,7 +4,7 @@
 \alias{print.ch3_db}
 \title{Helper Function to Print Database Tables}
 \usage{
-\method{print}{ch3_db}(ch3_db, tables = "")
+\method{print}{ch3_db}(ch3_db, tables = "all")
 }
 \arguments{
 \item{ch3_db}{A character string or an object of class `ch3_db` representing the DuckDB database to connect to.}
@@ -17,7 +17,7 @@ If tables ="all", the function will print out all table sin the database...}
 None. This function is called for its side effects (printing information).
 }
 \description{
-This internal function connects to a DuckDB database and prints the names of all tables currently in the 
+This function connects to a DuckDB database and prints the names of all tables currently in the 
 database. It can also print the first few rows of specific tables.
 }
 \details{
@@ -25,4 +25,3 @@ The function establishes a connection to the database, retrieves the list of tab
 names. If the specified table exists, it also prints the first few rows of that table. If a specified 
 table does not exist, a message is printed to indicate this.
 }
-\keyword{internal}

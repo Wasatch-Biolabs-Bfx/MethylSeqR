@@ -32,7 +32,7 @@ during the summarization process. The resulting data is stored in a table called
  # Specify the path to the database
  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
  
- region_bed = system.file("Islands_hg38_ucsc.csv", package = "MethylseqR")
+ region_bed = system.file("Islands_hg38_test.csv", package = "MethylseqR")
  # Summarize Regions using anotation table
  summarize_regions(ch3_db, region_bed)
 

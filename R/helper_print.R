@@ -1,6 +1,6 @@
 #' Helper Function to Print Database Tables
 #'
-#' This internal function connects to a DuckDB database and prints the names of all tables currently in the 
+#' This function connects to a DuckDB database and prints the names of all tables currently in the 
 #' database. It can also print the first few rows of specific tables.
 #'
 #' @param ch3_db A character string or an object of class `ch3_db` representing the DuckDB database to connect to.
@@ -17,9 +17,9 @@
 #'
 #' @import DBI
 #'
-#' @keywords internal
+#' @export
 
-print.ch3_db <- function(ch3_db, tables = "") { # changed 
+print.ch3_db <- function(ch3_db, tables = "all") {
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con

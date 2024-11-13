@@ -36,7 +36,7 @@ library(dplyr)
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylseqR")
 #'  
 #'  # Calculate windows
-#'  summarize_windows(ch3_db)
+#'  summarize_windows(ch3_db, window_size = 100, step_size = 100)
 #'
 #' @export
 summarize_windows <- function(ch3_db,
