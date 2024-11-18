@@ -1,5 +1,5 @@
 <img src="inst/wbl_main_logo.png" alt="Wasatch Biolabs Logo" width="450" height="150">
-<img src="inst/MethylSeqR_Logo.png" alt="MethylSeqR Logo">
+<img src="inst/MethylSeqR_Logo.png" alt="MethylSeqR Logo" width="200" height="150">
 
 # MethylSeqR
 
