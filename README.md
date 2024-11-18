@@ -1,5 +1,5 @@
 <div style="display: flex; align-items: center; justify-content: center;">
-  <img src="inst/MethylSeq_Emplem.png" alt="Logo 2" style="width: 275px;">
+  <img src="inst/MethylSeq_Emplem.png" alt="MethylSeqR Logo" style="width: 275px;">
 </div>
 
 
@@ -29,4 +29,4 @@ library(MethylSeqR)
 ## Paradigm 
 Begin with CH3 files using the `make_pos_db()` function to generate a database. This will at first hold a positions table. After that, you can use `qc_wrapper()` to visually assess positional data, or summarize by region (`summarize_regions()`) or windows (`summarize_windows()`). A differential methylation analysis can be conducted using `calc_mod_diff()`.
 
-<div style="margin-top: 40px; text-align: center;"> <img src="inst/wbl_main_logo.png" alt="Logo 1" style="width: 200px;"> </div> 
+<div style="margin-top: 40px; text-align: center;"> <img src="inst/wbl_main_logo.png" alt="Wasatch Biolabs Logo" style="width: 200px;"> </div> 
