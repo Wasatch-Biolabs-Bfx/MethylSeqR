@@ -24,9 +24,7 @@ devtools::install_github("https://github.com/Wasatch-BioLabs/MethylSeqR.git")
 library(MethylSeqR)
 ```
 
-***For Linux Users:*** *Devtools is reuired to install MethylSeqR. A helpful guide for this can be found here: https://www.digitalocean.com/community/tutorials/how-to-install-r-packages-using-devtools-on-ubuntu-16-04*
-
-*For other Linux versions, instructions may need to be found online.*
+***For Linux Users:*** *Devtools is required to install MethylSeqR. Instructions may need to be found online for your version of Linux. An example guide for this can be found here: https://www.digitalocean.com/community/tutorials/how-to-install-r-packages-using-devtools-on-ubuntu-16-04*
 
 ## Paradigm 
 Begin with CH3 files using the `make_pos_db()` function to generate a database. This will at first hold a positions table. After that, you can use `qc_wrapper()` to visually assess positional data, or summarize by region (`summarize_regions()`) or windows (`summarize_windows()`). A differential methylation analysis can be conducted using `calc_mod_diff()`.
