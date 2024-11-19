@@ -1,5 +1,5 @@
 <div style="display: flex; align-items: center; justify-content: center;">
-  <img src="inst/MethylSeq_Emplem.png" alt="MethylSeqR Logo" style="width: 275px;">
+  <img src="inst/WBL_METHYLSEQR.png" alt="MethylSeqR Logo" style="width: 275px;">
 </div>
 
 
