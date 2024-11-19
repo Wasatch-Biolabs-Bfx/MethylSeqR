@@ -8,6 +8,7 @@
 #' The function will read all files with the ".ch3" extension in this directory.
 #' @param ch3_db A string representing the path where the positions database will be created. 
 #' The extension ".ch3.db" will be appended if not already present.
+#' @param chrs A list representation of all chromosomes wanted to be included in the positional data.
 #' @param min_call_prob A numeric value representing the minimum call probability threshold. 
 #' Only calls with a probability greater than or equal to this value will be included. Default is 0.9.
 #' @param min_length A numeric value representing the minimum read length. 
@@ -41,6 +42,7 @@
 #' @export
 make_pos_db <- function(ch3_files, 
                         ch3_db,
+                        chrs = c(paste0("chr", 1:22), "chrX", "chrY"),
                         min_call_prob = 0.9,
                         min_length = 100,
                         min_base_qual = 10) 
@@ -86,7 +88,7 @@ make_pos_db <- function(ch3_files,
             call_prob >= min_call_prob,
             read_length >= min_length,
             base_qual >= min_base_qual,
-            nchar(chrom) < 6) |> # remove unneccessary chromosomes
+            chrom %in% chrs) |> # remove unneccessary chromosomes
           summarize(
             .by = c(sample_name, chrom, ref_position),
             cov = n(),

@@ -7,6 +7,7 @@
 make_pos_db(
   ch3_files,
   ch3_db,
+  chrs = c(paste0("chr", 1:22), "chrX", "chrY"),
   min_call_prob = 0.9,
   min_length = 100,
   min_base_qual = 10
@@ -18,6 +19,8 @@ The function will read all files with the ".ch3" extension in this directory.}
 
 \item{ch3_db}{A string representing the path where the positions database will be created. 
 The extension ".ch3.db" will be appended if not already present.}
+
+\item{chrs}{A list representation of all chromosomes wanted to be included in the positional data.}
 
 \item{min_call_prob}{A numeric value representing the minimum call probability threshold. 
 Only calls with a probability greater than or equal to this value will be included. Default is 0.9.}
