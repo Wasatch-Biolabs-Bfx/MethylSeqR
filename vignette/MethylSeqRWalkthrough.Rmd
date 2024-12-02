@@ -1,5 +1,5 @@
 ---
-title: "Using the methylseqR package"
+title: "Using the MethylSeqR package"
 author: "Jonathon T. Hill, PhD and Hailey Johnson"
 output:
   BiocStyle::html_document:
@@ -8,7 +8,7 @@ output:
     toc_float: true
     css: "bioconductor2.css"
   vignette: >
-    %\VignetteIndexEntry{Using the methylseqR package}
+    %\VignetteIndexEntry{Using the MethylSeqR package}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}  
 ---
@@ -25,10 +25,10 @@ opts_chunk$set(tidy=TRUE, tidy.opts=list(width.cutoff=70))
 
 # Introduction
 
-The `methylseqR` package provides basic functions for importing and 
+The `MethylSeqR` package provides basic functions for importing and 
 working with nanopore methylation sequencing data.
 
-This vignette will walk you through a typical workflow using a database created by Wasatch Biolabs (https://www.wasatchbiolabs.com/). This database contains results from a nanopore sequencing run. Within the directory is an initial set of folders correlating to each sample. Within each sample folder is a list of chromosomal folders holding data for each chromosome. The example database is BLANK and comes from BLANK... This example contains results from...
+This vignette will walk you through a typical workflow using ch3 files created by Wasatch Biolabs (https://www.wasatchbiolabs.com/). These files contain results from a nanopore sequencing run. Within the directory is an initial set of folders correlating to each sample. Within each sample folder is a list of chromosomal folders holding data for each chromosome. The example database is BLANK and comes from BLANK... This example contains results from...
 
 # Loading Data
 The first step of a workflow will be to upload data from a directory holding sample and chromosomal methylation data. Sequencing results are typically gathered and created by Wasatch Biolabs. For more information, contact .... ?
