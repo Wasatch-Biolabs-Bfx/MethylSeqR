@@ -1,6 +1,7 @@
 ---
 title: "Using the MethylSeqR package"
-author: "Jonathon T. Hill, PhD and Hailey Johnson"
+author: "Jonathon T. Hill, PhD and Hailey Johnson Zimmerman"
+date: "`r Sys.Date()`"
 output:
   BiocStyle::html_document:
     toc: true
