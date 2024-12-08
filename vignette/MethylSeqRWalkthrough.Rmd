@@ -13,13 +13,13 @@ output:
     %\VignetteEncoding{UTF-8}  
 ---
 ```{r style, echo = FALSE, results = 'asis'}
-  BiocStyle::markdown()
+BiocStyle::markdown()
 ```
   
 ```{r, include=FALSE}
 library(knitr, quietly=TRUE)
-library(sangerseqR, quietly=TRUE)
-library(Biostrings, quietly=TRUE)
+library(MethylSeqR, quietly=TRUE)
+# library(Biostrings, quietly=TRUE)
 opts_chunk$set(tidy=TRUE, tidy.opts=list(width.cutoff=70))
 ```
 
@@ -28,211 +28,110 @@ opts_chunk$set(tidy=TRUE, tidy.opts=list(width.cutoff=70))
 The `MethylSeqR` package provides basic functions for importing and 
 working with nanopore methylation sequencing data.
 
-This vignette will walk you through a typical workflow using ch3 files created by Wasatch Biolabs (https://www.wasatchbiolabs.com/). These files contain results from a nanopore sequencing run. Within the directory is an initial set of folders correlating to each sample. Within each sample folder is a list of chromosomal folders holding data for each chromosome. The example database is BLANK and comes from BLANK... This example contains results from...
+This vignette will walk you through a typical workflow using CH3 files created 
+by Wasatch Biolabs (https://www.wasatchbiolabs.com/). These files contain results 
+from a nanopore sequencing run. A CH3 file will be created for each sample within 
+a run, and is meant as an intermediate existing to compress large amounts of 
+data into a usable form. 
+
+It's most helpful to store all the sample CH3 files from a run you want to 
+analyze within a single directory to get started. 
 
 # Loading Data
-The first step of a workflow will be to upload data from a directory holding sample and chromosomal methylation data. Sequencing results are typically gathered and created by Wasatch Biolabs. For more information, contact .... ?
+The first step of a workflow will be to upload data from a directory holding 
+sample sequencing data in the form of CH3 files. These files are typically 
+created by Wasatch Biolabs.
 
-Once data is obtained in this format, uploading is done using the `open_db()` function. This function directly imports the directory into a `duckdb` class object. This object 
-is meant as an intermediate and exists to compress large amounts of data into a usable form...
+Once data is obtained in this format, the first step is done using the 
+`make_pos_db()` function. This function directly imports a directory of CH3 
+files, and creates a database in the form of a local file.
 
-## open_db
-`open_db` takes a single argument for the path name to the directory file 
-to be read in...Here is an example:
+## make_pos_db()
+`make_pos_db()` requires 2 arguments. First, A string representing the directory
+path containing CH3 files (`ch3_files`), and second, a string representing the 
+path where the positions database will be created (`ch3_db`). 
 
-```{r}
-hetab1 <- read.abif(system.file("extdata", 
-                                "heterozygous.ab1", 
-                                package="sangerseqR"))
-str(hetab1, list.len=20)
-```
+4 additional special arguments exist if needed. `chrs` allows a list representation 
+of all chromosomes wanted to be included in the positional data, not limited to 
+the human genome. `min_call_prob` is a numeric value representing the minimum call 
+probability threshold.  Only calls with a probability greater than or equal to 
+this value will be included. Default is 0.9. `min_length` is a numeric value 
+representing the minimum read length. Only reads meeting or exceeding this length
+will be processed. Default is 100. And `min_base_qual` is a numeric value 
+representing the minimum base quality. Only reads with quality scores at or above 
+this threshold will be included. Default is 10.
 
-As you can see, the file is very long and contains a lot of Data 
-fields (130 in this example). However, most of these contain run information and
-only a few are directly relevant to data analysis:
-
-| Data Field            | Description |
-|:---------        |:---------   |
-|DATA.9-DATA.12  | Vectors containing the signal intensities for each channel.  |
-|FWO.1  | A string containing the base corresponding to each channel. For example, if it is "ACGT", then DATA.9 = A, DATA.10 = C, DATA.11 = G and DATA.12 = T. |
-|PLOC.2  | Peak locations as an index of the trace vectors. |
-|PBAS.1, PBAS.2  | Primary basecalls. PBAS.1 may contain bases edited in the original basecaller, while PBAS.2 always contains the basecaller's calls. |
-|P1AM.1  | Amplitude of primary basecall peaks.  |
-|P2BA.1  | (optional) Contains the secondary basecalls. |
-|P2AM.1  | (optional) Amplitude of the secondary basecall peaks.  |
-
-
-## read.scf
-Like `read.abif`, `read.scf` takes a single argument with 
-the filename. However, the data structure of the resulting `scf` object 
-is far less complicated, containing only a header with file structure 
-information, a matrix of the trace data (`@sample_points`), a matrix of 
-relative probabilities of each base at each position (`@sequence_probs`),
-basecall positions (`@basecall_positions`), basecalls 
-(`@basecalls`) and optionally a comments sections with the run data 
-(`@comments`). The last slot (`@private`) is rarely used and 
-impossible to interpret without knowing how it was created. 
+Here is an example:
 
 ```{r}
-homoscf <- read.scf(system.file("extdata", 
-                                "homozygous.scf", 
-                                package="sangerseqR"))
-str(homoscf)
+# Set up the file path for the test data located in inst/test_data/
+ch3_files <- system.file("test_data", package = "MethylSeqR")
+ch3_db <- tempfile("example_db")
+
+# Run the function with the example data
+result <- make_pos_db(ch3_files, ch3_db)
+print(result)
 ```
 
-## readsangerseq
-The `readsangerseq` function is a convenience function equivalent to 
-`sangerseq(read.abif(file))` or
-`sangerseq(read.scf(file))`. It should generally be used when the contents
-of the file do not need to be directly accessed because it returns a 
-`sangerseq` object, described below. 
+While the function builds the positions table, a progress bar will appear for 
+the user. The output will print the last table added to the database, all tables
+currently in the database, and then print the table you just created 
+(in this case, positions).
 
-# Sangerseq Class Objects
-The `sangerseq` class is the backbone of the sangerseqR package and 
-contains the chromatogram data necesary to perform all other functions. It can 
-be created in two ways: from an `abif` or `scf` object using the 
-`sangerseq` method or directly from an abif or scf file using 
-`readsangerseq`.
+After this step, a positional data table is made, and a user can continue their 
+analysis in any direction they want. They may run a quality control 
+(`qc_wrapper()`), summarize positional data by regions (`summarize_regions()`) 
+or windows (`summarize_windows()`). At any point in the analysis, a user can 
+export a table in the database by calling `export_tables()`, or use `get_table()`
+to import as a tibble into the local environment. All these functions will be 
+explained below.
+
+## summarize_regions
+This function summarizes positional methylation data (from the positions table) 
+based on specified regions defined in a BED, TSV, or CSV file. It performs a 
+join operation between the methylation data and the regions specified in the 
+annotation file, allowing for different types of joins.
 
 ```{r}
-#from a sequence file object
-homosangerseq <- sangerseq(homoscf)
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 
-#directly from the file
-hetsangerseq <- readsangerseq(system.file("extdata", 
-                                          "heterozygous.ab1", 
-                                          package="sangerseqR"))
-str(hetsangerseq)
+region_bed = system.file("Islands_hg38_test.csv", package = "MethylSeqR")
+# Summarize Regions using annotation table
+ummarize_regions(ch3_db, region_bed)
 ```
 
-The slots are as follows:
+There are 2 required arguments. `ch3_db` is a list containing the database file 
+path. This should be a string representing a path to the database, or a valid 
+"ch3_db" class object. `region_file` asks for a string representing the 
+path to the BED or CSV file that contains the region annotations.`join_type` 
+default argument is set to "inner", however a stringindicating the type of join 
+to perform can also include "left", "right", or "full".
 
-| Slot             | Description |
-|:---------        |:---------   |
-| `primarySeqID`   | Identification of the primary Basecalls.  |
-| `primarySeq`     | The primary Basecalls formatted as a DNAString object.  |
-| `secondarySeqID` | Identification of the secondary Basecalls.  |
-| `secondarySeq`   | The secondary Basecalls formatted as a DNAString object.  |
-| `traceMatrix`    | A numerical matrix containing 4 columns corresponding to the normalized signal values for the chromatogram traces. Column order = A,C,G,T.  |
-| `peakPosMatrix`  | A numerical matrix containing the position of the maximum peak values for each base within each Basecall window. If no peak was detected for a given base in a given window, then "NA". Column order = A,C,G,T.  |
-| `peakAmpMatrix`  | A numerical matrix containing the maximum peak amplitudes for each base within each Basecall window. If no peak was detected for a given base in a given window, then 0. Column order = A,C,G,T.  |
-
-Accessor functions also exist for each slot in the sangerseq object. Most of the
-accessors return the data in its native format, but the `primarySeq` 
-and `secondarySeq` accessors can optionally return the data as a 
-character string or a `DNAString` class object from the 
-`Biostrings` package by setting ` string=TRUE` or 
-` string=FALSE`, respectively. The `DNAString` class contains 
-several convenient functions for manipulating the sequence, including 
-generating the reverse compliment and performing alignments. The 
-`Biostrings` package is automatically loaded with the 
-`sangerseq` package, so all methods should be available.
+## summarize_windows
+This function summarizes methylation data from a ch3_db database by creating 
+sliding windows over the specified genomic regions. It allows for the adjustment 
+of window size and step size to control the granularity of the summarization.
 
 ```{r}
-#default is to return a DNAString object
-Seq1 <- primarySeq(homosangerseq)
-reverseComplement(Seq1)
-
-#can return as string
-primarySeq(homosangerseq, string=TRUE)
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Calculate windows
+summarize_windows(ch3_db, window_size = 100, step_size = 100)
 ```
 
-# Creating Chromatograms
-Basic chromatogram plots can be made using the `chromatogram` 
-function. These plots are optimized for printing, so they contain several rows 
-to plot all of the data simultaneously. The downside of this is that it can give
-an error if the graphics device dimensions are not large enough. If this occurs,
-we suggest you provide a filename in the command to save it to a pdf 
-automatically sized to fit everything. Several parameters can also be set to 
-affect how the plot appears. These are documented in the chromatogram help file.
-
-```{r, fig.height=10}
-chromatogram(hetsangerseq, width=80, height=3, trim5=50, trim3=100, 
-             showcalls='both')
-```
-
-# Making Basecalls
-As shown in the chromatogram, secondary basecalls are sometimes provided in ab1 
-files (Scf files are unable to show them). However, the exact nature of these 
-calls is inconsistent. In the heterozygous.ab1 file used here, it is any peak 
-near the primary peak, no matter how small. For example, base 100 (first base on
-the second line) has a primary call of "C" and a secondary call of "A", even 
-though the A peak is very small and likely noise. In homozygous sequencing 
-results, these calls should simply be ignored and are hidden in the 
-chromatogram by default (` showcalls="primary"`). When heterozygous 
-regions of the sequence are present, the `makeBaseCalls` can be used 
-to determine whether a particular peak is homozygous or heterozygous and call 
-the appropriate bases. 
-
-Let's use the chromatogram we created in the previous section as an example. The
-chromatogram contains a homozygous region from bases 1 to approximately 160, but
-then breaks down into a series of double peaks for the remainder of the 
-chromatogram. This is due to an indel in one allele of the sequenced region. 
-`makeBaseCalls` can be used to show this more clearly or to add the 
-secondary basecalls if the data file does not contain them. The function 
-essentially divides the sequence into a series of basecall windows and 
-identifies the tallest peak for each fluorescence channel within the window. 
-These peaks are converted to signal ratio to the tallest peak. A cutoff ratio is
-then applied to determine if a peak is signal or noise. Peaks below this ratio 
-are ignored. Remaining peaks in each window are used to make primary and 
-secondary basecalls.
-
-```{r}
-hetcalls <- makeBaseCalls(hetsangerseq, ratio=0.33)
-hetcalls
-```
-    
-The resulting file now contains the maximum peak in the ` @primarySeq` slot
-and the second tallest peak, if it is above the cutoff, in the 
-` @secondarySeq` slot. If only one peak is above the cutoff ratio, then 
-this call matches the primary basecall. If three peaks were above the cutoff 
-ratio, then the peak with the maximum amplitude is the primary basecall and an 
-ambiguous base code is used as the secondary basecall. The resulting 
-chromatogram also shows this:
-
-```{r, fig.height=10}
-chromatogram(hetcalls, width=80, height=3, trim5=50, trim3=100, 
-             showcalls='both')
-```
-
-Chromatogram of heterozygous sequencing results after making basecalls. Primary
-and secondary basecalls now match for homozygous peaks
-
-# Parsing Alleles
-Although `makeBaseCalls` has fixed the primary and secondary peak 
-calls. It still does not tell us anything about the nature of the mutation. For 
-this, we need to set the allele phase using a reference base sequence from an 
-online source or from another sequencing run on a homozygous sample. The 
-examples used in this vignette are from heterozygous and homozygous siblings, so
-we will use the primary basecalls from the homozygous sibling (loaded earlier) 
-as our reference. The beginnings and ends of these sequences do not need to 
-match, but the reference should ideally encompass the sequenced region. 
-`setAllelePhase` will then separate the primary and secondary 
-basecalls into reference and non-reference bases at each position and set 
-(`@primarySeq`) to the reference and `@secondarySeq` to the 
-non-reference allele. 
-
-```{r}
-ref <- subseq(primarySeq(homosangerseq, string=TRUE), start=30, width=500)
-hetseqalleles <- setAllelePhase(hetcalls, ref, trim5=50, trim3=300)
-hetseqalleles
-```
-
-At this point, we could plot the chromatogram again, but it is more informative 
-to align the resulting sequences to see how the alleles differ. Since 
-`sangerseqR` depends on `Biostrings`, 
-`pairwiseAlignment` can be used.
-
-```{r}
-pa <- pairwiseAlignment(primarySeq(hetseqalleles)[1:400], 
-                        secondarySeq(hetseqalleles)[1:400], 
-                        type="global-local")
-writePairwiseAlignments(pa)
-```
-
+There is only 1 required arguments. `ch3_db` is a list containing the database 
+file path. This should be a string representing a path to the database, or a valid
+"ch3_db" class object. `call_type` (string) indicates the type of data to summarize. 
+Default is "positions". `window_size` (integer) specifys the size of the sliding 
+window in base pairs. Default is 1000. `step_size` (integer) specifies the 
+number of base pairs to step forward with each window. Default is 10. 
+`overwrite` is a logical indicating whether to overwrite the existing "windows" 
+table if it exists. Default is TRUE.
+ 
 # Conclusion
 In this vignette, we have walked you through the basic functions in the 
-`sangerseqR` package. This work is a work in progress and we hope to 
-improve its functionality. For example, improving the base calling algorithm and
-adding an interactive chromatogram function. If you have any suggestions or 
+`MethylSeqR` package. This work is a work in progress and we hope to 
+improve its functionality. If you have any suggestions or 
 requested features, please email Jonathon Hill at jhill@byu.edu.
