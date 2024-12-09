@@ -44,7 +44,7 @@ Once data is obtained in this format, the first step is done using the
 `make_pos_db()` function. This function directly imports a directory of CH3 
 files, and creates a database in the form of a local file.
 
-## make_pos_db()
+## make_pos_db
 `make_pos_db()` requires 2 arguments. First, A string representing the directory
 path containing CH3 files (`ch3_files`), and second, a string representing the 
 path where the positions database will be created (`ch3_db`). 
