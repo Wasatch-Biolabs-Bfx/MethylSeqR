@@ -132,7 +132,7 @@ table if it exists. Default is TRUE.
 ## calc_mod_diff
 This function calculates differential methylation between specified case and control groups using various statistical methods. 
 
-Differential methylation can be calculated from *positional*, *regional*, or *window* methylation data.
+Differential methylation can be calculated from <b><i>positional</i></b>, <b><i>regional</i></b>, or <b><i>window</i></b> methylation data.
 
 Calling this function creates a `meth_diff` table within the database, where differential methylation data can be found. As of our current model, calling `calc_mod_diff` again on a different set of data will overwrite previous data in the `meth_diff` table.
 
