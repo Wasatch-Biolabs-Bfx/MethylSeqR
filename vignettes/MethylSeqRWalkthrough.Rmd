@@ -128,6 +128,25 @@ number of base pairs to step forward with each window. Default is 10.
 `overwrite` is a logical indicating whether to overwrite the existing "windows" 
 table if it exists. Default is TRUE.
 
+# Differential Methylation
+## calc_mod_diff
+This function calculates differential methylation between specified case and control groups using various statistical methods. 
+
+Differential methylation can be calculated from *positional*, *regional*, or *window* methylation data.
+
+Calling this function creates a `meth_diff` table within the database, where differential methylation data can be found. As of our current model, calling `calc_mod_diff` again on a different set of data will overwrite previous data in the `meth_diff` table.
+
+```{r}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+  
+# Get methylation statistics for the 'positions' call type without plotting
+calc_mod_diff(ch3_db = ch3_db,
+              call_type = "positions",
+              cases = c("chr21_5xSample_BloodA", "chr21_5xSample_BloodE", "chr21_5xSample_BloodT"),
+              controls = c("chr21_5xSample_SpermA", "chr21_5xSample_SpermB", "chr21_5xSample_SpermD"))
+``` 
+
 # Quality Control 
 
 A variety of quality control functions are available to visually assess 
