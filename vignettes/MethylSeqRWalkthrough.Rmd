@@ -222,6 +222,20 @@ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 qc_wrapper(ch3_db)
 ``` 
  
+# Retrieving and Exporting Tables
+You can access data in your database with two different functions.
+
+## get_table
+To retrieve a single table into your local environment for further analysis, 
+using `get_table` will transform it into a tibble and store it into a variable.
+Arguments required includes the database, and name of the table to be retrieved.
+
+## export_table
+To export one or more tables into a CSV file, use `export_table`. This function 
+takes three arguments, the database, which tables to export, and the path where 
+the CSV files will be saved. 
+
+
 # Conclusion
 In this vignette, we have walked you through the basic functions in the 
 `MethylSeqR` package. This work is a work in progress and we hope to 
