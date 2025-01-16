@@ -1,6 +1,6 @@
 ---
 title: "Using the MethylSeqR package"
-author: "Jonathon T. Hill, PhD and Hailey Johnson Zimmerman"
+author: "Hailey Zimmerman and Jonathon T. Hill, PhD"
 date: "`r Sys.Date()`"
 output: 
   html_document:
