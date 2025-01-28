@@ -1,40 +1,47 @@
 #' Correlation Matrix of Modified Sequence Data
 #'
 #' This function calculates and optionally plots a correlation matrix for methylation or other modification fraction data 
-#' from genomic positions. It can handle both position-based and region-based calls and supports visualization using ggplot2.
+#' from genomic positions. It supports position-based, region-based, and window-based calls and provides visualization 
+#' using ggplot2.
 #'
 #' @param ch3_db A string. The path to the database containing ch3 files from nanopore data.
-#' @param call_type A character vector specifying the type of data to retrieve from the database. Default is "positions". Can alo be "regions".
+#' @param call_type A character vector specifying the type of data to retrieve from the database. Options are "positions", 
+#'   "regions", or "windows". Default is "positions".
 #' @param plot A logical value. If TRUE, a correlation heatmap with correlation values is plotted. Default is FALSE.
-#' @param save_path Pathway to save the plot to. Usually .pdf or .png.
+#' @param save_path A string. The file path to save the plot (e.g., .pdf or .png). If NULL, the plot is not saved. Default is NULL.
+#' @param plot_sample_order A character vector specifying the desired order of samples in the plot. Default is NULL, 
+#'   which uses the default order.
+#' @param plot_title A string. The title of the correlation heatmap. Default is "Sample Correlation Matrix".
 #'
 #' @details
-#' This function connects to the ch3 files database, retrieves either position or region-based modification fraction data, 
-#' and computes the Pearson correlation matrix for each sample. If `call_type` is "regions", it aggregates data by sample 
-#' and region name before computing the correlation matrix. If `plot = TRUE`, the function generates a heatmap using 
-#' ggplot2 with the correlation values displayed.
+#' This function connects to the ch3 files database, retrieves data based on the `call_type` parameter, and computes the 
+#' Pearson correlation matrix for each sample. For "regions", data is aggregated by sample and region name. For "windows", 
+#' data is aligned to common genomic windows before computing the correlation matrix. If `plot = TRUE`, the function 
+#' generates a ggplot2 heatmap with correlation values displayed. Optionally, the plot can be saved to a specified file path.
 #'
-#' @note The function assumes that the database has tables named according to the `call_type` parameter (e.g., "positions", 
-#' "regions"). The correlation matrix is calculated using the `pairwise.complete.obs` method, which handles missing data.
+#' @note The function assumes that the database contains tables named according to the `call_type` parameter (e.g., "positions", 
+#' "regions", "windows"). It calculates the correlation matrix using the `pairwise.complete.obs` method, which handles missing data.
 #'
 #' @importFrom stats cor
 #' @import DBI tidyr ggplot2
 #' 
 #' @return A correlation matrix of modification fractions across samples. If `plot = TRUE`, a ggplot object of the correlation 
-#' matrix heatmap is also printed.
+#' matrix heatmap is also printed. If `save_path` is specified, the plot is saved to the given file path.
 #'
 #' @examples
-#'  # Specify the path to the database
-#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
-#'  # Run the correlation matrix function using the 'positions' call type and plot the results
-#'  cor_modseq(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
+#' # Specify the path to the database
+#' ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+#' # Run the correlation matrix function using the 'positions' call type and plot the results
+#' cor_modseq(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 #'
 #' @export
 
 cor_modseq <- function(ch3_db,
                        call_type = c("positions"),
                        plot = FALSE,
-                       save_path = NULL)
+                       save_path = NULL,
+                       plot_sample_order = NULL,
+                       plot_title = "Sample Correlation Matrix")
 {
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
@@ -52,7 +59,7 @@ cor_modseq <- function(ch3_db,
       }
       
       # Retrieve the 'positions' table
-      modseq_dat <- tbl(db_con, call_type) %>% collect()
+      modseq_dat <- tbl(db_con, call_type) |> collect()
       
       if (call_type == "regions") {
         print("regional data")
@@ -60,26 +67,59 @@ cor_modseq <- function(ch3_db,
         dat_wide <- modseq_dat |>
           pivot_wider(id_cols = region_name,
                       names_from = sample_name,
-                      values_from = mh_frac)
+                      values_from = mh_frac,
+                      values_fn = mean)
+        
         # Compute Correlation
         numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
+        
+        print(dim(numeric_columns))
         # Calculate correlation matrix
         correlation_matrix <- cor(numeric_columns,
                                   use = "pairwise.complete.obs",
                                   method = "pearson")
         # View the correlation matrix
         print(correlation_matrix)
-      } else {
+      } else if (call_type == "windows") {
+        
+        # Step 1: Define common windows
+        common_windows <- modseq_dat |>
+          select(chrom, start, end) |>
+          distinct() |>
+          arrange(chrom, start, end)
+        
+        # Step 2: Align data to common windows
+        aligned_data <- common_windows |>
+          left_join(modseq_dat, by = c("chrom", "start", "end")) |>
+          pivot_wider(
+            id_cols = c(chrom, start, end),
+            names_from = sample_name,
+            values_from = mh_frac
+          )
+        
+        # Step 3: Replace NA values with 0
+        aligned_data[is.na(aligned_data)] <- 0
+        
+        # Step 4: Compute correlation matrix
+        numeric_columns <- aligned_data |> select(-chrom, -start, -end)
+        correlation_matrix <- cor(numeric_columns, 
+                                  use = "pairwise.complete.obs", 
+                                  method = "pearson")
+        
+        # Print the correlation matrix
+        print(correlation_matrix)
+      }
+      else {
         # Create a 'chr_pos' identifier for each genomic position
-        dat_wide <- modseq_dat %>%
-          mutate(chr_pos = paste(chrom, ref_position, sep = "_")) %>%
+        dat_wide <- modseq_dat |>
+          mutate(chr_pos = paste(chrom, ref_position, sep = "_")) |>
           pivot_wider(id_cols = chr_pos,
                       names_from = sample_name,  # Each sample (barcode) becomes a column
                       values_from = mh_frac)     # Values are the 'mh_frac' for each sample
         
         # Convert the sample columns to numeric (if needed)
-        numeric_columns <- dat_wide %>%
-          select(-chr_pos) %>%
+        numeric_columns <- dat_wide |>
+          select(-chr_pos) |>
           mutate(across(everything(), as.numeric))  # Convert all columns to numeric
         
         # Check if conversion was successful
@@ -88,7 +128,9 @@ cor_modseq <- function(ch3_db,
         }
         
         # Calculate the correlation matrix
-        correlation_matrix <- cor(numeric_columns, use = "pairwise.complete.obs", method = "pearson")
+        correlation_matrix <- cor(numeric_columns, 
+                                  use = "pairwise.complete.obs", 
+                                  method = "pearson")
         # Print the correlation matrix
         print(correlation_matrix)
       }
@@ -96,31 +138,42 @@ cor_modseq <- function(ch3_db,
       
       # Plot Correlation Matrix with Correlation Values
       if (plot) {
-        melted_cor <- as.data.frame(correlation_matrix) %>%
-          mutate(Var1 = rownames(correlation_matrix)) %>%  # Add row names as a new column
-          pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")  # Pivot to long format
+        melted_cor <- as.data.frame(correlation_matrix) |>
+          mutate(Var1 = rownames(correlation_matrix)) |>  # Add row names as a new column
+          pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")  
+        # Pivot to long format
+        
+        # Define the desired order for samples
+        if (!is.null(plot_sample_order)) {
+          sample_order <- plot_sample_order
+          
+          # Reorder the factors for Var1 and Var2
+          melted_cor$Var1 <- factor(melted_cor$Var1, levels = sample_order)
+          melted_cor$Var2 <- factor(melted_cor$Var2, levels = sample_order)
+        }
+        
         
         p <- ggplot(data = melted_cor, aes(x = Var1,
-                                            y = Var2,
-                                            fill = value)) +
-                geom_tile() +
-                geom_text(aes(label = round(value, 2)),
-                          color = "black") + # Add correlation values
-                scale_fill_gradient2(low = "blue",
-                                     high = "red",
-                                     mid = "white",
-                                     midpoint = 0,
-                                     limits = c(-1, 1),
-                                     space = "Lab",
-                                     name = "Pearson\nCorrelation") +
-                scale_y_discrete(limits = rev(levels(factor(melted_cor$Var2)))) +
-                theme_minimal() +
-                labs(title = "Sample Correlation Matrix",
-                     x = "Sample",
-                     y = "Sample") +
-                theme(axis.text.x = element_text(angle = 45,
-                                                 vjust = 1,
-                                                 hjust = 1))
+                                           y = Var2,
+                                           fill = value)) +
+          geom_tile() +
+          geom_text(aes(label = round(value, 2)),
+                    color = "black") + # Add correlation values
+          scale_fill_gradient2(low = "blue",
+                               high = "red",
+                               mid = "white",
+                               midpoint = 0,
+                               limits = c(-1, 1),
+                               space = "Lab",
+                               name = "Pearson\nCorrelation") +
+          scale_y_discrete(limits = rev(levels(factor(melted_cor$Var2)))) +
+          theme_minimal() +
+          labs(title = plot_title,
+               x = "Sample",
+               y = "Sample") +
+          theme(axis.text.x = element_text(angle = 45,
+                                           vjust = 1,
+                                           hjust = 1))
         print(p)
         
         # Save the plot if save_path is specified
