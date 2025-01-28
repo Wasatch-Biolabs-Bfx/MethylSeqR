@@ -49,6 +49,13 @@ pca_modseq <- function(ch3_db,
           pivot_wider(names_from = sample_name, values_from = mh_frac) %>%
           na.omit() %>%
           as.data.frame()  # Convert to dataframe
+      } else if (call_type == "windows") {
+        # Aggregate mean_mh_frac by chr_pos and sample_name
+        test_wide <- modseq_dat %>%
+          mutate(window = paste(chrom, start, end, sep = "_")) %>%
+          pivot_wider(id_cols = window, names_from = sample_name, values_from = mh_frac) %>%
+          na.omit() %>%
+          as.data.frame()  # Convert to dataframe
       } else {
         # Aggregate mean_mh_frac by chr_pos and sample_name
         test_wide <- modseq_dat %>%
