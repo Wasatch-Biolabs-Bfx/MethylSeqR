@@ -40,7 +40,7 @@
 #' print(result)
 #' 
 #' @export
-summarize_by_pos <- function(ch3_db, 
+summarize_positions <- function(ch3_db, 
                              min_cov = 1) 
 {
   # Open the database connection - first check to make sure correct name is there
@@ -55,10 +55,26 @@ summarize_by_pos <- function(ch3_db,
   
   on.exit(ch3_db$tables <- dbListTables(ch3_db$db_con), add = TRUE)
   on.exit(dbDisconnect(db_con, shutdown = TRUE), add = TRUE)
-  on.exit(ch3_db$db_con = NULL, add = TRUE)
+  on.exit(ch3_db$db_con <<- NULL, add = TRUE)
   
   # Increase temp storage limit to avoid memory issues
   dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
+  
+  # Set up the progress bar
+  pb <- progress_bar$new(
+    format = "[:bar] :percent [Elapsed: :elapsed]",
+    total = 3,  # 3 major steps: summarizing, creating temp table, and creating positions table
+    complete = "=",   
+    incomplete = "-", 
+    current = ">",    
+    clear = FALSE,    
+    width = 60
+  )
+  
+  pb$tick(0)  # Initialize bar without moving it
+  
+  # Process data using duckplyr
+  message("Building positions data from calls table...")
   
   # Process data using duckplyr
   summarized_data <- tbl(db_con, "calls") |>
@@ -75,9 +91,13 @@ summarize_by_pos <- function(ch3_db,
       mh_frac = mh_counts / cov) |> 
     filter(cov >= min_cov)
   
+  pb$tick()  # Progress bar update after summarizing
+  
   # Materialize summarized data into a temporary table before creating positions
   dbExecute(db_con, "DROP TABLE IF EXISTS temp_summary;")
   copy_to(db_con, summarized_data, "temp_summary", temporary = TRUE)
+  
+  pb$tick()  # Progress bar update after summarizing
   
   # Drop the positions table if it already exists
   dbExecute(db_con, "DROP TABLE IF EXISTS positions;")
@@ -86,6 +106,10 @@ summarize_by_pos <- function(ch3_db,
   dbExecute(db_con, "CREATE TABLE positions AS SELECT * FROM temp_summary;")
   on.exit(dbExecute(db_con, "DROP TABLE IF EXISTS temp_summary;"))
   
-  ch3_db$tables <- dbListTables(db_con)
+  pb$tick()  # Progress bar update after summarizing
+  
+  message("Positions table successfully created!")
+  
+  # ch3_db$tables <- dbListTables(db_con)
   invisible(ch3_db)
 }
