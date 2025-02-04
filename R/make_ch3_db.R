@@ -67,5 +67,6 @@ make_ch3_db <- function(ch3_files,
   
   message("Database successfully created at ", ch3_db$db_file)
   ch3_db$tables <- dbListTables(db_con)
+  
   invisible(ch3_db)
 }
