@@ -142,7 +142,7 @@ summarize_regions <- function(ch3_db,
       mh_frac = mh_counts / cov) |> 
     filter(cov >= min_cov)
   
-  for (chr in chroms) { # where error is happening
+  for (chr in chroms) {
     # Begin summarizing by region- perform the join and aggregation
     db_tbl |>
       filter(chrom == chr) |>
