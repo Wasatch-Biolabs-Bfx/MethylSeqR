@@ -35,6 +35,7 @@
 #' @export
 summarize_regions <- function(ch3_db,
                               region_file,
+                              chrom = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"),
                               join_type = "inner",
                               min_cov = 1)
 {
@@ -83,8 +84,7 @@ summarize_regions <- function(ch3_db,
   db_con <- database$db_con
   
   # Specify on exit what to do...
-  on.exit(dbDisconnect(db_con, shutdown = TRUE), add = TRUE)
-  on.exit(ch3_db$db_con <<- NULL, add = TRUE)
+  on.exit(.helper_closeDB(database), add = TRUE)
   
   # Increase temp storage limit to avoid memory issues
   dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
@@ -165,23 +165,21 @@ summarize_regions <- function(ch3_db,
     dbExecute(db_con, 
               "INSERT INTO regions SELECT * FROM temp_table")
     
-    # Drop the regions table if it already exists
     dbExecute(db_con, "DROP TABLE IF EXISTS temp_table;")
     
     pb$tick()
   }
   
-  on.exit(dbRemoveTable(db_con, "regions"), add = TRUE)
   # Close progress bar
   pb$terminate()
 
   # Finish up: purge extra tables & update table list and close the connection
-  keep_tables = c("positions", "regions", "windows", "meth_diff")
+  keep_tables = c("calls","positions", "regions", "windows", "meth_diff")
   .helper_purgeTables(db_con, keep_tables)
+  # ch3_db$last_table = "regions"
+  
+  message("Regions table successfully created!")
+  print(head(tbl(db_con, "regions")))
     
-  # Finish Up
-  ch3_db$tables <- dbListTables(db_con)
-  database$last_table = "regions"
-  .helper_closeDB(database)
-  return(database)
+  invisible(database)
 }

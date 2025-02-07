@@ -109,6 +109,9 @@ summarize_positions <- function(ch3_db,
   pb$tick()  # Progress bar update after summarizing
   
   message("Positions table successfully created!")
+  # message("\n")
+  # message("Printing preview of positions table.")
+  print(head(summarized_data))
   
   # ch3_db$tables <- dbListTables(db_con)
   invisible(ch3_db)

@@ -1,8 +1,3 @@
-## Sliding Window
-
-# Dependencies
-library(tidyr)
-library(dplyr)
 #' Summarize Methylation Data using a Sliding Window
 #'
 #' This function summarizes methylation data from a DuckDB database by creating 
