@@ -152,6 +152,7 @@ summarize_regions <- function(ch3_db,
               copy = TRUE) |>
       summarize(
         .by = c(sample_name, region_name),
+        num_CpGs = n(),  # count number of rows per window = num CpGs
         cov = sum(cov, na.rm = TRUE),
         across(ends_with("_counts"), ~ sum(.x, na.rm = TRUE)),
         across(ends_with("_frac"), ~ sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE))) |>

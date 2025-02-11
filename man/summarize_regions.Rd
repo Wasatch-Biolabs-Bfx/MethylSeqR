@@ -4,7 +4,13 @@
 \alias{summarize_regions}
 \title{Summarize Methylation Data by Regions}
 \usage{
-summarize_regions(ch3_db, region_file, join_type = "inner")
+summarize_regions(
+  ch3_db,
+  region_file,
+  chrom = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"),
+  join_type = "inner",
+  min_cov = 1
+)
 }
 \arguments{
 \item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}

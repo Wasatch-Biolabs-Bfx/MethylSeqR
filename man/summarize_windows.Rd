@@ -6,22 +6,23 @@
 \usage{
 summarize_windows(
   ch3_db,
-  call_type = "positions",
   window_size = 1000,
   step_size = 10,
+  mod_type = c("c", "m", "h", "mh"),
+  min_cov = 1,
   overwrite = TRUE
 )
 }
 \arguments{
 \item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
 
-\item{call_type}{A string indicating the type of data to summarize. Default is "positions".}
-
 \item{window_size}{An integer specifying the size of the sliding window in base pairs. Default is 1000.}
 
 \item{step_size}{An integer specifying the number of base pairs to step forward with each window. Default is 10.}
 
 \item{overwrite}{A logical indicating whether to overwrite the existing "windows" table if it exists. Default is TRUE.}
+
+\item{call_type}{A string indicating the type of data to summarize. Default is "positions".}
 }
 \value{
 The updated `ch3_db` object with the summarized windows data added to the DuckDB database.

@@ -37,6 +37,7 @@
 summarize_windows <- function(ch3_db,
                          window_size = 1000,
                          step_size = 10,
+                         mod_type = c("c", "m", "h", "mh"),
                          min_cov = 1,
                          overwrite = TRUE) 
 {
@@ -121,7 +122,8 @@ summarize_windows <- function(ch3_db,
       start > 0) |>
     summarize(
       .by = c(sample_name, chrom, start),
-      total_calls = sum(cov, na.rm = TRUE),
+      num_CpGs = n(),  # count number of rows per window = num CpGs
+      num_calls = sum(cov, na.rm = TRUE),
       across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
       across(ends_with("_frac"), ~sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE))) |>
     mutate(
