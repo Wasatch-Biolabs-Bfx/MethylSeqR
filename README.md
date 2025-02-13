@@ -17,7 +17,7 @@ MethylSeqR is an R package managing Direct Whole Methylome Sequencing (dWMS) dat
 install.packages("devtools")
 
 # Install MethylSeqR from GitHub
-devtools::install_github("Wasatch-BioLabs/MethylSeqR", build_vignettes = TRUE)
+devtools::install_github("Wasatch-Biolabs-Bfx/MethylSeqR", build_vignettes = TRUE)
 
 # Access Package
 library(MethylSeqR)
@@ -26,11 +26,11 @@ library(MethylSeqR)
 ***For Linux Users:*** *System packages may need to be intalled in order to use devtools. Instructions can be found online. An example guide for this can be found [here](https://www.digitalocean.com/community/tutorials/how-to-install-r-packages-using-devtools-on-ubuntu-16-04).*
 
 ## Paradigm 
-Begin with CH3 files using the `make_pos_db()` function to generate a database. This will at first hold a positions table. 
+Begin with CH3 files and build a database using the `make_ch3_db`. This will at first hold a calls table. 
 
-After a positional table is made, a user can summarize by region (`summarize_regions()`) or windows (`summarize_windows()`). A differential methylation analysis can be conducted on positional, regional, or window data using `calc_mod_diff()`.
+After a database is created, a user can summarize their data by position (`summarize_positions()`), by regions (`summarize_regions()`) or windows (`summarize_windows()`). A differential methylation analysis can be conducted on positional, regional, or window data using `calc_mod_diff()`.
 
-`qc_wrapper()` can be called to visually assess data. Call `export_tables()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment.
+`qc_wrapper()` can be called to visually assess any data. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment.
 
 #### Developed by Wasatch Biolabs.
 #### Visit us on [our website](https://www.wasatchbiolabs.com/) for more details.
