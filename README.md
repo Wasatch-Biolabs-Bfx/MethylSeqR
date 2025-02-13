@@ -18,7 +18,8 @@ install.packages("devtools")
 library(devtools)
 
 # Install MethylSeqR from GitHub
-devtools::install_github("Wasatch-Biolabs-Bfx/MethylSeqR", build_vignettes = TRUE)
+devtools::install_github("Wasatch-Biolabs-Bfx/MethylSeqR", build_vignettes = FALSE)
+# for now, do NOT build vignette.
 
 # Access Package
 library(MethylSeqR)
