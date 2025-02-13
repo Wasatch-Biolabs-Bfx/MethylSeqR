@@ -36,6 +36,10 @@ Only reads with quality scores at or above this value will be included. Default 
 
 \item{flag}{An optional numeric value specifying a flag-based filter for the data. 
 If NULL, no flag filtering is applied.}
+
+\item{chr_prefix}{A boolean value stating whether or not to keep the chr prefix 
+in the chromosome column. Default is TRUE, and "chr" will be kept in fornt of every
+chr number.}
 }
 \value{
 A list of class `"ch3_db"`, containing:
