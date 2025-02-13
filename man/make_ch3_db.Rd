@@ -11,7 +11,8 @@ make_ch3_db(
   min_read_length = 50,
   min_call_prob = 0.9,
   min_base_qual = 30,
-  flag = NULL
+  flag = NULL,
+  chr_prefix = TRUE
 )
 }
 \arguments{

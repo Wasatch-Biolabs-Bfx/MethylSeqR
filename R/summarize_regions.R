@@ -107,6 +107,19 @@ summarize_regions <- function(ch3_db,
       mh_frac = mh_counts / cov) |> 
     filter(cov >= min_cov)
   
+  has_missing_chr <- db_tbl |> 
+    summarize(any_missing_chr = any(!grepl("^chr", chrom))) |> 
+    pull(any_missing_chr)
+  
+  if (has_missing_chr) {
+    has_chr <- any(grepl("^chr", annotation$chrom))  # TRUE if any row has "chr"
+    
+    if (has_chr) {
+      annotation <- annotation |> 
+        mutate(chrom = sub("^chr", "", chrom))  # Base R equivalent
+    }
+  }
+  
   # Upload annotation as a temporary table
   dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
   dbWriteTable(db_con, "temp_annotation", annotation, temporary = TRUE)
