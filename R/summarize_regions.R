@@ -54,15 +54,15 @@ summarize_regions <- function(ch3_db,
     stop("Invalid file type. Only CSV, TSV, or BED files are supported.")
   }
   
-  # Ensure proper column names and remove header row if needed
-  if (annotation[1,1] %in% c("chr", "Chr", "chrom", "Chrom")) {
-    annotation = annotation[-1, ]
-  }
-  
   # check format
   if (ncol(annotation) < 3 || ncol(annotation) > 4) {
     stop("Invalid annotation format. File must have 3 or 4 columns:
          chr, start, end, region_name (optional) annotation.")
+  }
+  
+  # Ensure proper column names and remove header row if needed
+  if (annotation[1,1] %in% c("chr", "Chr", "chrom", "Chrom")) {
+    annotation = annotation[-1, ]
   }
   
   if (ncol(annotation == 3)) {
@@ -76,7 +76,7 @@ summarize_regions <- function(ch3_db,
     annotation |>
     reframe(
       .by = c(region_name, chrom),
-      ref_position = start:end)
+      start = start:end)
 
   
   # Open the database connection
@@ -130,7 +130,7 @@ summarize_regions <- function(ch3_db,
   
   db_tbl = tbl(db_con, "calls") |>
     summarize(
-      .by = c(sample_name, chrom, ref_position),
+      .by = c(sample_name, chrom, start, end),
       cov = n(),
       c_counts = sum(as.integer(call_code == "-"), na.rm = TRUE),
       m_counts = sum(as.integer(call_code == "m"), na.rm = TRUE),
@@ -148,7 +148,7 @@ summarize_regions <- function(ch3_db,
       filter(chrom == chr) |>
       my_join(annotation, 
               by = join_by(chrom, 
-                           ref_position), 
+                           start), 
               copy = TRUE) |>
       summarize(
         .by = c(sample_name, region_name),
