@@ -1,8 +1,3 @@
-## Sliding Window
-
-# Dependencies
-library(tidyr)
-library(dplyr)
 #' Summarize Methylation Data using a Sliding Window
 #'
 #' This function summarizes methylation data from a DuckDB database by creating 
@@ -40,14 +35,24 @@ library(dplyr)
 #'
 #' @export
 summarize_windows <- function(ch3_db,
-                         call_type = "positions",
                          window_size = 1000,
                          step_size = 10,
+                         mod_type = c("c", "m", "h", "mh"),
+                         min_cov = 1,
                          overwrite = TRUE) 
 {
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
+  
+  # Specify on exit what to do...
+  # Finish up: purge extra tables & update table list and close the connection
+  keep_tables = c("calls","positions", "regions", "windows", "meth_diff")
+  on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
+  on.exit(.helper_closeDB(database), add = TRUE)
+  
+  # Increase temp storage limit to avoid memory issues
+  dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
   
   if (dbExistsTable(db_con, "windows") & overwrite)
     dbRemoveTable(db_con, "windows")
@@ -56,7 +61,19 @@ summarize_windows <- function(ch3_db,
     dbRemoveTable(db_con, "temp_table")
   
   # Open table
-  db_tbl <- tbl(db_con, call_type)
+  db_tbl <- tbl(db_con, "calls") |>
+    summarize(
+      .by = c(sample_name, chrom, start, end),
+      cov = n(),
+      c_counts = sum(as.integer(call_code == "-"), na.rm = TRUE),
+      m_counts = sum(as.integer(call_code == "m"), na.rm = TRUE),
+      h_counts = sum(as.integer(call_code == "h"), na.rm = TRUE),
+      mh_counts = sum(as.integer(call_code %in% c("m", "h")), na.rm = TRUE)) |>
+    mutate(
+      m_frac = m_counts / cov,
+      h_frac = h_counts / cov,
+      mh_frac = mh_counts / cov) |> 
+    filter(cov >= min_cov)
   
   # Calc windows in each frame
   offsets <- seq(1, window_size - 1, by = step_size)
@@ -73,50 +90,40 @@ summarize_windows <- function(ch3_db,
     width = 100)
   
   # Tick progress bar to make it show up (first loop can be long)
-  pb$tick(-1)
   pb$tick()
   
   
   # Conduct analysis. 
   # Creates tiled windows and then loops to create sliding window
-  tryCatch(
-    {
-      for (offset in offsets) {
-        .make_window(db_tbl, db_con, offset, window_size)
-        # Advance progress bar
-        pb$tick()
-      }
-    }, 
-    error = function(e) 
-    {
-      if (dbExistsTable(db_con, "windows"))
-        dbRemoveTable(db_con, "windows")
-      message("Error: ", e$message)
-    },
-    finally = 
-      {
-        if (dbExistsTable(db_con, "temp_table"))
-          dbRemoveTable(db_con, "temp_table")
-        # Close progress bar
-        pb$terminate()
-        # Finish Up
-        database$last_table = "windows"
-        .helper_closeDB(database)
-        return(database)
-      })
+  for (offset in offsets) {
+    .make_window(db_tbl, db_con, offset, window_size)
+    # Advance progress bar
+    pb$tick()
+  }
+
+  if (dbExistsTable(db_con, "temp_table"))
+    dbRemoveTable(db_con, "temp_table")
+  # Close progress bar
+  pb$terminate()
+  
+  message("Windows table successfully created!")
+  print(head(tbl(db_con, "windows")))
+  
+  invisible(database)
 }
 
 .make_window <- function(db_tbl, db_con, offset, window_size)
 {
   db_tbl |>
     mutate(
-      start = ref_position - ((ref_position - offset) %% window_size),
+      start = start - ((start - offset) %% window_size),
       na.rm = TRUE) |>
     filter(
       start > 0) |>
     summarize(
       .by = c(sample_name, chrom, start),
-      total_calls = sum(cov, na.rm = TRUE),
+      num_CpGs = n(),  # count number of rows per window = num CpGs
+      num_calls = sum(cov, na.rm = TRUE),
       across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
       across(ends_with("_frac"), ~sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE))) |>
     mutate(

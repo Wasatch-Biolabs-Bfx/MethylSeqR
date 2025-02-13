@@ -49,7 +49,7 @@ sample_ch3 <- function(ch3_file,
   
   new_sample_name <- paste0(coverage, 
                             "xSample_", 
-                            gsub(".*?/(.*)-..ch3", "\\1", ch3_file), 
+                            gsub(".*?/(.*?)-..ch3", "\\1", ch3_file), 
                             sample_name_suffix)
   
   read_data <- 
