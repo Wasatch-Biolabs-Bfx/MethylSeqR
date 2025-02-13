@@ -18,7 +18,7 @@
 #' A progress bar is displayed during execution.
 #'
 #' @examples
-#' ch3_db <- summarize_positions("example_ch3.ch3.db", min_cov = 5)
+#' summarize_positions("example_ch3.ch3.db", min_cov = 1)
 #'
 #' @import DBI dplyr progress duckdb
 #' @export

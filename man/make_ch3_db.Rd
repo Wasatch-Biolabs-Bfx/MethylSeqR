@@ -56,7 +56,6 @@ it will be dropped and recreated.
 ch3_files <- system.file("new_test_data", package = "MethylSeqR")
 db_name <- tempfile("example_ch3")
 
-result <- make_ch3_db(ch3_files, db_name)
-print(result)
+make_ch3_db(ch3_files, db_name)
 
 }
