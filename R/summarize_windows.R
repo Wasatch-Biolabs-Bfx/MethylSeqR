@@ -63,7 +63,7 @@ summarize_windows <- function(ch3_db,
   # Open table
   db_tbl <- tbl(db_con, "calls") |>
     summarize(
-      .by = c(sample_name, chrom, ref_position),
+      .by = c(sample_name, chrom, start, end),
       cov = n(),
       c_counts = sum(as.integer(call_code == "-"), na.rm = TRUE),
       m_counts = sum(as.integer(call_code == "m"), na.rm = TRUE),
@@ -116,7 +116,7 @@ summarize_windows <- function(ch3_db,
 {
   db_tbl |>
     mutate(
-      start = ref_position - ((ref_position - offset) %% window_size),
+      start = start - ((start - offset) %% window_size),
       na.rm = TRUE) |>
     filter(
       start > 0) |>
