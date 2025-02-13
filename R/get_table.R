@@ -29,27 +29,18 @@ get_table <- function(ch3_db,
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
+  # Specify on exit what to do...
+  on.exit(.helper_closeDB(database), add = TRUE)
+  
   dat <- tibble()  # Initialize an empty tibble to return if there's an error
   
-  tryCatch(
-    {
-      if (table_name %in% dbListTables(db_con)) {
-        # write out table to path given
-        dat <- tbl(db_con, table_name) |> collect()
-      } else {
-        # Print a message if the table does not exist
-        message(paste0("Table '", tbl, "' does not exist in the database."))
-      }
-    }, 
-    error = function(e) 
-    {
-      message("Error: ", e$message)
-    },
-    finally = 
-      {
-        dbDisconnect(db_con, shutdown = TRUE)
-      })
+  if (table_name %in% dbListTables(db_con)) {
+    # write out table to path given
+    dat <- tbl(db_con, table_name) |> collect()
+  } else {
+    # Print a message if the table does not exist
+    message(paste0("Table '", tbl, "' does not exist in the database."))
+  }
   
   return(dat)
-  
 }
