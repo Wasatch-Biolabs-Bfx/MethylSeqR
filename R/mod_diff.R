@@ -113,7 +113,7 @@ calc_mod_diff <- function(ch3_db,
       
       database$last_table = "meth_diff"
       .helper_closeDB(database)
-      return(database)
+      invisible(database)
     })
 }
 

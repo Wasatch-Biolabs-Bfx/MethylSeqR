@@ -45,7 +45,8 @@ make_ch3_db <- function(ch3_files,
                         min_read_length = 50, 
                         min_call_prob = 0.9, 
                         min_base_qual = 30, 
-                        flag = NULL)
+                        flag = NULL,
+                        chr_prefix = TRUE)
 {
   # Check if folder/files exist and create string for query
   if (any(!file.exists(ch3_files))) {
@@ -101,10 +102,29 @@ make_ch3_db <- function(ch3_files,
       paste("WHERE", paste(filters, collapse = " AND ")) else ""
   
   # Execute the query
-  dbExecute(db_con, 
-            paste0("CREATE TABLE calls AS SELECT * FROM read_parquet([", 
+  if (chr_prefix) {
+    dbExecute(db_con, 
+              paste0("CREATE TABLE calls AS 
+                   SELECT *, 
+                          CASE WHEN chrom LIKE 'chr%' THEN chrom 
+                                    ELSE 'chr' || chrom 
+                               END AS chrom_fixed 
+                   FROM read_parquet([", 
                    path, "]) ", 
                    where_clause)) 
+  } else {
+    dbExecute(db_con, 
+              paste0("CREATE TABLE calls AS 
+                   SELECT *, 
+                          CASE WHEN chrom LIKE 'chr%' THEN SUBSTRING(chrom, 4) 
+                              ELSE chrom 
+                         END AS chrom_fixed 
+                   FROM read_parquet([", 
+                   path, "]) ", 
+                   where_clause)) 
+    dbExecute(db_con, "ALTER TABLE calls DROP COLUMN chrom")
+    dbExecute(db_con, "ALTER TABLE calls RENAME COLUMN chrom_fixed TO chrom")
+  }
   
   message("Database successfully created at ", ch3_db$db_file)
   ch3_db$tables <- dbListTables(db_con)
