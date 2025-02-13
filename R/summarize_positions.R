@@ -79,7 +79,7 @@ summarize_positions <- function(ch3_db,
   # Process data using duckplyr
   summarized_data <- tbl(db_con, "calls") |>
     summarize(
-      .by = c(sample_name, chrom, ref_position),
+      .by = c(sample_name, chrom, start, end),
       cov = n(),
       c_counts = sum(as.integer(call_code == "-"), na.rm = TRUE),
       m_counts = sum(as.integer(call_code == "m"), na.rm = TRUE),
