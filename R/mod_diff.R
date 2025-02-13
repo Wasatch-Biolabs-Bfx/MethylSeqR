@@ -61,8 +61,7 @@ calc_mod_diff <- function(ch3_db,
     in_dat <-
       tbl(db_con, call_type) |>
       select(
-        sample_name, any_of(c("chrom", "start", "end", 
-                              "ref_position", 
+        sample_name, any_of(c("chrom", "start", "end",
                               "region_name")), # removed total_calls,
         c_counts, mod_counts = !!mod_counts_col) |>
       mutate(
@@ -128,7 +127,6 @@ calc_mod_diff <- function(ch3_db,
     in_dat |>
     summarize(
       .by = c(exp_group, any_of(c("chrom", "start", "end",
-                                  "ref_position", 
                                   "region_name"))),
       c_counts = sum(c_counts),
       mod_counts = sum(mod_counts)) |>
@@ -141,7 +139,6 @@ calc_mod_diff <- function(ch3_db,
   pvals <-
     dat |>
     select(!any_of(c("chrom", "start", "end",
-                     "ref_position", 
                      "region_name"))) |>
     distinct() |>
     mutate(
@@ -227,7 +224,7 @@ calc_mod_diff <- function(ch3_db,
       mod_frac = mod_counts / cov) |>
     collect() |>
     summarize(
-      .by = c(chrom, ref_position),
+      .by = c(chrom, start),
       mean_cov = mean(cov),
       mean_frac_case = mean(mod_frac[exp_group == "case"]),
       mean_frac_ctrl = mean(mod_frac[exp_group == "control"]),
