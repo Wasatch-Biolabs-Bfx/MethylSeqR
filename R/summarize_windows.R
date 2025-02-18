@@ -20,11 +20,9 @@
 #'
 #' @return The updated `ch3_db` object with the summarized windows data added to the DuckDB database.
 #'
-#' @import dplyr
-#' @import dbplyr
-#' @import duckdb
-#' @import duckplyr
-#' @import progress
+#' @importFrom DBI dbExecute dbExistsTable dbRemoveTable
+#' @importFrom dplyr tbl summarize mutate filter select everything across ends_with
+#' @importFrom progress progress_bar
 #' 
 #' @examples
 #'  # Specify the path to the database
