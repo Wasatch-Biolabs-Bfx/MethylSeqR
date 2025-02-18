@@ -31,8 +31,8 @@
 #' \item{db_file}{The path to the created DuckDB database file.}
 #' \item{tables}{A list of tables available in the database.}
 #'
-#' @import duckdb
-#' @import dbplyr
+#' @importFrom DBI dbExecute dbDisconnect dbListTables dbConnect
+#' @importFrom duckdb duckdb
 #'
 #' @examples
 #' # Example usage

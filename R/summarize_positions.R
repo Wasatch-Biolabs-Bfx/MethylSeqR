@@ -20,7 +20,11 @@
 #' @examples
 #' summarize_positions("example_ch3.ch3.db", min_cov = 1)
 #'
-#' @import DBI dplyr progress duckdb
+#' @importFrom DBI dbExecute dbDisconnect dbListTables
+#' @importFrom dplyr tbl summarize mutate filter
+#' @importFrom progress progress_bar
+#' @importFrom duckdb copy_to
+#' 
 #' @export
 summarize_positions <- function(ch3_db, 
                              min_cov = 1) 
