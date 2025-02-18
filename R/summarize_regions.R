@@ -17,12 +17,11 @@
 #'
 #' @return The updated `ch3_db` object with the summarized regions data added to the DuckDB database.
 #'
-#' @import readr
-#' @import dplyr
-#' @import dbplyr
-#' @import duckdb
-#' @import duckplyr
-#' @import progress
+#' @importFrom tools file_ext
+#' @importFrom readr read_csv read_tsv
+#' @importFrom dplyr mutate summarize filter pull tbl
+#' @importFrom DBI dbExecute dbWriteTable
+#' @importFrom duckdb duckdb
 #'
 #' @examples
 #'  # Specify the path to the database
