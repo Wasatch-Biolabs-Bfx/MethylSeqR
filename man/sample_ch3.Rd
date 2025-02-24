@@ -4,13 +4,7 @@
 \alias{sample_ch3}
 \title{Downsample a CH3 File to a Desired Coverage}
 \usage{
-sample_ch3(
-  ch3_file,
-  out_path,
-  coverage = 5,
-  sample_name_suffix = "",
-  genome_size = 3.2e+09
-)
+sample_ch3(ch3_file, out_path, coverage, sample_name_suffix = "")
 }
 \arguments{
 \item{ch3_file}{A string representing the file path to the input CH3 file.}
@@ -20,8 +14,6 @@ sample_ch3(
 \item{coverage}{A numeric value specifying the desired coverage for the downsampled CH3 file. Defaults to 5.}
 
 \item{sample_name_suffix}{A string to append to the sample name in the output file. Defaults to an empty string.}
-
-\item{genome_size}{A numeric value representing the size of the genome in base pairs. Defaults to 3.2e9 (human genome size).}
 }
 \value{
 The function does not return a value but writes the downsampled CH3 file to the 
