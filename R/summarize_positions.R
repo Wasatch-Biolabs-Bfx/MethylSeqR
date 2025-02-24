@@ -4,6 +4,8 @@
 #' coverage and call counts into a `positions` table.
 #'
 #' @param ch3_db A DuckDB database connection or file path (character) to the `.ch3.db` file.
+#' @param mod_type A character vector specifying which DNA modification types to include in the summarized data. 
+#' The vector can include values like `"m"`, `"h"`, or `"mh"`.
 #' @param min_cov Minimum coverage required to include a position in the summary. Default is 1.
 #'
 #' @return The modified `ch3_db` object with the updated `positions` table.
@@ -26,7 +28,8 @@
 #' @importFrom duckdb copy_to
 #' 
 #' @export
-summarize_positions <- function(ch3_db, 
+summarize_positions <- function(ch3_db,
+                                mod_type = c("c", "m", "h", "mh"),
                              min_cov = 1) 
 {
   # Open the database connection - first check to make sure correct name is there
@@ -78,6 +81,13 @@ summarize_positions <- function(ch3_db,
     filter(cov >= min_cov)
   
   pb$tick()  # Progress bar update after summarizing
+  
+  # Select only requested modtype columns (always keeping cov)
+  selected_columns <- c("sample_name", "chrom", "start", "end", "cov", 
+                        paste0(mod_type, "_counts"), paste0(mod_type, "_frac"))
+  selected_columns <- intersect(selected_columns, colnames(summarized_data))
+  
+  summarized_data <- summarized_data |> select(all_of(selected_columns))
   
   # Materialize summarized data into a temporary table before creating positions
   dbExecute(db_con, "DROP TABLE IF EXISTS temp_summary;")

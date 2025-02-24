@@ -4,10 +4,13 @@
 \alias{summarize_positions}
 \title{Summarize Methylation Positions from Calls Table}
 \usage{
-summarize_positions(ch3_db, min_cov = 1)
+summarize_positions(ch3_db, mod_type = c("c", "m", "h", "mh"), min_cov = 1)
 }
 \arguments{
 \item{ch3_db}{A DuckDB database connection or file path (character) to the `.ch3.db` file.}
+
+\item{mod_type}{A character vector specifying which DNA modification types to include in the summarized data. 
+The vector can include values like `"m"`, `"h"`, or `"mh"`.}
 
 \item{min_cov}{Minimum coverage required to include a position in the summary. Default is 1.}
 }
