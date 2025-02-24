@@ -20,6 +20,10 @@ summarize_windows(
 
 \item{step_size}{An integer specifying the number of base pairs to step forward with each window. Default is 10.}
 
+\item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
+`"m"` (methylation), `"h"` (hydroxymethylation), 
+  and `"mh"` (methylated + hydroxymethylated).}
+
 \item{overwrite}{A logical indicating whether to overwrite the existing "windows" table if it exists. Default is TRUE.}
 
 \item{call_type}{A string indicating the type of data to summarize. Default is "positions".}

@@ -20,9 +20,9 @@ summarize_regions(
 \item{chrom}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
 sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
 
-\item{mod_type}{A character vector specifying the modification types to include. Options are 
-"m" (methylation), "h" (hydroxymethylation), 
-  and "mh" (methylated + hydroxymethylated).}
+\item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
+`"m"` (methylation), `"h"` (hydroxymethylation), 
+  and `"mh"` (methylated + hydroxymethylated).}
 
 \item{min_cov}{An integer specifying the minimum coverage required for inclusion in the summary.
 Default is 1.}

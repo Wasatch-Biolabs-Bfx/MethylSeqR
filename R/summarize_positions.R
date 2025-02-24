@@ -4,8 +4,9 @@
 #' coverage and call counts into a `positions` table.
 #'
 #' @param ch3_db A DuckDB database connection or file path (character) to the `.ch3.db` file.
-#' @param mod_type A character vector specifying which DNA modification types to include in the summarized data. 
-#' The vector can include values like `"m"`, `"h"`, or `"mh"`.
+#' @param mod_type A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
+#' `"m"` (methylation), `"h"` (hydroxymethylation), 
+#'   and `"mh"` (methylated + hydroxymethylated).
 #' @param min_cov Minimum coverage required to include a position in the summary. Default is 1.
 #'
 #' @return The modified `ch3_db` object with the updated `positions` table.

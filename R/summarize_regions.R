@@ -8,9 +8,9 @@
 #' @param region_file A string representing the path to the BED or CSV file that contains the region annotations.
 #' @param chrom A character vector specifying which chromosomes to include. Default includes all autosomes, 
 #'   sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).
-#' @param mod_type A character vector specifying the modification types to include. Options are 
-#' "m" (methylation), "h" (hydroxymethylation), 
-#'   and "mh" (methylated + hydroxymethylated).
+#' @param mod_type A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
+#' `"m"` (methylation), `"h"` (hydroxymethylation), 
+#'   and `"mh"` (methylated + hydroxymethylated).
 #' @param min_cov An integer specifying the minimum coverage required for inclusion in the summary.
 #'   Default is 1.
 #'

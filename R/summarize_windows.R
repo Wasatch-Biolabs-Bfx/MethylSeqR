@@ -8,6 +8,9 @@
 #' @param call_type A string indicating the type of data to summarize. Default is "positions".
 #' @param window_size An integer specifying the size of the sliding window in base pairs. Default is 1000.
 #' @param step_size An integer specifying the number of base pairs to step forward with each window. Default is 10.
+#' @param mod_type A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
+#' `"m"` (methylation), `"h"` (hydroxymethylation), 
+#'   and `"mh"` (methylated + hydroxymethylated).
 #' @param overwrite A logical indicating whether to overwrite the existing "windows" table if it exists. Default is TRUE.
 #'
 #' @details
@@ -72,6 +75,13 @@ summarize_windows <- function(ch3_db,
       h_frac = h_counts / cov,
       mh_frac = mh_counts / cov) |> 
     filter(cov >= min_cov)
+  
+  # Select only requested modtype columns (always keeping cov)
+  selected_columns <- c("sample_name", "chrom", "start", "end", "cov", 
+                        paste0(mod_type, "_counts"), paste0(mod_type, "_frac"))
+  selected_columns <- intersect(selected_columns, colnames(db_tbl))
+  
+  db_tbl <- db_tbl |> select(all_of(selected_columns))
   
   # Calc windows in each frame
   offsets <- seq(1, window_size - 1, by = step_size)
