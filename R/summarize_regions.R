@@ -6,8 +6,13 @@
 #'
 #' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
 #' @param region_file A string representing the path to the BED or CSV file that contains the region annotations.
-#' @param join_type A string indicating the type of join to perform. Options are "inner", "left", 
-#' "right", or "full". Default is "inner".
+#' @param chrom A character vector specifying which chromosomes to include. Default includes all autosomes, 
+#'   sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).
+#' @param mod_type A character vector specifying the modification types to include. Options are 
+#' "m" (methylation), "h" (hydroxymethylation), 
+#'   and "mh" (methylated + hydroxymethylated).
+#' @param min_cov An integer specifying the minimum coverage required for inclusion in the summary.
+#'   Default is 1.
 #'
 #' @details
 #' The function reads the region annotations from the regional annotation file and checks for its validity.
@@ -35,7 +40,7 @@
 summarize_regions <- function(ch3_db,
                               region_file,
                               chrom = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"),
-                              join_type = "inner",
+                              mod_type = c("c", "m", "h", "mh"),
                               min_cov = 1)
 {
   # Determine the file type (csv, tsv, or bed)
@@ -119,6 +124,13 @@ summarize_regions <- function(ch3_db,
     }
   }
   
+  # Select only requested modtype columns (always keeping cov)
+  selected_columns <- c("sample_name", "chrom", "start", "end", "cov", 
+                        paste0(mod_type, "_counts"), paste0(mod_type, "_frac"))
+  selected_columns <- intersect(selected_columns, colnames(db_tbl))
+  
+  db_tbl <- db_tbl |> select(all_of(selected_columns))
+  
   # Upload annotation as a temporary table
   dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
   dbWriteTable(db_con, "temp_annotation", annotation, temporary = TRUE)
@@ -127,27 +139,70 @@ summarize_regions <- function(ch3_db,
   dbExecute(db_con, "DROP TABLE IF EXISTS temp_positions;")
   dbWriteTable(db_con, "temp_positions", collect(db_tbl), temporary = TRUE)
   
-  # Perform the **inequality join** in DuckDB and create the `regions` table
-  query <- "
+  # Dynamically construct the SQL query for modification types
+  count_columns <- ""
+  frac_columns <- ""
+  
+  if ("c" %in% mod_type) {
+    count_columns <- paste0("SUM(p.c_counts) AS c_counts, ")
+  }
+  if ("m" %in% mod_type) {
+    count_columns <- paste0(count_columns, "SUM(p.m_counts) AS m_counts, ")
+    frac_columns <- paste0(frac_columns, "SUM(p.m_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS m_frac, ")
+  }
+  if ("h" %in% mod_type) {
+    count_columns <- paste0(count_columns, "SUM(p.h_counts) AS h_counts, ")
+    frac_columns <- paste0(frac_columns, "SUM(p.h_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS h_frac, ")
+  }
+  if ("mh" %in% mod_type) {
+    count_columns <- paste0(count_columns, "SUM(p.mh_counts) AS mh_counts, ")
+    frac_columns <- paste0(frac_columns, "SUM(p.mh_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS mh_frac, ")
+  }
+  
+  # Remove trailing commas
+  count_columns <- substr(count_columns, 1, nchar(count_columns) - 2)
+  frac_columns <- substr(frac_columns, 1, nchar(frac_columns) - 2)
+  
+  # Create the final query with dynamic columns
+  query <- paste0("
   CREATE TABLE regions AS
   SELECT 
     p.sample_name, 
     a.region_name,
     COUNT(*) AS num_CpGs, 
     SUM(p.cov) AS cov, 
-    SUM(p.c_counts) AS c_counts, 
-    SUM(p.m_counts) AS m_counts, 
-    SUM(p.h_counts) AS h_counts, 
-    SUM(p.mh_counts) AS mh_counts, 
-    SUM(p.m_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS m_frac,
-    SUM(p.h_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS h_frac,
-    SUM(p.mh_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS mh_frac
+    ", count_columns, ", 
+    ", frac_columns, "
   FROM temp_positions p
   JOIN temp_annotation a
     ON p.chrom = a.chrom 
     AND CAST(p.start AS DOUBLE) BETWEEN CAST(a.start AS DOUBLE) AND CAST(a.end AS DOUBLE)
   GROUP BY p.sample_name, a.region_name;
-"
+  ")
+  
+  
+  
+  # Perform the **inequality join** in DuckDB and create the `regions` table
+#   query <- "
+#   CREATE TABLE regions AS
+#   SELECT 
+#     p.sample_name, 
+#     a.region_name,
+#     COUNT(*) AS num_CpGs, 
+#     SUM(p.cov) AS cov, 
+#     SUM(p.c_counts) AS c_counts, 
+#     SUM(p.m_counts) AS m_counts, 
+#     SUM(p.h_counts) AS h_counts, 
+#     SUM(p.mh_counts) AS mh_counts, 
+#     SUM(p.m_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS m_frac,
+#     SUM(p.h_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS h_frac,
+#     SUM(p.mh_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS mh_frac
+#   FROM temp_positions p
+#   JOIN temp_annotation a
+#     ON p.chrom = a.chrom 
+#     AND CAST(p.start AS DOUBLE) BETWEEN CAST(a.start AS DOUBLE) AND CAST(a.end AS DOUBLE)
+#   GROUP BY p.sample_name, a.region_name;
+# "
   
   dbExecute(db_con, query)
   

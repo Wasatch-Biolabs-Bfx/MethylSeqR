@@ -8,7 +8,7 @@ summarize_regions(
   ch3_db,
   region_file,
   chrom = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"),
-  join_type = "inner",
+  mod_type = c("c", "m", "h", "mh"),
   min_cov = 1
 )
 }
@@ -17,8 +17,15 @@ summarize_regions(
 
 \item{region_file}{A string representing the path to the BED or CSV file that contains the region annotations.}
 
-\item{join_type}{A string indicating the type of join to perform. Options are "inner", "left", 
-"right", or "full". Default is "inner".}
+\item{chrom}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
+sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
+
+\item{mod_type}{A character vector specifying the modification types to include. Options are 
+"m" (methylation), "h" (hydroxymethylation), 
+  and "mh" (methylated + hydroxymethylated).}
+
+\item{min_cov}{An integer specifying the minimum coverage required for inclusion in the summary.
+Default is 1.}
 }
 \value{
 The updated `ch3_db` object with the summarized regions data added to the DuckDB database.
