@@ -4,7 +4,13 @@
 \alias{summarize_positions}
 \title{Summarize Methylation Positions from Calls Table}
 \usage{
-summarize_positions(ch3_db, mod_type = c("c", "m", "h", "mh"), min_cov = 1)
+summarize_positions(
+  ch3_db,
+  mod_type = c("c", "m", "h", "mh"),
+  chrs = c(paste0("chr", 1:22), paste0("Chr", 1:22), "chrX", "chrY", "chrM", "ChrX",
+    "ChrY", "ChrM"),
+  min_cov = 1
+)
 }
 \arguments{
 \item{ch3_db}{A DuckDB database connection or file path (character) to the `.ch3.db` file.}
@@ -12,6 +18,9 @@ summarize_positions(ch3_db, mod_type = c("c", "m", "h", "mh"), min_cov = 1)
 \item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
 `"m"` (methylation), `"h"` (hydroxymethylation), 
   and `"mh"` (methylated + hydroxymethylated).}
+
+\item{chrs}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
+sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
 
 \item{min_cov}{Minimum coverage required to include a position in the summary. Default is 1.}
 }

@@ -7,6 +7,8 @@
 #' @param mod_type A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
 #' `"m"` (methylation), `"h"` (hydroxymethylation), 
 #'   and `"mh"` (methylated + hydroxymethylated).
+#' @param chrs A character vector specifying which chromosomes to include. Default includes all autosomes, 
+#'   sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).
 #' @param min_cov Minimum coverage required to include a position in the summary. Default is 1.
 #'
 #' @return The modified `ch3_db` object with the updated `positions` table.
@@ -31,7 +33,11 @@
 #' @export
 summarize_positions <- function(ch3_db,
                                 mod_type = c("c", "m", "h", "mh"),
-                             min_cov = 1) 
+                                chrs = c(paste0("chr", 1:22), 
+                                         paste0("Chr", 1:22), 
+                                         "chrX", "chrY", "chrM", 
+                                         "ChrX", "ChrY", "ChrM"),
+                                min_cov = 1) 
 {
   # Open the database connection - first check to make sure correct name is there
   if (is.character(ch3_db)) {
@@ -68,6 +74,7 @@ summarize_positions <- function(ch3_db,
   
   # Process data using duckplyr
   summarized_data <- tbl(db_con, "calls") |>
+    filter(chrom %in% chrs) |>  # Filter for selected chromosomes
     summarize(
       .by = c(sample_name, chrom, start, end),
       cov = n(),

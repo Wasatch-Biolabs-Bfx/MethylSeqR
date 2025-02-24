@@ -7,8 +7,9 @@
 summarize_regions(
   ch3_db,
   region_file,
-  chrom = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"),
   mod_type = c("c", "m", "h", "mh"),
+  chrs = c(paste0("chr", 1:22), paste0("Chr", 1:22), "chrX", "chrY", "chrM", "ChrX",
+    "ChrY", "ChrM"),
   min_cov = 1
 )
 }
@@ -17,12 +18,12 @@ summarize_regions(
 
 \item{region_file}{A string representing the path to the BED or CSV file that contains the region annotations.}
 
-\item{chrom}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
-sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
-
 \item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
 `"m"` (methylation), `"h"` (hydroxymethylation), 
   and `"mh"` (methylated + hydroxymethylated).}
+
+\item{chrs}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
+sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
 
 \item{min_cov}{An integer specifying the minimum coverage required for inclusion in the summary.
 Default is 1.}

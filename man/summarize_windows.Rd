@@ -9,6 +9,8 @@ summarize_windows(
   window_size = 1000,
   step_size = 10,
   mod_type = c("c", "m", "h", "mh"),
+  chrs = c(paste0("chr", 1:22), paste0("Chr", 1:22), "chrX", "chrY", "chrM", "ChrX",
+    "ChrY", "ChrM"),
   min_cov = 1,
   overwrite = TRUE
 )
@@ -23,6 +25,9 @@ summarize_windows(
 \item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
 `"m"` (methylation), `"h"` (hydroxymethylation), 
   and `"mh"` (methylated + hydroxymethylated).}
+
+\item{chrs}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
+sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
 
 \item{overwrite}{A logical indicating whether to overwrite the existing "windows" table if it exists. Default is TRUE.}
 

@@ -6,11 +6,11 @@
 #'
 #' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
 #' @param region_file A string representing the path to the BED or CSV file that contains the region annotations.
-#' @param chrom A character vector specifying which chromosomes to include. Default includes all autosomes, 
-#'   sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).
 #' @param mod_type A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
 #' `"m"` (methylation), `"h"` (hydroxymethylation), 
 #'   and `"mh"` (methylated + hydroxymethylated).
+#' @param chrs A character vector specifying which chromosomes to include. Default includes all autosomes, 
+#'   sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).
 #' @param min_cov An integer specifying the minimum coverage required for inclusion in the summary.
 #'   Default is 1.
 #'
@@ -39,8 +39,11 @@
 #' @export
 summarize_regions <- function(ch3_db,
                               region_file,
-                              chrom = c(paste0("chr", 1:22), "chrX", "chrY", "chrM"),
                               mod_type = c("c", "m", "h", "mh"),
+                              chrs = c(paste0("chr", 1:22), 
+                                       paste0("Chr", 1:22), 
+                                       "chrX", "chrY", "chrM", 
+                                       "ChrX", "ChrY", "ChrM"),
                               min_cov = 1)
 {
   # Determine the file type (csv, tsv, or bed)
@@ -98,6 +101,7 @@ summarize_regions <- function(ch3_db,
   cat("Building regions table...")
   
   db_tbl = tbl(db_con, "calls") |>
+    filter(chrom %in% chrs) |>  # Filter for selected chromosomes
     summarize(
       .by = c(sample_name, chrom, start, end),
       cov = n(),
