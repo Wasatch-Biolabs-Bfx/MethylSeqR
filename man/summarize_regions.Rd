@@ -8,8 +8,8 @@ summarize_regions(
   ch3_db,
   region_file,
   mod_type = c("c", "m", "h", "mh"),
-  chrs = c(paste0("chr", 1:22), paste0("Chr", 1:22), "chrX", "chrY", "chrM", "ChrX",
-    "ChrY", "ChrM"),
+  chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
+    1:22), "ChrX", "ChrY", "ChrM"),
   min_cov = 1
 )
 }
