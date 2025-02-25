@@ -34,6 +34,8 @@ After a database is created, a user can summarize their data by position (`summa
 
 `qc_wrapper()` can be called to visually assess any data. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment.
 
+*Warning - If using samples other than human or with unique chromosome names, remember to adjust the chrs argument in each function! *
+
 #### Developed by Wasatch Biolabs.
 #### Visit us on [our website](https://www.wasatchbiolabs.com/) for more details.
 
