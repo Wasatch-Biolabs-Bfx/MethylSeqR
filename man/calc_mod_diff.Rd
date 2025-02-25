@@ -48,7 +48,7 @@ It summarizes the data for cases and controls, calculates p-values based on the 
  # Get methylation statistics for the 'positions' call type without plotting
  calc_mod_diff(ch3_db = ch3_db, 
                call_type = "positions",
-               cases = c("chr21_5xSample_BloodA", "chr21_5xSample_BloodE", "chr21_5xSample_BloodT"),
-               controls = c("chr21_5xSample_SpermA", "chr21_5xSample_SpermB", "chr21_5xSample_SpermD"))
+               cases = c("Blood1_chr21", "Blood2_chr21", "Blood3_chr21"),
+               controls = c("Sperm1_chr21", "Sperm2_chr21", "Sperm3_chr21")))
 
 }
