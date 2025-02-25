@@ -47,9 +47,11 @@ summarize_positions <- function(ch3_db,
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
-  on.exit(ch3_db$tables <- dbListTables(ch3_db$db_con), add = TRUE)
-  on.exit(dbDisconnect(db_con, shutdown = TRUE), add = TRUE)
-  on.exit(ch3_db$db_con <<- NULL, add = TRUE)
+  # Specify on exit what to do...
+  # Finish up: purge extra tables & update table list and close the connection
+  keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
+  on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
+  on.exit(.helper_closeDB(database), add = TRUE)
   
   # Increase temp storage limit to avoid memory issues
   dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")

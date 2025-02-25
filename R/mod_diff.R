@@ -45,76 +45,63 @@ calc_mod_diff <- function(ch3_db,
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
-  tryCatch({
-    # check for windows function
-    if (!dbExistsTable(db_con, call_type)) { # add db_con into object and put in every function...
-      stop(paste0(call_type, " table does not exist."))
-    }
-    
-    if (dbExistsTable(db_con, "meth_diff"))
-      dbRemoveTable(db_con, "meth_diff")
-    
-    # Set stat to use
-    mod_counts_col <- paste0(mod_type[1], "_counts")
-    print(colnames(tbl(db_con, call_type)))
-    # Label cases and controls
-    in_dat <-
-      tbl(db_con, call_type) |>
-      select(
-        sample_name, any_of(c("chrom", "start", "end",
-                              "region_name")), # removed total_calls,
-        c_counts, mod_counts = !!mod_counts_col) |>
-      mutate(
-        exp_group = case_when(
-          sample_name %in% cases ~ "case",
-          sample_name %in% controls ~ "control",
-          TRUE ~ NA)) |>
-      filter(
-        !is.na(exp_group))
-    
-    # Calculate p-vals and diffs
-    result <- switch(calc_type,
-                     fast_fisher = .calc_diff_fisher(in_dat,
-                                                     calc_type = "fast_fisher"),
-                     r_fisher    = .calc_diff_fisher(in_dat,
-                                                     calc_type = "r_fisher"),
-                     log_reg     = .calc_diff_logreg(in_dat)) |>
-      rename_with(
-        ~ gsub("mod", mod_type[1], .x))
-    
-    # Collect the result and write to the database
-    result |>
-      collect() |>
-      dbWriteTable(
-        conn = db_con, 
-        name = "meth_diff", 
-        append = TRUE
-      )
-    
-  }, 
-  error = function(e) 
-  {
-    # Print custom error message
-    message("An error occurred: ", e$message)
-    
-    if ("meth_diff" %in% dbListTables(db_con)) {
-      dbRemoveTable(db_con, "meth_diff")
-    }
-  }, 
-  finally = 
-    {
-      # Finish up: clean up database tables, close the connection and update tables in the database
-      potential_tables <- c("positions", 
-                            "windows",
-                            "regions",
-                            "meth_diff")
-      
-      .helper_purgeTables(db_con, potential_tables)
-      
-      database$last_table = "meth_diff"
-      .helper_closeDB(database)
-      invisible(database)
-    })
+  # Specify on exit what to do...
+  # Finish up: purge extra tables & update table list and close the connection
+  keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
+  on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
+  on.exit(.helper_closeDB(database), add = TRUE)
+
+  # check for windows function
+  if (!dbExistsTable(db_con, call_type)) { # add db_con into object and put in every function...
+    stop(paste0(call_type, " table does not exist. Build it with summarize_positions, summarize_regions, or summarize_windows."))
+  }
+  
+  if (dbExistsTable(db_con, "mod_diff"))
+    dbRemoveTable(db_con, "mod_diff")
+  
+  # Set stat to use
+  mod_counts_col <- paste0(mod_type[1], "_counts")
+  
+  # Label cases and controls
+  in_dat <-
+    tbl(db_con, call_type) |>
+    select(
+      sample_name, any_of(c("chrom", "start", "end",
+                            "region_name")), # removed total_calls,
+      c_counts, mod_counts = !!mod_counts_col) |>
+    mutate(
+      exp_group = case_when(
+        sample_name %in% cases ~ "case",
+        sample_name %in% controls ~ "control",
+        TRUE ~ NA)) |>
+    filter(
+      !is.na(exp_group))
+  
+  # Calculate p-vals and diffs
+  result <- switch(calc_type,
+                   fast_fisher = .calc_diff_fisher(in_dat,
+                                                   calc_type = "fast_fisher"),
+                   r_fisher    = .calc_diff_fisher(in_dat,
+                                                   calc_type = "r_fisher"),
+                   log_reg     = .calc_diff_logreg(in_dat)) |>
+    rename_with(
+      ~ gsub("mod", mod_type[1], .x))
+  
+  # Collect the result and write to the database
+  result |>
+    collect() |>
+    mutate(p_val = p.adjust(p_val, method = "BH")) |>
+    arrange(p_val) |>
+    dbWriteTable(
+      conn = db_con, 
+      name = "mod_diff", 
+      append = TRUE
+    )
+
+  message("Mod diff analysis complete - mod_diff table successfully created!")
+  print(head(tbl(db_con, "mod_diff")))
+
+  invisible(database)
 }
 
 ## Calculate p-values using fisher exact tests. If there are multiple samples,

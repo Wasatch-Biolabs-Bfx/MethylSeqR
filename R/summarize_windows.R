@@ -53,7 +53,7 @@ summarize_windows <- function(ch3_db,
   
   # Specify on exit what to do...
   # Finish up: purge extra tables & update table list and close the connection
-  keep_tables = c("calls","positions", "regions", "windows", "meth_diff")
+  keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
   on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
   on.exit(.helper_closeDB(database), add = TRUE)
   

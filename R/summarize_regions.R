@@ -84,6 +84,9 @@ summarize_regions <- function(ch3_db,
   db_con <- database$db_con
   
   # Specify on exit what to do...
+  # Finish up: purge extra tables & update table list and close the connection
+  keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
+  on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
   on.exit(.helper_closeDB(database), add = TRUE)
   
   # Increase temp storage limit to avoid memory issues
@@ -212,10 +215,6 @@ summarize_regions <- function(ch3_db,
   # Drop temporary tables
   dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
   dbExecute(db_con, "DROP TABLE IF EXISTS temp_positions;")
-
-  # Finish up: purge extra tables & update table list and close the connection
-  keep_tables = c("calls","positions", "regions", "windows", "meth_diff")
-  .helper_purgeTables(db_con, keep_tables)
   
   cat("\n")
   message("Regions table successfully created!")
