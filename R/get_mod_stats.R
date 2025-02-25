@@ -31,8 +31,6 @@
 #'  
 #'  # Get methylation statistics for the 'positions' call type without plotting
 #'  get_mod_stats(ch3_db = ch3_db, call_type = "positions")
-#'  
-#'  get_mod_stats(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 #'
 #' @export
 get_mod_stats <- function(ch3_db,

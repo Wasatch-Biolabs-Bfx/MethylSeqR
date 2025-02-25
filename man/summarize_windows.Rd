@@ -51,9 +51,9 @@ The resulting summarized data is stored in a table called "windows" within the d
 }
 \examples{
  # Specify the path to the database
- ch3_db <- system.file("example_ch3.ch3.db", package = "MethylSeqR")
- 
- # Calculate windows
- summarize_windows(ch3_db, window_size = 100, step_size = 100)
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+
+# Summarize Windows
+summarize_windows(ch3_db, window_size = 100, step_size = 100)
 
 }

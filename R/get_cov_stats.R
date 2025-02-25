@@ -20,9 +20,6 @@
 #'  
 #'  # Get coverage statistics for the 'positions' call type without plotting
 #'  get_cov_stats(ch3_db = ch3_db, call_type = "positions")
-#'  
-#'  # Get coverage statistics for the 'positions' call type with plotting
-#'  get_cov_stats(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 #'
 #' @import dplyr ggplot2
 #'

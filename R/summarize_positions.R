@@ -23,7 +23,11 @@
 #' A progress bar is displayed during execution.
 #'
 #' @examples
-#' summarize_positions("example_ch3.ch3.db", min_num_calls = 1)
+#' # Specify the path to the database
+#' ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+#' 
+#' # Summarize Positions
+#' summarize_positions(ch3_db)
 #'
 #' @importFrom DBI dbExecute dbDisconnect dbListTables
 #' @importFrom dplyr tbl summarize mutate filter
