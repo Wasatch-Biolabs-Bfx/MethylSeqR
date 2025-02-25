@@ -11,7 +11,7 @@ summarize_windows(
   mod_type = c("c", "m", "h", "mh"),
   chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
     1:22), "ChrX", "ChrY", "ChrM"),
-  min_cov = 1,
+  min_num_calls = 1,
   overwrite = TRUE
 )
 }

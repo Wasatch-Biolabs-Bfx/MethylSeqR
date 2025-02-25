@@ -10,7 +10,7 @@ summarize_regions(
   mod_type = c("c", "m", "h", "mh"),
   chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
     1:22), "ChrX", "ChrY", "ChrM"),
-  min_cov = 1
+  min_num_calls = 1
 )
 }
 \arguments{
@@ -25,7 +25,7 @@ summarize_regions(
 \item{chrs}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
 sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
 
-\item{min_cov}{An integer specifying the minimum coverage required for inclusion in the summary.
+\item{min_num_calls}{An integer specifying the minimum number of calls required for inclusion in the summary.
 Default is 1.}
 }
 \value{

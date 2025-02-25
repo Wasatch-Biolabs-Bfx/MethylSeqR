@@ -9,7 +9,7 @@
 #'   and `"mh"` (methylated + hydroxymethylated).
 #' @param chrs A character vector specifying which chromosomes to include. Default includes all autosomes, 
 #'   sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).
-#' @param min_cov Minimum coverage required to include a position in the summary. Default is 1.
+#' @param min_num_calls Minimum number of calls required to include a position in the summary. Default is 1.
 #'
 #' @return The modified `ch3_db` object with the updated `positions` table.
 #' @details
@@ -17,18 +17,17 @@
 #' - Connects to the DuckDB database.
 #' - Summarizes methylation calls by `sample_name`, `chrom`, `start`, and `end`.
 #' - Computes coverage and call counts (`m`, `h`, `mh`, `c`).
-#' - Filters based on `min_cov`.
+#' - Filters based on `min_num_calls`.
 #' - Creates a `positions` table in the database.
 #'
 #' A progress bar is displayed during execution.
 #'
 #' @examples
-#' summarize_positions("example_ch3.ch3.db", min_cov = 1)
+#' summarize_positions("example_ch3.ch3.db", min_num_calls = 1)
 #'
 #' @importFrom DBI dbExecute dbDisconnect dbListTables
 #' @importFrom dplyr tbl summarize mutate filter
 #' @importFrom progress progress_bar
-#' @importFrom duckdb copy_to
 #' 
 #' @export
 summarize_positions <- function(ch3_db,
@@ -36,7 +35,7 @@ summarize_positions <- function(ch3_db,
                                 chrs = c(as.character(1:22), 
                                          paste0("chr", 1:22), "chrX", "chrY", "chrM",
                                          paste0("Chr", 1:22), "ChrX", "ChrY", "ChrM"),
-                                min_cov = 1) 
+                                min_num_calls = 1) 
 {
   # Open the database connection - first check to make sure correct name is there
   if (is.character(ch3_db)) {
@@ -76,21 +75,21 @@ summarize_positions <- function(ch3_db,
     filter(chrom %in% chrs) |>  # Filter for selected chromosomes
     summarize(
       .by = c(sample_name, chrom, start, end),
-      cov = n(),
+      num_calls = n(),
       c_counts = sum(as.integer(call_code == "-"), na.rm = TRUE),
       m_counts = sum(as.integer(call_code == "m"), na.rm = TRUE),
       h_counts = sum(as.integer(call_code == "h"), na.rm = TRUE),
       mh_counts = sum(as.integer(call_code %in% c("m", "h")), na.rm = TRUE)) |>
     mutate(
-      m_frac = m_counts / cov,
-      h_frac = h_counts / cov,
-      mh_frac = mh_counts / cov) |> 
-    filter(cov >= min_cov)
+      m_frac = m_counts / num_calls,
+      h_frac = h_counts / num_calls,
+      mh_frac = mh_counts / num_calls) |> 
+    filter(num_calls >= min_num_calls)
   
   pb$tick()  # Progress bar update after summarizing
   
-  # Select only requested modtype columns (always keeping cov)
-  selected_columns <- c("sample_name", "chrom", "start", "end", "cov", 
+  # Select only requested modtype columns (always keeping num_calls)
+  selected_columns <- c("sample_name", "chrom", "start", "end", "num_calls", 
                         paste0(mod_type, "_counts"), paste0(mod_type, "_frac"))
   selected_columns <- intersect(selected_columns, colnames(summarized_data))
   

@@ -44,7 +44,7 @@ summarize_windows <- function(ch3_db,
                          chrs = c(as.character(1:22), 
                                   paste0("chr", 1:22), "chrX", "chrY", "chrM",
                                   paste0("Chr", 1:22), "ChrX", "ChrY", "ChrM"),
-                         min_cov = 1,
+                         min_num_calls = 1,
                          overwrite = TRUE) 
 {
   # Open the database connection
@@ -71,19 +71,19 @@ summarize_windows <- function(ch3_db,
     filter(chrom %in% chrs) |>  # Filter for selected chromosomes
     summarize(
       .by = c(sample_name, chrom, start, end),
-      cov = n(),
+      num_calls = n(),
       c_counts = sum(as.integer(call_code == "-"), na.rm = TRUE),
       m_counts = sum(as.integer(call_code == "m"), na.rm = TRUE),
       h_counts = sum(as.integer(call_code == "h"), na.rm = TRUE),
       mh_counts = sum(as.integer(call_code %in% c("m", "h")), na.rm = TRUE)) |>
     mutate(
-      m_frac = m_counts / cov,
-      h_frac = h_counts / cov,
-      mh_frac = mh_counts / cov) |> 
-    filter(cov >= min_cov)
+      m_frac = m_counts / num_calls,
+      h_frac = h_counts / num_calls,
+      mh_frac = mh_counts / num_calls) |> 
+    filter(num_calls >= min_num_calls)
   
-  # Select only requested modtype columns (always keeping cov)
-  selected_columns <- c("sample_name", "chrom", "start", "end", "cov", 
+  # Select only requested modtype columns (always keeping num_calls)
+  selected_columns <- c("sample_name", "chrom", "start", "end", "num_calls", 
                         paste0(mod_type, "_counts"), paste0(mod_type, "_frac"))
   selected_columns <- intersect(selected_columns, colnames(db_tbl))
   
@@ -137,9 +137,9 @@ summarize_windows <- function(ch3_db,
     summarize(
       .by = c(sample_name, chrom, start),
       num_CpGs = n(),  # count number of rows per window = num CpGs
-      num_calls = sum(cov, na.rm = TRUE),
+      num_calls = sum(num_calls, na.rm = TRUE),
       across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
-      across(ends_with("_frac"), ~sum(.x * cov, na.rm = TRUE) / sum(cov, na.rm = TRUE))) |>
+      across(ends_with("_frac"), ~sum(.x * num_calls, na.rm = TRUE) / sum(num_calls, na.rm = TRUE))) |>
     mutate(
       end = start + window_size - 1) |>
     select(sample_name, chrom, start, end, everything()) |>

@@ -9,7 +9,7 @@ summarize_positions(
   mod_type = c("c", "m", "h", "mh"),
   chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
     1:22), "ChrX", "ChrY", "ChrM"),
-  min_cov = 1
+  min_num_calls = 1
 )
 }
 \arguments{
@@ -22,7 +22,7 @@ summarize_positions(
 \item{chrs}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
 sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
 
-\item{min_cov}{Minimum coverage required to include a position in the summary. Default is 1.}
+\item{min_num_calls}{Minimum number of calls required to include a position in the summary. Default is 1.}
 }
 \value{
 The modified `ch3_db` object with the updated `positions` table.
@@ -36,12 +36,12 @@ The function:
 - Connects to the DuckDB database.
 - Summarizes methylation calls by `sample_name`, `chrom`, `start`, and `end`.
 - Computes coverage and call counts (`m`, `h`, `mh`, `c`).
-- Filters based on `min_cov`.
+- Filters based on `min_num_calls`.
 - Creates a `positions` table in the database.
 
 A progress bar is displayed during execution.
 }
 \examples{
-summarize_positions("example_ch3.ch3.db", min_cov = 1)
+summarize_positions("example_ch3.ch3.db", min_num_calls = 1)
 
 }
