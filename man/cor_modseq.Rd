@@ -7,7 +7,7 @@
 cor_modseq(
   ch3_db,
   call_type = c("positions"),
-  plot = FALSE,
+  plot = TRUE,
   save_path = NULL,
   plot_sample_order = NULL,
   plot_title = "Sample Correlation Matrix"

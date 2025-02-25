@@ -7,7 +7,7 @@
 get_mod_stats(
   ch3_db,
   call_type = c("positions", "regions"),
-  plot = FALSE,
+  plot = TRUE,
   save_path = NULL
 )
 }

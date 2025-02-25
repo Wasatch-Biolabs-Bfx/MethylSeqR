@@ -30,90 +30,81 @@
 
 get_cov_stats <- function(ch3_db,
                           call_type = "positions",
-                          plot = FALSE,
+                          plot = TRUE,
                           save_path = NULL)
 {
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
-  tryCatch(
-    {
-      if (length(call_type) > 1) {
-        call_type = c("positions")
-      }
-      
-      # Check for specific table and connect to it in the database
-      if (!dbExistsTable(db_con, call_type)) {
-        stop(paste0(call_type, " Table does not exist. You can create it by..."))
-      }
-      
-      modseq_dat = tbl(db_con, call_type) 
-      
-      # Checks
-      stopifnot("Invalid dataframe format. A 'cov' or 'mean_cov' column must be present." =
-                  any(c("cov", "mean_cov") %in% colnames(modseq_dat)))
-      
-      # Clean dataframe
-      modseq_dat <- na.omit(modseq_dat)
-      
-      # Decide if per base or per region
-      regional_dat = "region_name" %in% colnames(modseq_dat)
-      
-      # if (!regional_dat) {
-      cov = pull(modseq_dat, cov)
-      # } else {
-      #   cov = pull(modseq_dat, mean_cov)
-      # }
-      
-      qts <- c(seq(0, 0.9, 0.1), 0.95, 0.99, 0.995, 0.999, 1)
-      
-      if (!plot) {
-        title <- "read coverage statistics per base\n"
-        
-        if (regional_dat) {
-          title <- "read coverage statistics per region\n"
-        }
-        
-        cat(title)
-        cat("summary:\n")
-        print( summary( cov ) )
-        cat("percentiles:\n")
-        print(quantile(cov, p=qts ))
-        cat("\n")
-      } else {
-        x_title <- "log10 of read coverage per base"
-        if (regional_dat) {
-          x_title <- "log10 of read coverage per region"
-        }
-        
-        # Create a data frame from your list
-        plot <- data.frame(coverage = log10(cov))
-        
-        # Create the histogram
-        p <- ggplot(plot, aes(x = coverage)) +
-                geom_histogram(binwidth = 0.25, fill = "chartreuse4",
-                               color = "black", linewidth = 0.25) +
-                labs(title = "Histogram of CpG Coverage",
-                     x = x_title, y = "Frequency") +
-                theme_minimal()
-        print(p)
-        
-        # Save the plot if save_path is specified
-        if (!is.null(save_path)) {
-          ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
-          cat("Coverage plot saved to ", save_path, "\n")
-        }
-      }
-    }, 
-    error = function(e) 
-    {
-      # Print custom error message
-      message("An error occurred: ", e$message)
-    }, 
-    finally = 
-      {
-        # Finish up: close the connection
-        .helper_closeDB(database)
-      })
+  # Specify on exit what to do...
+  # Finish up: update table list and close the connection
+  on.exit(.helper_closeDB(database), add = TRUE)
+  
+  if (length(call_type) > 1) {
+    call_type = c("positions")
+  }
+  
+  # Check for specific table and connect to it in the database
+  if (!dbExistsTable(db_con, call_type)) {
+    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+  }
+  
+  modseq_dat = tbl(db_con, call_type) 
+  
+  # Checks
+  stopifnot("Invalid dataframe format. A 'num_calls' or 'mean_num_calls' column must be present." =
+              any(c("num_calls", "mean_num_calls") %in% colnames(modseq_dat)))
+  
+  # Clean dataframe
+  modseq_dat <- na.omit(modseq_dat)
+  
+  # Decide if per base or per region
+  regional_dat = "region_name" %in% colnames(modseq_dat)
+  
+  # if (!regional_dat) {
+  num_calls = pull(modseq_dat, num_calls)
+  # } else {
+  #   num_calls = pull(modseq_dat, mean_num_calls)
+  # }
+  
+  qts <- c(seq(0, 0.9, 0.1), 0.95, 0.99, 0.995, 0.999, 1)
+  
+  if (!plot) {
+    title <- "read coverage statistics per base\n"
+    
+    if (regional_dat) {
+      title <- "read coverage statistics per region\n"
+    }
+    
+    cat(title)
+    cat("summary:\n")
+    print( summary( num_calls ) )
+    cat("percentiles:\n")
+    print(quantile(num_calls, p=qts ))
+    cat("\n")
+  } else {
+    x_title <- "log10 of read coverage per base"
+    if (regional_dat) {
+      x_title <- "log10 of read coverage per region"
+    }
+    
+    # Create a data frame from your list
+    plot <- data.frame(coverage = log10(num_calls))
+    
+    # Create the histogram
+    p <- ggplot(plot, aes(x = coverage)) +
+            geom_histogram(binwidth = 0.25, fill = "chartreuse4",
+                           color = "black", linewidth = 0.25) +
+            labs(title = "Histogram of CpG Coverage",
+                 x = x_title, y = "Frequency") +
+            theme_minimal()
+    print(p)
+    
+    # Save the plot if save_path is specified
+    if (!is.null(save_path)) {
+      ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
+      cat("Coverage plot saved to ", save_path, "\n")
+    }
+  }
 }

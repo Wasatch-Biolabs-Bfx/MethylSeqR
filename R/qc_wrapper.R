@@ -25,12 +25,12 @@
 #'   
 #' @export
 qc_wrapper <- function(ch3_db, call_type = "positions", plot = TRUE) {
-  print("calculating coverage stats...")
+  message("calculating coverage stats...")
   get_cov_stats(ch3_db, call_type, plot = plot)
-  print("calculating mod stats...")
+  message("calculating mod stats...")
   get_mod_stats(ch3_db, call_type, plot = plot)
-  print("calculating correlations...")
+  message("calculating correlations...")
   cor_modseq(ch3_db, call_type, plot = plot)
-  print("running pca...")
+  message("running pca...")
   pca_modseq(ch3_db, call_type)
 }

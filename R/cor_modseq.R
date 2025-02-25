@@ -38,7 +38,7 @@
 
 cor_modseq <- function(ch3_db,
                        call_type = c("positions"),
-                       plot = FALSE,
+                       plot = TRUE,
                        save_path = NULL,
                        plot_sample_order = NULL,
                        plot_title = "Sample Correlation Matrix")
@@ -47,154 +47,142 @@ cor_modseq <- function(ch3_db,
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
+  # Specify on exit what to do...
+  # Finish up: update table list and close the connection
+  on.exit(.helper_closeDB(database), add = TRUE)
+  
   if (length(call_type) > 1) {
     call_type = c("positions")
   }
   
-  tryCatch(
-    {
-      # Check if the call_type table exists in the database
-      if (!dbExistsTable(db_con, call_type)) {
-        stop(paste0(call_type, " Table does not exist. You can create it by..."))
-      }
+  # Check if the call_type table exists in the database
+  if (!dbExistsTable(db_con, call_type)) {
+    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+  }
+  
+  # Retrieve the 'positions' table
+  modseq_dat <- tbl(db_con, call_type) |> collect()
+  
+  if (call_type == "regions") {
+    print("regional data")
+    # Aggregate mean_mh_frac by sample and region_name
+    dat_wide <- modseq_dat |>
+      pivot_wider(id_cols = region_name,
+                  names_from = sample_name,
+                  values_from = mh_frac,
+                  values_fn = mean)
+    
+    # Compute Correlation
+    numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
+    
+    print(dim(numeric_columns))
+    # Calculate correlation matrix
+    correlation_matrix <- cor(numeric_columns,
+                              use = "pairwise.complete.obs",
+                              method = "pearson")
+    # View the correlation matrix
+    print(correlation_matrix)
+  } else if (call_type == "windows") {
+    
+    # Step 1: Define common windows
+    common_windows <- modseq_dat |>
+      select(chrom, start, end) |>
+      distinct() |>
+      arrange(chrom, start, end)
+    
+    # Step 2: Align data to common windows
+    aligned_data <- common_windows |>
+      left_join(modseq_dat, by = c("chrom", "start", "end")) |>
+      pivot_wider(
+        id_cols = c(chrom, start, end),
+        names_from = sample_name,
+        values_from = mh_frac
+      )
+    
+    # Step 3: Replace NA values with 0
+    aligned_data[is.na(aligned_data)] <- 0
+    
+    # Step 4: Compute correlation matrix
+    numeric_columns <- aligned_data |> select(-chrom, -start, -end)
+    correlation_matrix <- cor(numeric_columns, 
+                              use = "pairwise.complete.obs", 
+                              method = "pearson")
+    
+    # Print the correlation matrix
+    print(correlation_matrix)
+  }
+  else {
+    # Create a 'chr_pos' identifier for each genomic position
+    dat_wide <- modseq_dat |>
+      mutate(chr_pos = paste(chrom, start, end, sep = "_")) |>
+      pivot_wider(id_cols = chr_pos,
+                  names_from = sample_name,  # Each sample (barcode) becomes a column
+                  values_from = mh_frac)     # Values are the 'mh_frac' for each sample
+    
+    # Convert the sample columns to numeric (if needed)
+    numeric_columns <- dat_wide |>
+      select(-chr_pos) |>
+      mutate(across(everything(), as.numeric))  # Convert all columns to numeric
+    
+    # Check if conversion was successful
+    if (!all(sapply(numeric_columns, is.numeric))) {
+      stop("Some columns could not be converted to numeric.")
+    }
+    
+    # Calculate the correlation matrix
+    correlation_matrix <- cor(numeric_columns, 
+                              use = "pairwise.complete.obs", 
+                              method = "pearson")
+    # Print the correlation matrix
+    print(correlation_matrix)
+  }
+  
+  
+  # Plot Correlation Matrix with Correlation Values
+  if (plot) {
+    melted_cor <- as.data.frame(correlation_matrix) |>
+      mutate(Var1 = rownames(correlation_matrix)) |>  # Add row names as a new column
+      pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")  
+    # Pivot to long format
+    
+    # Define the desired order for samples
+    if (!is.null(plot_sample_order)) {
+      sample_order <- plot_sample_order
       
-      # Retrieve the 'positions' table
-      modseq_dat <- tbl(db_con, call_type) |> collect()
+      # Reorder the factors for Var1 and Var2
+      melted_cor$Var1 <- factor(melted_cor$Var1, levels = sample_order)
+      melted_cor$Var2 <- factor(melted_cor$Var2, levels = sample_order)
+    }
+    
+    
+    p <- ggplot(data = melted_cor, aes(x = Var1,
+                                       y = Var2,
+                                       fill = value)) +
+      geom_tile() +
+      geom_text(aes(label = round(value, 2)),
+                color = "black") + # Add correlation values
+      scale_fill_gradient2(low = "blue",
+                           high = "red",
+                           mid = "white",
+                           midpoint = 0,
+                           limits = c(-1, 1),
+                           space = "Lab",
+                           name = "Pearson\nCorrelation") +
+      scale_y_discrete(limits = rev(levels(factor(melted_cor$Var2)))) +
+      theme_minimal() +
+      labs(title = plot_title,
+           x = "Sample",
+           y = "Sample") +
+      theme(axis.text.x = element_text(angle = 45,
+                                       vjust = 1,
+                                       hjust = 1))
+    print(p)
+    
+    # Save the plot if save_path is specified
+    if (!is.null(save_path)) {
+      ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
+      cat("Correlation plot saved to ", save_path, "\n")
+    }
+  }
       
-      if (call_type == "regions") {
-        print("regional data")
-        # Aggregate mean_mh_frac by sample and region_name
-        dat_wide <- modseq_dat |>
-          pivot_wider(id_cols = region_name,
-                      names_from = sample_name,
-                      values_from = mh_frac,
-                      values_fn = mean)
-        
-        # Compute Correlation
-        numeric_columns <- dat_wide[, unique(modseq_dat$sample_name)]
-        
-        print(dim(numeric_columns))
-        # Calculate correlation matrix
-        correlation_matrix <- cor(numeric_columns,
-                                  use = "pairwise.complete.obs",
-                                  method = "pearson")
-        # View the correlation matrix
-        print(correlation_matrix)
-      } else if (call_type == "windows") {
-        
-        # Step 1: Define common windows
-        common_windows <- modseq_dat |>
-          select(chrom, start, end) |>
-          distinct() |>
-          arrange(chrom, start, end)
-        
-        # Step 2: Align data to common windows
-        aligned_data <- common_windows |>
-          left_join(modseq_dat, by = c("chrom", "start", "end")) |>
-          pivot_wider(
-            id_cols = c(chrom, start, end),
-            names_from = sample_name,
-            values_from = mh_frac
-          )
-        
-        # Step 3: Replace NA values with 0
-        aligned_data[is.na(aligned_data)] <- 0
-        
-        # Step 4: Compute correlation matrix
-        numeric_columns <- aligned_data |> select(-chrom, -start, -end)
-        correlation_matrix <- cor(numeric_columns, 
-                                  use = "pairwise.complete.obs", 
-                                  method = "pearson")
-        
-        # Print the correlation matrix
-        print(correlation_matrix)
-      }
-      else {
-        # Create a 'chr_pos' identifier for each genomic position
-        dat_wide <- modseq_dat |>
-          mutate(chr_pos = paste(chrom, ref_position, sep = "_")) |>
-          pivot_wider(id_cols = chr_pos,
-                      names_from = sample_name,  # Each sample (barcode) becomes a column
-                      values_from = mh_frac)     # Values are the 'mh_frac' for each sample
-        
-        # Convert the sample columns to numeric (if needed)
-        numeric_columns <- dat_wide |>
-          select(-chr_pos) |>
-          mutate(across(everything(), as.numeric))  # Convert all columns to numeric
-        
-        # Check if conversion was successful
-        if (!all(sapply(numeric_columns, is.numeric))) {
-          stop("Some columns could not be converted to numeric.")
-        }
-        
-        # Calculate the correlation matrix
-        correlation_matrix <- cor(numeric_columns, 
-                                  use = "pairwise.complete.obs", 
-                                  method = "pearson")
-        # Print the correlation matrix
-        print(correlation_matrix)
-      }
-      
-      
-      # Plot Correlation Matrix with Correlation Values
-      if (plot) {
-        melted_cor <- as.data.frame(correlation_matrix) |>
-          mutate(Var1 = rownames(correlation_matrix)) |>  # Add row names as a new column
-          pivot_longer(cols = -Var1, names_to = "Var2", values_to = "value")  
-        # Pivot to long format
-        
-        # Define the desired order for samples
-        if (!is.null(plot_sample_order)) {
-          sample_order <- plot_sample_order
-          
-          # Reorder the factors for Var1 and Var2
-          melted_cor$Var1 <- factor(melted_cor$Var1, levels = sample_order)
-          melted_cor$Var2 <- factor(melted_cor$Var2, levels = sample_order)
-        }
-        
-        
-        p <- ggplot(data = melted_cor, aes(x = Var1,
-                                           y = Var2,
-                                           fill = value)) +
-          geom_tile() +
-          geom_text(aes(label = round(value, 2)),
-                    color = "black") + # Add correlation values
-          scale_fill_gradient2(low = "blue",
-                               high = "red",
-                               mid = "white",
-                               midpoint = 0,
-                               limits = c(-1, 1),
-                               space = "Lab",
-                               name = "Pearson\nCorrelation") +
-          scale_y_discrete(limits = rev(levels(factor(melted_cor$Var2)))) +
-          theme_minimal() +
-          labs(title = plot_title,
-               x = "Sample",
-               y = "Sample") +
-          theme(axis.text.x = element_text(angle = 45,
-                                           vjust = 1,
-                                           hjust = 1))
-        print(p)
-        
-        # Save the plot if save_path is specified
-        if (!is.null(save_path)) {
-          ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
-          cat("Correlation plot saved to ", save_path, "\n")
-        }
-      }
-      
-    }, 
-    error = function(e)
-    {
-      # Print custom error message
-      message("An error occurred: ", e$message)
-      # Optionally, re-throw the error if needed
-      # stop(e)
-    },
-    finally = 
-      {
-        # Finish up: close the connection
-        .helper_closeDB(database)
-      }
-  )
 }
