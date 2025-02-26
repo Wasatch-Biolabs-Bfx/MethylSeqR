@@ -56,8 +56,9 @@ make_ch3_db <- function(ch3_files,
     stop("One or more file/folder names do not exist.")
   }
   
-  ch3_files[dir.exists(ch3_files)] <- 
-    paste0(ch3_files[dir.exists(ch3_files)], "/*")
+  ch3_files[dir.exists(ch3_files)] <- paste0(ch3_files[dir.exists(ch3_files)],
+                                             "/*.ch3")
+  
   path <- paste0("'", ch3_files, "'", collapse = ", ")
   
   # Setup files and db
@@ -131,6 +132,9 @@ make_ch3_db <- function(ch3_files,
   
   message("Database successfully created at ", ch3_db$db_file)
   ch3_db$tables <- dbListTables(db_con)
+  
+  # message(paste0("Samples include: ", 
+  #                unique(pull(tbl(db_con, "calls"), sample_name))))
   
   invisible(ch3_db)
 }
