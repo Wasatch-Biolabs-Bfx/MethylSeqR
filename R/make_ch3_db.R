@@ -47,7 +47,7 @@ make_ch3_db <- function(ch3_files,
                         chrom = NULL, 
                         min_read_length = 50, 
                         min_call_prob = 0.9, 
-                        min_base_qual = 30, 
+                        min_base_qual = 10, 
                         flag = NULL,
                         chr_prefix = TRUE)
 {
