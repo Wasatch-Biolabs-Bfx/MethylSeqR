@@ -21,10 +21,10 @@
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 #'  
 #'  # Run quality control wrapper
-#'  qc_wrapper(ch3_db, call_type = "positions")
+#'  run_qc(ch3_db, call_type = "positions")
 #'   
 #' @export
-qc_wrapper <- function(ch3_db, call_type = "positions", plot = TRUE) {
+run_qc <- function(ch3_db, call_type = "positions", plot = TRUE) {
   message("calculating coverage stats...")
   get_cov_stats(ch3_db, call_type, plot = plot)
   message("calculating mod stats...")

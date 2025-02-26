@@ -32,7 +32,7 @@ Begin with CH3 files and build a database using the `make_ch3_db()`. This will a
 
 After a database is created, a user can summarize their data by position (`summarize_positions()`), by regions (`summarize_regions()`) or windows (`summarize_windows()`). A differential methylation analysis can be conducted on positional, regional, or window data using `calc_mod_diff()`.
 
-`qc_wrapper()` can be called to visually assess any data. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment.
+`run_qc()` can be called to visually assess any data. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment.
 
 ***Warning*** *- If using samples other than human or with unique chromosome names, remember to adjust the chrs argument in each function!*
 
