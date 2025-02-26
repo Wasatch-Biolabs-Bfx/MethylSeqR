@@ -112,7 +112,7 @@ summarize_positions <- function(ch3_db,
   
   # Create the final 'positions' table from the materialized data
   dbExecute(db_con, "CREATE TABLE positions AS SELECT * FROM temp_summary;")
-  on.exit(dbExecute(db_con, "DROP TABLE IF EXISTS temp_summary;"))
+  on.exit(dbExecute(db_con, "DROP TABLE IF EXISTS temp_summary;"), add = TRUE)
   
   pb$tick()  # Progress bar update after summarizing
   
