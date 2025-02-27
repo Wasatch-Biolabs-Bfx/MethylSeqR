@@ -24,7 +24,17 @@
 #'  run_qc(ch3_db, call_type = "positions")
 #'   
 #' @export
-run_qc <- function(ch3_db, call_type = "positions", plot = TRUE) {
+run_qc <- function(ch3_db, call_type = "calls", plot = TRUE) {
+  message(paste0("running quality control on ", call_type, " table."))
+  message("\n")
+  
+  if (call_type == "calls") {
+    suppressMessages(suppressWarnings(
+      summarize_positions(ch3_db = ch3_db)
+    ))
+    call_type = "positions" # switch call_type to positions now
+  }
+  
   message("calculating coverage stats...")
   get_cov_stats(ch3_db, call_type, plot = plot)
   message("calculating mod stats...")

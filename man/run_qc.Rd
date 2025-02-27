@@ -4,7 +4,7 @@
 \alias{run_qc}
 \title{Quality Control Wrapper for Methylation Data}
 \usage{
-run_qc(ch3_db, call_type = "positions", plot = TRUE)
+run_qc(ch3_db, call_type = "calls", plot = TRUE)
 }
 \arguments{
 \item{ch3_db}{A database connection or object containing methylation data.}
