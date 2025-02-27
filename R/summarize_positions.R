@@ -51,12 +51,6 @@ summarize_positions <- function(ch3_db,
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
-  # Specify on exit what to do...
-  # Finish up: purge extra tables & update table list and close the connection
-  keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
-  on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
-  on.exit(.helper_closeDB(database), add = TRUE)
-  
   # Increase temp storage limit to avoid memory issues
   dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
   
@@ -120,6 +114,12 @@ summarize_positions <- function(ch3_db,
   # message("\n")
   # message("Printing preview of positions table.")
   print(head(summarized_data))
+  
+  # Specify on exit what to do...
+  # Finish up: purge extra tables & update table list and close the connection
+  keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
+  on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)  # Purge tables FIRST
+  on.exit(.helper_closeDB(database), add = TRUE)        # Close DB LAST 
   
   # ch3_db$tables <- dbListTables(db_con)
   invisible(ch3_db)
