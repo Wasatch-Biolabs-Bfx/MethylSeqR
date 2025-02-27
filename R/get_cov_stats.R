@@ -72,6 +72,8 @@ get_cov_stats <- function(ch3_db,
     
     if (regional_dat) {
       title <- "read coverage statistics per region\n"
+    } else if (call_type == "windows") {
+      title <- "read coverage statistics per window\n"
     }
     
     cat(title)
@@ -84,6 +86,8 @@ get_cov_stats <- function(ch3_db,
     x_title <- "log10 of read coverage per base"
     if (regional_dat) {
       x_title <- "log10 of read coverage per region"
+    } else if (call_type == "windows") {
+      x_title <- "log10 of read coverage per window"
     }
     
     # Create a data frame from your list

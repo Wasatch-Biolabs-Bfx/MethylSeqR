@@ -77,6 +77,8 @@ get_mod_stats <- function(ch3_db,
     title <- "Methylation statistics per base\n"
     if (regional_dat) {
       title <- "Methylation statistics per region\n"
+    } else if (call_type == "windows") {
+      title <- "Methylation statistics per window\n"
     }
     
     cat(title)
@@ -90,6 +92,8 @@ get_mod_stats <- function(ch3_db,
     x_title <- "% methylation per base"
     if (regional_dat) {
       x_title <- "% methylation per region"
+    } else if (call_type == "windows") {
+      x_title <- "% methylation per window"
     }
     
     # Create a data frame from your list
