@@ -115,8 +115,8 @@ calc_mod_diff <- function(ch3_db,
     summarize(
       .by = c(exp_group, any_of(c("chrom", "start", "end",
                                   "region_name"))),
-      c_counts = sum(c_counts),
-      mod_counts = sum(mod_counts)) |>
+      c_counts = sum(c_counts, na.rm = TRUE),
+      mod_counts = sum(mod_counts, na.rm = TRUE)) |>
     pivot_wider(
       names_from = exp_group,
       values_from = c(c_counts, mod_counts),
@@ -212,7 +212,7 @@ calc_mod_diff <- function(ch3_db,
     collect() |>
     summarize(
       .by = c(chrom, start),
-      mean_cov = mean(cov),
+      mean_cov = mean(cov, na.rm = TRUE),
       mean_frac_case = mean(mod_frac[exp_group == "case"]),
       mean_frac_ctrl = mean(mod_frac[exp_group == "control"]),
       mean_diff = mean_frac_case - mean_frac_ctrl,
