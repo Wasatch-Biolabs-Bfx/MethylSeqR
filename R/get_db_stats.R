@@ -3,6 +3,13 @@
 #' Prints out a summary of the ch3 database, including size, tables, and unique sample names.
 #'
 #' @param ch3_db Path to the `.ch3.db` file or a `ch3_db` object.
+#' 
+#' @examples
+#'  # Specify the path to the database
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+#'  
+#'  # Get database statistics
+#'  get_db_stats(ch3_db = ch3_db)
 #'
 #' @return Invisibly returns a list of stats from the database.
 #' @export

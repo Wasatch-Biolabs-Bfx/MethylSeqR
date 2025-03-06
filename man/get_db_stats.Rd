@@ -15,3 +15,11 @@ Invisibly returns a list of stats from the database.
 \description{
 Prints out a summary of the ch3 database, including size, tables, and unique sample names.
 }
+\examples{
+ # Specify the path to the database
+ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+ # Get database statistics
+ get_db_stats(ch3_db = ch3_db)
+
+}
