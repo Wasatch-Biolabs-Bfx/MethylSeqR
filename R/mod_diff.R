@@ -90,8 +90,8 @@ calc_mod_diff <- function(ch3_db,
   # Collect the result and write to the database
   result |>
     collect() |>
-    mutate(p_val = p.adjust(p_val, method = "BH")) |>
-    arrange(p_val) |>
+    mutate(p_adjust = p.adjust(p_val, method = "BH")) |>
+    arrange(p_adjust) |>
     dbWriteTable(
       conn = db_con, 
       name = "mod_diff", 
