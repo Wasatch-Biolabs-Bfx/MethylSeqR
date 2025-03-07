@@ -17,11 +17,23 @@
 get_db_stats <- function(ch3_db) 
 {
   
-  cat("=================================================\n",
-      "               Database Statistics               \n",
-      "=================================================\n", 
-      "Database: ", ch3_db, "\n",
-      sep = "")
+  if (is.character(ch3_db)) {
+    # Check if the file exists
+    if (!file.exists(ch3_db)) {
+      stop(paste("The database file", ch3_db, "does not exist."))
+    }
+    
+    cat("=================================================\n",
+        "               Database Statistics               \n",
+        "=================================================\n", 
+        "Database: ", ch3_db, "\n",
+        sep = "")
+  } else {
+    cat("=================================================\n",
+        "               Database Statistics               \n",
+        "=================================================\n", 
+        sep = "")
+  }
   
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
