@@ -12,6 +12,7 @@
 #' Default is "mh" for methylation/hydroxymethylation.
 #' @param calc_type A string specifying the statistical method to use for calculating p-values. 
 #' Options include "fast_fisher", "r_fisher", and "log_reg". Default is "fast_fisher".
+#' @param collapse_windows A boolean specifiying whether the user would like to collapse windows and create a more defined windows of signficance.
 #'
 #' @details
 #' The function connects to the specified DuckDB database and retrieves methylation data from the specified call type table. 
@@ -39,7 +40,8 @@ calc_mod_diff <- function(ch3_db,
                           cases,
                           controls,
                           mod_type = "mh",
-                          calc_type = "fast_fisher")
+                          calc_type = "fast_fisher",
+                          collapse_windows = FALSE)
 {
   # Open the database connection
   database <- .helper_connectDB(ch3_db)
@@ -87,7 +89,21 @@ calc_mod_diff <- function(ch3_db,
     rename_with(
       ~ gsub("mod", mod_type[1], .x))
   
-  # Collect the result and write to the database
+  # working on...
+  # if (call_type == "windows" && collapse_windows == TRUE) {
+  #   cat("Collapsing windows...\n\n")
+  #   result <- .collapse_windows(result, calc_type) 
+  #   
+  #   result |>
+  #     mutate(p_adjust = p.adjust(p_val, method = "BH")) |>
+  #     arrange(p_adjust) |>
+  #     dbWriteTable(
+  #       conn = db_con,
+  #       name = "mod_diff",
+  #       append = TRUE
+  #     )
+  # } else {
+    # Collect the result and write to the database
   result |>
     collect() |>
     mutate(p_adjust = p.adjust(p_val, method = "BH")) |>
@@ -102,6 +118,91 @@ calc_mod_diff <- function(ch3_db,
   print(head(tbl(db_con, "mod_diff")))
 
   invisible(database)
+}
+
+.collapse_windows <- function(result, calc_type)
+{
+  # filter first for significance, unchanged p-value,  whats a significant P-value?
+  # filter for all + (hypermethylated), collapse windows, then filter for - (hypomethylated) thn collapse
+  # a user can choose the difference tthreshold  
+  # throw it back inot a regional analysis
+  
+  # Collect the result
+  result <- result |> 
+    collect() |> 
+    arrange(chrom, start)
+  
+  print(head(result))
+  
+  
+  # Initialize lists to store results
+  collapsed <- list()
+  current_window <- NULL
+  
+  result$type <- ifelse(result$meth_diff > 0, "hypermethylated", 
+                     ifelse(result$meth_diff < 0, "hypomethylated", "unchanged"))
+  
+  result <- result |> drop_na(meth_diff)
+  
+  # Initialize the progress bar
+  pb <- progress_bar$new(
+    format = "  Progress [:bar] :percent ETA: :eta",
+    total = nrow(result), clear = FALSE, width = 60
+  )
+  
+  for (i in 1:nrow(result)) {
+    row <- result[i,]
+    
+    if (is.null(current_window)) {
+      current_window <- row
+      next
+    }
+    
+    # Check if current row overlaps with current window and has same toi_meth
+    if (current_window$chrom == row$chrom &&
+        current_window$type == row$type &&
+        row$start <= current_window$end) {
+      
+      # Merge windows by updating the end position and aggregating metrics
+      current_window$end <- max(current_window$end, row$end)
+      current_window$c_counts_control <- current_window$c_counts_control + row$c_counts_control
+      current_window$c_counts_case <- current_window$c_counts_case + row$c_counts_case
+      current_window$mh_counts_control <- current_window$mh_counts_control + row$mh_counts_control
+      current_window$mh_counts_case <- current_window$mh_counts_case + row$mh_counts_case
+      
+      # Recalculate metrics
+      # current_window$cov_control <- current_window$c_counts_control + current_window$mh_counts_control
+      # current_window$cov_case <- current_window$c_counts_case + current_window$mh_counts_case
+      current_window$mh_frac_case <- current_window$mh_counts_case / (current_window$c_counts_case + current_window$mh_counts_case) # divided by coverage of cases
+      current_window$mh_frac_control <- current_window$mh_counts_control / (current_window$c_counts_control + current_window$mh_counts_control) # divided by coverage of controls
+      current_window$meth_diff <- current_window$mh_frac_case - current_window$mh_frac_control
+      #current_window$abs_meth_diff <- abs(current_window$meth_diff)
+      
+      # YOU'LL NEED TO CHANGE THIS PART TO GET THE CORRECT NEW PVALUE!!! This just takes the minimum p-value and adjusted p-value 
+      current_window$p_val <- min(current_window$p_val, row$p_val)
+      
+    } else {
+      # Store current window and start a new one
+      collapsed[[length(collapsed) + 1]] <- current_window
+      current_window <- row
+    }
+    
+    # Update the progress bar
+    pb$tick()
+  }
+  
+  cat("\n")
+  
+  # Don't forget to add the last window
+  if (!is.null(current_window)) {
+    collapsed[[length(collapsed) + 1]] <- current_window
+  }
+  
+  # Convert list to data frame
+  result <- bind_rows(collapsed) |>
+    mutate(dmr_length = end - start)
+  
+  return(result)
 }
 
 ## Calculate p-values using fisher exact tests. If there are multiple samples,
