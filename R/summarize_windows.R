@@ -82,6 +82,10 @@ summarize_windows <- function(ch3_db,
       mh_frac = mh_counts / num_calls) |> 
     filter(num_calls >= min_num_calls)
   
+  # Upload positions (db_tbl) as a temporary table
+  dbExecute(db_con, "DROP TABLE IF EXISTS temp_positions;")
+  dbWriteTable(db_con, "temp_positions", collect(db_tbl), temporary = TRUE)
+  
   # Select only requested modtype columns (always keeping num_calls)
   selected_columns <- c("sample_name", "chrom", "start", "end", "num_calls", 
                         paste0(mod_type, "_counts"), paste0(mod_type, "_frac"))
@@ -128,30 +132,65 @@ summarize_windows <- function(ch3_db,
 
 .make_window <- function(db_tbl, db_con, offset, window_size)
 {
-  db_tbl |>
-    mutate(
-      start = start - ((start - offset) %% window_size),
-      na.rm = TRUE) |>
-    filter(
-      start > 0) |>
-    summarize(
-      .by = c(sample_name, chrom, start),
-      num_CpGs = n(),  # count number of rows per window = num CpGs
-      num_calls = sum(num_calls, na.rm = TRUE),
-      across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
-      across(ends_with("_frac"), ~sum(.x * num_calls, na.rm = TRUE) / sum(num_calls, na.rm = TRUE))) |>
-    mutate(
-      end = start + window_size - 1) |>
-    select(sample_name, chrom, start, end, everything()) |>
-    compute(name = "temp_table", temporary = TRUE)
+  query <- glue::glue("
+    CREATE TEMP TABLE temp_table AS
+    WITH windowed AS (
+      SELECT 
+        sample_name,
+        chrom,
+        start - ((start - {offset}) % {window_size}) AS start,
+        SUM(num_calls) AS num_calls,
+        {paste0('SUM(', c('c_counts', 'm_counts', 'h_counts', 'mh_counts'), ') AS ', c('c_counts', 'm_counts', 'h_counts', 'mh_counts'), collapse = ', ')},
+        {paste0('SUM(', c('m_counts', 'h_counts', 'mh_counts'), ' * num_calls) / NULLIF(SUM(num_calls), 0) AS ', c('m_frac', 'h_frac', 'mh_frac'), collapse = ', ')}
+      FROM temp_positions
+      WHERE start > 0
+      GROUP BY sample_name, chrom, start
+    )
+    SELECT 
+      sample_name,
+      chrom,
+      start,
+      start + {window_size} - 1 AS end,
+      COUNT(*) AS num_CpGs,
+      SUM(num_calls) AS num_calls,
+      {paste0('SUM(', c('c_counts', 'm_counts', 'h_counts', 'mh_counts'), ') AS ', c('c_counts', 'm_counts', 'h_counts', 'mh_counts'), collapse = ', ')},
+      {paste0('SUM(', c('m_counts', 'h_counts', 'mh_counts'), ' * num_calls) / NULLIF(SUM(num_calls), 0) AS ', c('m_frac', 'h_frac', 'mh_frac'), collapse = ', ')}
+
+    FROM windowed
+    GROUP BY sample_name, chrom, start
+  ")
+
+  dbExecute(db_con, query)
   
-  # Create or append table
-  dbExecute(db_con, 
-            "CREATE TABLE IF NOT EXISTS windows AS 
-              SELECT * FROM temp_table WHERE 1=0")
-  
-  dbExecute(db_con, 
-            "INSERT INTO windows SELECT * FROM temp_table")
-  
+  dbExecute(db_con, "CREATE TABLE IF NOT EXISTS windows AS SELECT * FROM temp_table WHERE 1=0")
+  dbExecute(db_con, "INSERT INTO windows SELECT * FROM temp_table")
   dbRemoveTable(db_con, "temp_table")
+  
+  # old version...
+  # db_tbl |>
+  #   mutate(
+  #     start = start - ((start - offset) %% window_size),
+  #     na.rm = TRUE) |>
+  #   filter(
+  #     start > 0) |>
+  #   summarize(
+  #     .by = c(sample_name, chrom, start),
+  #     num_CpGs = n(),  # count number of rows per window = num CpGs
+  #     num_calls = sum(num_calls, na.rm = TRUE),
+  #     across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
+  #     across(ends_with("_frac"), ~sum(.x * num_calls, na.rm = TRUE) / sum(num_calls, na.rm = TRUE))) |>
+  #   mutate(
+  #     end = start + window_size - 1) |>
+  #   select(sample_name, chrom, start, end, everything()) |>
+  #   compute(name = "temp_table", temporary = TRUE)
+  # 
+  # # Create or append table
+  # dbExecute(db_con, 
+  #           "CREATE TABLE IF NOT EXISTS windows AS 
+  #             SELECT * FROM temp_table WHERE 1=0")
+  # 
+  # dbExecute(db_con, 
+  #           "INSERT INTO windows SELECT * FROM temp_table")
+  # 
+  # dbRemoveTable(db_con, "temp_table")
 }

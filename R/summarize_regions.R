@@ -188,30 +188,6 @@ summarize_regions <- function(ch3_db,
   GROUP BY p.sample_name, a.region_name;
   ")
   
-  
-  
-  # Perform the **inequality join** in DuckDB and create the `regions` table
-#   query <- "
-#   CREATE TABLE regions AS
-#   SELECT 
-#     p.sample_name, 
-#     a.region_name,
-#     COUNT(*) AS num_CpGs, 
-#     SUM(p.cov) AS cov, 
-#     SUM(p.c_counts) AS c_counts, 
-#     SUM(p.m_counts) AS m_counts, 
-#     SUM(p.h_counts) AS h_counts, 
-#     SUM(p.mh_counts) AS mh_counts, 
-#     SUM(p.m_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS m_frac,
-#     SUM(p.h_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS h_frac,
-#     SUM(p.mh_counts * p.cov) / NULLIF(SUM(p.cov), 0) AS mh_frac
-#   FROM temp_positions p
-#   JOIN temp_annotation a
-#     ON p.chrom = a.chrom 
-#     AND CAST(p.start AS DOUBLE) BETWEEN CAST(a.start AS DOUBLE) AND CAST(a.end AS DOUBLE)
-#   GROUP BY p.sample_name, a.region_name;
-# "
-  
   dbExecute(db_con, query)
   
   # Drop temporary tables
