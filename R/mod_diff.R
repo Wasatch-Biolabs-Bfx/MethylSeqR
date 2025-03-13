@@ -68,8 +68,7 @@ calc_mod_diff <- function(ch3_db,
   in_dat <-
     tbl(db_con, call_type) |>
     select(
-      sample_name, any_of(c("chrom", "start", "end",
-                            "region_name")), # removed total_calls,
+      sample_name, any_of(c("region_name", "chrom", "start", "end")),
       c_counts, mod_counts = !!mod_counts_col) |>
     mutate(
       exp_group = case_when(
@@ -214,8 +213,7 @@ calc_mod_diff <- function(ch3_db,
   dat <-
     in_dat |>
     summarize(
-      .by = c(exp_group, any_of(c("chrom", "start", "end",
-                                  "region_name"))),
+      .by = c(exp_group, any_of(c("region_name", "chrom", "start", "end"))),
       c_counts = sum(c_counts, na.rm = TRUE),
       mod_counts = sum(mod_counts, na.rm = TRUE)) |>
     pivot_wider(
@@ -226,8 +224,7 @@ calc_mod_diff <- function(ch3_db,
   # Extract matrix and calculate p-vals
   pvals <-
     dat |>
-    select(!any_of(c("chrom", "start", "end",
-                     "region_name"))) |>
+    select(!any_of(c("region_name", "chrom", "start", "end"))) |>
     distinct() |>
     mutate(
       mod_frac_case = mod_counts_case /

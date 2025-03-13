@@ -6,6 +6,7 @@
 \usage{
 run_analysis(
   ch3_db,
+  out_path,
   call_type,
   region_file = NULL,
   window_size = 1000,
@@ -13,12 +14,16 @@ run_analysis(
   cases,
   controls,
   mod_type = "mh",
-  calc_type = "fast_fisher"
+  calc_type = "fast_fisher",
+  p_val_max = 0.05
 )
 }
 \arguments{
 \item{ch3_db}{A `ch3_db` object representing the DuckDB database containing methylation data.
 The database should include necessary tables for the analysis, such as positions, regions, or windows.}
+
+\item{out_path}{The directory in which the "Mod_Diff_Analysis_Results" directory containing result data will be written out too. 
+If the user does not provide a directory, the working directory will be used.}
 
 \item{call_type}{A character string specifying the type of data to analyze. Must be one of:
 \code{"positions"}, \code{"regions"}, or \code{"windows"}. This determines the summarization approach to use.}
@@ -44,6 +49,9 @@ Other options are `"c"` for unmodified cytosine, `"m"` for methylation, and `"h"
 
 \item{calc_type}{A character string specifying the type of statistical test to use for the differential analysis.
 The default is `"fast_fisher"`, but other calculation methods can be implemented.}
+
+\item{p_val_max}{The p value threshold in which significant differentially modified positions/regions/windows 
+will be written out in the final directory.}
 }
 \value{
 The result of the differential analysis, typically in the form of a table or data frame with

@@ -177,6 +177,9 @@ summarize_regions <- function(ch3_db,
   SELECT 
     p.sample_name, 
     a.region_name,
+    a.chrom, 
+    a.start, 
+    a.end, 
     COUNT(*) AS num_CpGs, 
     SUM(p.num_calls) AS num_calls, 
     ", count_columns, ", 
@@ -185,7 +188,7 @@ summarize_regions <- function(ch3_db,
   JOIN temp_annotation a
     ON p.chrom = a.chrom 
     AND CAST(p.start AS DOUBLE) BETWEEN CAST(a.start AS DOUBLE) AND CAST(a.end AS DOUBLE)
-  GROUP BY p.sample_name, a.region_name;
+  GROUP BY p.sample_name, a.region_name, a.chrom, a.start, a.end;
   ")
   
   dbExecute(db_con, query)
