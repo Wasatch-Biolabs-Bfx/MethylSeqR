@@ -48,7 +48,9 @@ calc_mod_diff <- function(ch3_db,
   # Specify on exit what to do...
   # Finish up: purge extra tables & update table list and close the connection
   keep_tables = c("calls", "positions", "regions", "windows", 
-                  "mod_diff", "collapsed_windows")
+                  "mod_diff_positions", "mod_diff_regions", "mod_diff_windows",
+                  "collapsed_windows")
+  
   on.exit(MethylSeqR:::.helper_purgeTables(db_con, keep_tables), add = TRUE)
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(MethylSeqR:::.helper_closeDB(database), add = TRUE)
@@ -58,8 +60,12 @@ calc_mod_diff <- function(ch3_db,
     stop(paste0(call_type, " table does not exist. Build it with summarize_positions, summarize_regions, or summarize_windows."))
   }
   
-  if (dbExistsTable(db_con, "mod_diff"))
-    dbRemoveTable(db_con, "mod_diff")
+  mod_diff_table <- paste0("mod_diff_", call_type)
+  
+  if (dbExistsTable(db_con, mod_diff_table)) {
+    dbRemoveTable(db_con, mod_diff_table)
+  }
+  
   dbExecute(db_con, "VACUUM;")  # <-- Add this to free space immediately
   
   # Set stat to use
@@ -96,11 +102,21 @@ calc_mod_diff <- function(ch3_db,
     arrange(p_adjust) |>
     dbWriteTable(
       conn = db_con, 
-      name = "mod_diff", 
+      name = mod_diff_table, 
       append = TRUE
     )
 
-  message("Mod diff analysis complete - mod_diff table successfully created!")
+  
+  if (call_type == "windows") {
+    message(paste0("Mod diff analysis complete - ", 
+                   mod_diff_table, 
+                   " table successfully created!\n"))
+    message("Call collapse_windows() to collapse significant windows.")
+  } else {
+    message(paste0("Mod diff analysis complete - ", 
+                   mod_diff_table, 
+                   " table successfully created!"))
+  }
   
   # if (call_type == "windows" && collapse_windows == TRUE) {
   #   cat("\nCollapsing Windows...\n")
@@ -108,7 +124,7 @@ calc_mod_diff <- function(ch3_db,
   #   message("collapsed_windows table successfully created!\n")
   # }
   
-  print(head(tbl(db_con, "mod_diff")))
+  print(head(tbl(db_con, mod_diff_table)))
 
   invisible(database)
 }
