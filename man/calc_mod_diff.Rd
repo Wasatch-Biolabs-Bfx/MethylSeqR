@@ -10,8 +10,7 @@ calc_mod_diff(
   cases,
   controls,
   mod_type = "mh",
-  calc_type = "fast_fisher",
-  collapse_windows = FALSE
+  calc_type = "fast_fisher"
 )
 }
 \arguments{
@@ -29,8 +28,6 @@ Default is "mh" for methylation/hydroxymethylation.}
 
 \item{calc_type}{A string specifying the statistical method to use for calculating p-values. 
 Options include "fast_fisher", "r_fisher", and "log_reg". Default is "fast_fisher".}
-
-\item{collapse_windows}{A boolean specifiying whether the user would like to collapse windows and create a more defined windows of signficance.}
 }
 \value{
 A list containing the updated "ch3_db" object with the latest tables in the database, including "meth_diff".
