@@ -87,6 +87,7 @@ summarize_regions <- function(ch3_db,
   # Finish up: purge extra tables & update table list and close the connection
   keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
   on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
+  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(.helper_closeDB(database), add = TRUE)
   
   # Increase temp storage limit to avoid memory issues
@@ -101,6 +102,7 @@ summarize_regions <- function(ch3_db,
   
   # Drop the regions table if it already exists
   dbExecute(db_con, "DROP TABLE IF EXISTS regions;")
+  dbExecute(db_con, "VACUUM;")  # <-- Add this to free space immediately
   
   cat("Building regions table...")
   

@@ -103,6 +103,7 @@ summarize_positions <- function(ch3_db,
   
   # Drop the positions table if it already exists
   dbExecute(db_con, "DROP TABLE IF EXISTS positions;")
+  dbExecute(db_con, "VACUUM;")  # <-- Add this to free space immediately
   
   # Create the final 'positions' table from the materialized data
   dbExecute(db_con, "CREATE TABLE positions AS SELECT * FROM temp_summary;")
@@ -119,6 +120,7 @@ summarize_positions <- function(ch3_db,
   # Finish up: purge extra tables & update table list and close the connection
   keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
   on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)  # Purge tables FIRST
+  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(.helper_closeDB(database), add = TRUE)        # Close DB LAST 
   
   # ch3_db$tables <- dbListTables(db_con)

@@ -51,6 +51,7 @@ calc_mod_diff <- function(ch3_db,
   # Finish up: purge extra tables & update table list and close the connection
   keep_tables = c("calls","positions", "regions", "windows", "mod_diff")
   on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
+  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(.helper_closeDB(database), add = TRUE)
 
   # check for windows function
@@ -60,6 +61,7 @@ calc_mod_diff <- function(ch3_db,
   
   if (dbExistsTable(db_con, "mod_diff"))
     dbRemoveTable(db_con, "mod_diff")
+  dbExecute(db_con, "VACUUM;")  # <-- Add this to free space immediately
   
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
