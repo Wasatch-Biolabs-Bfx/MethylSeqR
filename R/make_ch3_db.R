@@ -16,9 +16,9 @@
 #' @param min_base_qual A numeric value representing the minimum base quality threshold. 
 #' Only reads with quality scores at or above this value will be included. Default is 30.
 #' @param flag An optional numeric value specifying a flag-based filter for the data. 
-#' If NULL, no flag filtering is applied.
+#' If NULL, no flag filtering is applied. 
 #' @param chr_prefix A boolean value stating whether or not to keep the chr prefix 
-#' in the chromosome column. Default is TRUE, and "chr" will be kept in fornt of every
+#' in the chromosome column. Default is TRUE, and "chr" will be kept in front of every
 #' chr number.
 #'
 #' @details

@@ -41,54 +41,69 @@ sample sequencing data in the form of CH3 files. These files are typically
 created by Wasatch Biolabs.
 
 Once data is obtained in this format, the first step is done using the 
-`make_pos_db()` function. This function directly imports a directory of CH3 
+`make_ch3_db()` function. This function directly imports a directory of CH3 
 files, and creates a database in the form of a local file.
 
 ## make_pos_db
-`make_pos_db()` requires 2 arguments. First, A string representing the directory
+`make_ch3_db()` requires 2 arguments. First, A string representing the directory
 path containing CH3 files (`ch3_files`), and second, a string representing the 
-path where the positions database will be created (`ch3_db`). 
+path where the positions database will be created (`db_name`). 
 
-4 additional special arguments exist if needed. `chrs` allows a list representation 
+4 additional special arguments exist if needed. `chrom` allows a list representation 
 of all chromosomes wanted to be included in the positional data, not limited to 
-the human genome. `min_call_prob` is a numeric value representing the minimum call 
-probability threshold.  Only calls with a probability greater than or equal to 
-this value will be included. Default is 0.9. `min_length` is a numeric value 
+the human genome. `min_read_length` is a numeric value 
 representing the minimum read length. Only reads meeting or exceeding this length
-will be processed. Default is 100. And `min_base_qual` is a numeric value 
+will be processed. Default is 50. `min_call_prob` is a numeric value representing the minimum call 
+probability threshold.  Only calls with a probability greater than or equal to 
+this value will be included. Default is 0.9. `min_base_qual` is a numeric value 
 representing the minimum base quality. Only reads with quality scores at or above 
-this threshold will be included. Default is 10.
+this threshold will be included. Default is 10. `flag` An optional numeric value 
+specifying a flag-based filter for the data.If NULL, no flag filtering is applied.
+And lastly, `chr_prefix`is a boolean value stating whether or not to keep the chr prefix 
+in the chromosome column. Default is TRUE, and "chr" will be kept in front of every
+chr number.
 
 Here is an example:
 
 ```{r}
 # Set up the file path for the test data located in inst/test_data/
-ch3_files <- system.file("test_data", package = "MethylSeqR")
+ch3_files <- system.file("TEST_DATA", package = "MethylSeqR")
 ch3_db <- tempfile("example_db")
 
 # Run the function with the example data
-result <- make_pos_db(ch3_files, ch3_db)
-print(result)
+make_pos_db(ch3_files, ch3_db)
 ```
 
-While the function builds the positions table, a progress bar will appear for 
-the user. The output will print the last table added to the database, all tables
-currently in the database, and then print the table you just created 
-(in this case, positions).
 
-After this step, a positional data table is made, and a user can continue their 
-analysis in any direction they want. They may run a quality control 
-(`qc_wrapper()`), summarize positional data by regions (`summarize_regions()`) 
-or windows (`summarize_windows()`). At any point in the analysis, a user can 
-export a table in the database by calling `export_tables()`, or use `get_table()`
-to import as a tibble into the local environment. All these functions will be 
-explained below.
+After this step, a database is made and the raw calls table is included. A user 
+may continue their analysis in any direction they want. They may run a quality control 
+(`run_qc()`), summarize data by positions (`summarize_positions()`),
+regions (`summarize_regions()`), or windows (`summarize_windows()`). 
+At any point in the analysis, a user can export a table in the database by calling
+`export_tables()`, or use `get_table()`to import as a tibble into the local environment.
+All these functions will be explained below.
+
+## summarize_positions
+This function summarizes methylation data (from the calls table) by each unique 
+position in the genome.
+
+```{r}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+
+# Summarize positions using annotation table
+summarize_positions(ch3_db)
+```
+
+A user must provide the path to the database with the argument `ch3_db`, but optionally
+can include the modificaton type they want (m, h, or mh) with the argument `mod_type`,
+the unique chromosomes with `chrs`, or the minimum number of calls required to 
+include a position in the summary with `min_num_calls` (default is 1).
 
 ## summarize_regions
-This function summarizes positional methylation data (from the positions table) 
-based on specified regions defined in a BED, TSV, or CSV file. It performs a 
-join operation between the methylation data and the regions specified in the 
-annotation file, allowing for different types of joins.
+This function summarizes methylation data based on specified regions defined in 
+a BED, TSV, or CSV file. It performs a join operation between the methylation 
+data and the regions specified in the annotation file, allowing for different types of joins.
 
 ```{r}
 # Specify the path to the database
@@ -102,9 +117,10 @@ summarize_regions(ch3_db, region_bed)
 There are 2 required arguments. `ch3_db` is a list containing the database file 
 path. This should be a string representing a path to the database, or a valid 
 "ch3_db" class object. `region_file` asks for a string representing the 
-path to the BED or CSV file that contains the region annotations.`join_type` 
-default argument is set to "inner", however a stringindicating the type of join 
-to perform can also include "left", "right", or "full".
+path to the BED or CSV file that contains the region annotations. Optionally,
+a user can include the modificaton type they want (m, h, or mh) with the argument 
+`mod_type`, the unique chromosomes with `chrs`, or the minimum number of calls required to 
+include a region in the summary with `min_num_calls` (default is 1).
 
 ## summarize_windows
 This function summarizes methylation data from a ch3_db database by creating 
@@ -121,10 +137,12 @@ summarize_windows(ch3_db, window_size = 100, step_size = 100)
 
 There is only 1 required arguments. `ch3_db` is a list containing the database 
 file path. This should be a string representing a path to the database, or a valid
-"ch3_db" class object. `call_type` (string) indicates the type of data to summarize. 
-Default is "positions". `window_size` (integer) specifys the size of the sliding 
+"ch3_db" class object. `window_size` (integer) specifys the size of the sliding 
 window in base pairs. Default is 1000. `step_size` (integer) specifies the 
 number of base pairs to step forward with each window. Default is 10. 
+Optionally, a user can include the modificaton type they want (m, h, or mh) with
+the argument `mod_type`, the unique chromosomes with `chrs`, or the minimum number 
+of calls required to include a window in the summary with `min_num_calls` (default is 1).
 `overwrite` is a logical indicating whether to overwrite the existing "windows" 
 table if it exists. Default is TRUE.
 

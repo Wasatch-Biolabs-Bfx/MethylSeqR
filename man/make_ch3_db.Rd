@@ -38,7 +38,7 @@ Only reads with quality scores at or above this value will be included. Default 
 If NULL, no flag filtering is applied.}
 
 \item{chr_prefix}{A boolean value stating whether or not to keep the chr prefix 
-in the chromosome column. Default is TRUE, and "chr" will be kept in fornt of every
+in the chromosome column. Default is TRUE, and "chr" will be kept in front of every
 chr number.}
 }
 \value{
