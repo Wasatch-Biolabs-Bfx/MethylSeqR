@@ -14,7 +14,6 @@ summarize_reads <- function(ch3_db,
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(.helper_closeDB(database), add = TRUE)
   
-  # Increase temp storage limit to avoid memory issues
   dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
   
   # First - filter calls for region
@@ -58,10 +57,11 @@ summarize_reads <- function(ch3_db,
   
   dbExecute(db_con, query)
   
-  # Then make classify_reads() function
   cat("\n")
   message("reads table successfully created!")
   print(head(tbl(db_con, "reads")))
+  
+  ## TO DO: make classify_reads() function
   
   invisible(database)
   
