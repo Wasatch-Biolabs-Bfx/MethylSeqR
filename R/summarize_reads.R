@@ -1,3 +1,29 @@
+#' Summarize Reads in a Database
+#'
+#' This function summarizes reads from a database, filtering and processing 
+#' the data based on a provided key table (if given). It computes statistics 
+#' on the reads such as the number of calls, CpG positions, and fractions of 
+#' methylation (`m`), hemi-methylation (`h`), and total calls. The function 
+#' interacts with the database to generate a `reads` table.
+#'
+#' @param ch3_db A character string specifying the path to the DuckDB database.
+#' @param key_table (Optional) A character string specifying the path to a key table (CSV, TSV, or BED) used for filtering reads. If NULL, no filtering is applied.
+#' @param min_CGs An integer specifying the minimum number of CG sites required for a read to be included in the summary.
+#'
+#' @return Invisibly returns the database object. The function also outputs a success message and the first few rows of the summarized `reads` table.
+#'
+#' @details
+#' The function connects to the provided DuckDB database, optionally filters reads based on the key table, and then summarizes the read data. It creates a temporary table for the filtered reads (if a key table is provided) and creates a summary table called `reads` with information on the total number of calls, the positions of the first and last CG sites, and counts for different types of calls (`m`, `h`, and `-`).
+#'
+#' @examples
+#' #Specify the path to the database
+#'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+#'  
+#'  # Summarize Reads
+#'  summarize_reads(ch3_db, region_bed)
+#'
+#' @export
+
 summarize_reads <- function(ch3_db,
                             key_table = NULL,
                             min_CGs = 5) {
@@ -5,8 +31,7 @@ summarize_reads <- function(ch3_db,
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
-  # Specify on exit what to do...
-  # Finish up: purge extra tables & update table list and close the connection
+  # Specify on exit what to do - purge extra tables, update table list, and close the connection
   on.exit(.helper_purgeTables(db_con), add = TRUE)
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(.helper_closeDB(database), add = TRUE)
