@@ -44,7 +44,7 @@ Once data is obtained in this format, the first step is done using the
 `make_ch3_db()` function. This function directly imports a directory of CH3 
 files, and creates a database in the form of a local file.
 
-## make_pos_db
+## make_ch3_db
 `make_ch3_db()` requires 2 arguments. First, A string representing the directory
 path containing CH3 files (`ch3_files`), and second, a string representing the 
 path where the positions database will be created (`db_name`). 
@@ -71,7 +71,7 @@ ch3_files <- system.file("TEST_DATA", package = "MethylSeqR")
 ch3_db <- tempfile("example_db")
 
 # Run the function with the example data
-make_pos_db(ch3_files, ch3_db)
+make_ch3_db(ch3_files, ch3_db)
 ```
 
 
@@ -161,8 +161,8 @@ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 # Get methylation statistics for the 'positions' call type without plotting
 calc_mod_diff(ch3_db = ch3_db,
               call_type = "positions",
-              cases = c("chr21_5xSample_BloodA", "chr21_5xSample_BloodE", "chr21_5xSample_BloodT"),
-              controls = c("chr21_5xSample_SpermA", "chr21_5xSample_SpermB", "chr21_5xSample_SpermD"))
+              cases = "blood",
+              controls = "sperm")
 ``` 
 
 # Quality Control 
@@ -179,10 +179,8 @@ methylation data.
 # Specify the path to the database
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
-# Get coverage statistics for the 'positions' call type without plotting
+# Get coverage statistics for the 'positions' call type
 get_cov_stats(ch3_db = ch3_db, call_type = "positions")
-# Get coverage statistics for the 'positions' call type with plotting
-get_cov_stats(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 ``` 
 
 ## get_mod_stats
@@ -197,7 +195,6 @@ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Get methylation statistics for the 'positions' call type without plotting
 get_mod_stats(ch3_db = ch3_db, call_type = "positions")
-get_mod_stats(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 ``` 
 
 ## cor_modseq
@@ -227,9 +224,9 @@ pca_modseq(ch3_db)
 ``` 
 
 
-## qc_wrapper
+## run_qc
 
-Combining all functions above, the `qc_wrapper` function computes all QC checks
+Combining all functions above, the `run_qc()`` function computes all QC checks
 on methylation data at the same time. 
 
 ```{r}
@@ -237,7 +234,7 @@ on methylation data at the same time.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Calculate windows
-qc_wrapper(ch3_db)
+run_qc(ch3_db)
 ``` 
  
 # Retrieving and Exporting Tables

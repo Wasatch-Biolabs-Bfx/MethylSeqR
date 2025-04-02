@@ -48,82 +48,54 @@ summarize_positions <- function(ch3_db,
     }
   }
   
+  # Connect to the database
   database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
-  # Increase temp storage limit to avoid memory issues
-  dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
-  
-  # Set up the progress bar
-  pb <- progress_bar$new(
-    format = "[:bar] :percent [Elapsed: :elapsed]",
-    total = 3,  # 3 major steps: summarizing, creating temp table, and creating positions table
-    complete = "=",   
-    incomplete = "-", 
-    current = ">",    
-    clear = FALSE,    
-    width = 60
-  )
-  
-  pb$tick(0)  # Initialize bar without moving it
-  
-  # Process data using duckplyr
-  message("Building positions data from calls table...")
-  
-  # Process data using duckplyr
-  summarized_data <- tbl(db_con, "calls") |>
-    filter(chrom %in% chrs) |>  # Filter for selected chromosomes
-    summarize(
-      .by = c(sample_name, chrom, start, end),
-      num_calls = n(),
-      c_counts = sum(as.integer(call_code == "-"), na.rm = TRUE),
-      m_counts = sum(as.integer(call_code == "m"), na.rm = TRUE),
-      h_counts = sum(as.integer(call_code == "h"), na.rm = TRUE),
-      mh_counts = sum(as.integer(call_code %in% c("m", "h")), na.rm = TRUE)) |>
-    mutate(
-      m_frac = m_counts / num_calls,
-      h_frac = h_counts / num_calls,
-      mh_frac = mh_counts / num_calls) |> 
-    filter(num_calls >= min_num_calls)
-  
-  pb$tick()  # Progress bar update after summarizing
-  
-  # Select only requested modtype columns (always keeping num_calls)
-  selected_columns <- c("sample_name", "chrom", "start", "end", "num_calls", 
-                        paste0(mod_type, "_counts"), paste0(mod_type, "_frac"))
-  selected_columns <- intersect(selected_columns, colnames(summarized_data))
-  
-  summarized_data <- summarized_data |> select(all_of(selected_columns))
-  
-  # Materialize summarized data into a temporary table before creating positions
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_summary;")
-  copy_to(db_con, summarized_data, "temp_summary", temporary = TRUE)
-  
-  pb$tick()  # Progress bar update after summarizing
-  
-  # Drop the positions table if it already exists
-  dbExecute(db_con, "DROP TABLE IF EXISTS positions;")
-  dbExecute(db_con, "VACUUM;")  # <-- Add this to free space immediately
-  
-  # Create the final 'positions' table from the materialized data
-  dbExecute(db_con, "CREATE TABLE positions AS SELECT * FROM temp_summary;")
-  on.exit(dbExecute(db_con, "DROP TABLE IF EXISTS temp_summary;"), add = TRUE)
-  
-  pb$tick()  # Progress bar update after summarizing
-  
-  message("Positions table successfully created!")
-  # message("\n")
-  # message("Printing preview of positions table.")
-  print(head(summarized_data))
-  
   # Specify on exit what to do...
-  # Finish up: purge extra tables & update table list and close the connection
+  # purge extra tables, update table list, and then close the connection
   keep_tables = c("calls", "positions", "regions", "windows", 
                   "mod_diff_positions", "mod_diff_regions", "mod_diff_windows",
                   "collapsed_windows")
   on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)  # Purge tables FIRST
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(.helper_closeDB(database), add = TRUE)        # Close DB LAST 
+  
+  
+  # Increase temp storage limit to avoid memory issues
+  dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
+  
+  # Process data using duckplyr
+  cat("Building positions table...\n")
+  
+  query <- glue("
+    CREATE TABLE positions AS 
+    SELECT
+        sample_name,
+        chrom,
+        start,
+        \"end\",
+        COUNT(*) AS num_calls,
+        SUM(CASE WHEN call_code = '-' THEN 1 ELSE 0 END) AS c_counts,
+        SUM(CASE WHEN call_code = 'm' THEN 1 ELSE 0 END) AS m_counts,
+        SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) AS h_counts,
+        SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) AS mh_counts,
+        SUM(CASE WHEN call_code = 'm' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS m_frac,
+        SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS h_frac,
+        SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS mh_frac
+    FROM calls
+    WHERE chrom IN ({glue_collapse(glue(\"'{chrs}'\"), sep = ', ')})
+    GROUP BY sample_name, chrom, start, \"end\"
+    HAVING num_calls >= {min_num_calls};  -- Filter based on min_num_calls
+")
+  
+  dbExecute(db_con, "DROP TABLE IF EXISTS positions;")  # Drop existing table
+  dbExecute(db_con, "VACUUM;")  # Clean up storage
+  dbExecute(db_con, query)  # Execute the query
+  
+  message("Positions table successfully created!")
+  # Print a preview of what table looks like
+  print(head(tbl(db_con, "positions")))
   
   # ch3_db$tables <- dbListTables(db_con)
   invisible(ch3_db)

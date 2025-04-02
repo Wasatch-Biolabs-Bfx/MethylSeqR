@@ -69,33 +69,30 @@ summarize_windows <- function(ch3_db,
   if (dbExistsTable(db_con, "temp_table"))
     dbRemoveTable(db_con, "temp_table")
   
-  # Open table
-  db_tbl <- tbl(db_con, "calls") |>
-    filter(chrom %in% chrs) |>  # Filter for selected chromosomes
-    summarize(
-      .by = c(sample_name, chrom, start, end),
-      num_calls = n(),
-      c_counts = sum(as.integer(call_code == "-"), na.rm = TRUE),
-      m_counts = sum(as.integer(call_code == "m"), na.rm = TRUE),
-      h_counts = sum(as.integer(call_code == "h"), na.rm = TRUE),
-      mh_counts = sum(as.integer(call_code %in% c("m", "h")), na.rm = TRUE)) |>
-    mutate(
-      m_frac = m_counts / num_calls,
-      h_frac = h_counts / num_calls,
-      mh_frac = mh_counts / num_calls) |> 
-    filter(num_calls >= min_num_calls)
+  query <- glue("
+    CREATE TABLE temp_positions AS 
+    SELECT
+        sample_name,
+        chrom,
+        start,
+        \"end\",
+        COUNT(*) AS num_calls,
+        SUM(CASE WHEN call_code = '-' THEN 1 ELSE 0 END) AS c_counts,
+        SUM(CASE WHEN call_code = 'm' THEN 1 ELSE 0 END) AS m_counts,
+        SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) AS h_counts,
+        SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) AS mh_counts,
+        SUM(CASE WHEN call_code = 'm' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS m_frac,
+        SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS h_frac,
+        SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS mh_frac
+    FROM calls
+    WHERE chrom IN ({glue_collapse(glue(\"'{chrs}'\"), sep = ', ')})
+    GROUP BY sample_name, chrom, start, \"end\"
+    HAVING num_calls >= {min_num_calls};  -- Filter based on min_num_calls
+")
   
-  # Upload positions (db_tbl) as a temporary table
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_positions;")
-  dbExecute(db_con, "VACUUM;")  # <-- Add this to free space immediately
-  dbWriteTable(db_con, "temp_positions", collect(db_tbl), temporary = TRUE)
-  
-  # Select only requested modtype columns (always keeping num_calls)
-  selected_columns <- c("sample_name", "chrom", "start", "end", "num_calls", 
-                        paste0(mod_type, "_counts"), paste0(mod_type, "_frac"))
-  selected_columns <- intersect(selected_columns, colnames(db_tbl))
-  
-  db_tbl <- db_tbl |> select(all_of(selected_columns))
+  dbExecute(db_con, "DROP TABLE IF EXISTS temp_positions;")  # Drop existing table
+  dbExecute(db_con, "VACUUM;")  # Clean up storage
+  dbExecute(db_con, query)  # Execute the query
   
   # Calc windows in each frame
   offsets <- seq(1, window_size - 1, by = step_size)

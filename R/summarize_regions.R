@@ -118,9 +118,9 @@ summarize_regions <- function(ch3_db,
       h_counts = sum(as.integer(call_code == "h"), na.rm = TRUE),
       mh_counts = sum(as.integer(call_code %in% c("m", "h")), na.rm = TRUE)) |>
     mutate(
-      m_frac = m_counts / num_calls,
-      h_frac = h_counts / num_calls,
-      mh_frac = mh_counts / num_calls) |> 
+      m_frac = ifelse(num_calls == 0, NA_real_, m_counts / num_calls),
+      h_frac = ifelse(num_calls == 0, NA_real_, h_counts / num_calls),
+      mh_frac = ifelse(num_calls == 0, NA_real_, mh_counts / num_calls)) |> 
     filter(num_calls >= min_num_calls)
   
   has_missing_chr <- db_tbl |> 
@@ -156,18 +156,18 @@ summarize_regions <- function(ch3_db,
   frac_columns <- ""
   
   if ("c" %in% mod_type) {
-    count_columns <- paste0("SUM(p.c_counts) AS c_counts, ")
+    count_columns <- paste0("COALESCE(SUM(p.c_counts), 0) AS c_counts, ")
   }
   if ("m" %in% mod_type) {
-    count_columns <- paste0(count_columns, "SUM(p.m_counts) AS m_counts, ")
+    count_columns <- paste0("COALESCE(SUM(p.m_counts), 0) AS m_counts, ")
     frac_columns <- paste0(frac_columns, "COALESCE(SUM(p.m_counts * p.num_calls) / NULLIF(SUM(p.num_calls), 0), 0) AS m_frac, ")
   }
   if ("h" %in% mod_type) {
-    count_columns <- paste0(count_columns, "SUM(p.h_counts) AS h_counts, ")
+    count_columns <- paste0(count_columns, "COALESCE(SUM(p.h_counts), 0) AS h_counts, ")
     frac_columns <- paste0(frac_columns, "COALESCE(SUM(p.h_counts * p.num_calls) / NULLIF(SUM(p.num_calls), 0), 0) AS h_frac, ")
   }
   if ("mh" %in% mod_type) {
-    count_columns <- paste0(count_columns, "SUM(p.mh_counts) AS mh_counts, ")
+    count_columns <- paste0(count_columns, "COALESCE(SUM(p.mh_counts), 0) AS mh_counts, ")
     frac_columns <- paste0(frac_columns, "COALESCE(SUM(p.mh_counts * p.num_calls) / NULLIF(SUM(p.num_calls), 0), 0) AS mh_frac, ")
   }
   
@@ -185,7 +185,7 @@ summarize_regions <- function(ch3_db,
     a.start, 
     a.end, 
     COUNT(*) AS num_CpGs, 
-    SUM(p.num_calls) AS num_calls, 
+    NULLIF(SUM(p.num_calls), 0) AS num_calls, 
     ", count_columns, ", 
     ", frac_columns, "
   FROM temp_positions p
