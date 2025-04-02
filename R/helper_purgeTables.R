@@ -4,8 +4,6 @@
 #' `keep_tables` list. It retains only the tables that you want to keep in the database.
 #'
 #' @param ch3_db A character string or an object of class `ch3_db` representing the DuckDB database to connect to.
-#' @param keep_tables A character vector of table names to keep in the database. Defaults to keeping only 
-#' the "positions" table.
 #'
 #' @details
 #' The function connects to the specified database, lists all tables, and removes those not included in 
@@ -16,9 +14,12 @@
 #' @import DBI
 #'
 #' @keywords internal
-.helper_purgeTables <- function(db_con, keep_tables = c("positions"))
+.helper_purgeTables <- function(db_con)
 {
-  
+  # keep_tables involves any possible table created for the database.
+  keep_tables = c("calls", "positions", "regions", "windows", 
+                  "mod_diff_positions", "mod_diff_regions", "mod_diff_windows",
+                  "collapsed_windows", "reads")
   tryCatch(
     {
       # List all tables in the database
@@ -32,8 +33,6 @@
         }
       }
       
-      # print("Remaining tables in database: ")
-      # print(dbListTables(db_con))
     }, 
     error = function(e) 
     {

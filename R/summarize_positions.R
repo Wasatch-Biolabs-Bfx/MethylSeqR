@@ -54,10 +54,7 @@ summarize_positions <- function(ch3_db,
   
   # Specify on exit what to do...
   # purge extra tables, update table list, and then close the connection
-  keep_tables = c("calls", "positions", "regions", "windows", 
-                  "mod_diff_positions", "mod_diff_regions", "mod_diff_windows",
-                  "collapsed_windows")
-  on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)  # Purge tables FIRST
+  on.exit(.helper_purgeTables(db_con), add = TRUE)  # Purge tables FIRST
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(.helper_closeDB(database), add = TRUE)        # Close DB LAST 
   

@@ -7,10 +7,7 @@ summarize_reads <- function(ch3_db,
   
   # Specify on exit what to do...
   # Finish up: purge extra tables & update table list and close the connection
-  keep_tables = c("calls", "positions", "regions", "windows", 
-                  "mod_diff_positions", "mod_diff_regions", "mod_diff_windows",
-                  "collapsed_windows", "reads")
-  on.exit(.helper_purgeTables(db_con, keep_tables), add = TRUE)
+  on.exit(.helper_purgeTables(db_con), add = TRUE)
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(.helper_closeDB(database), add = TRUE)
   

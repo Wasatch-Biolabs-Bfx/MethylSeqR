@@ -47,11 +47,7 @@ calc_mod_diff <- function(ch3_db,
   
   # Specify on exit what to do...
   # Finish up: purge extra tables & update table list and close the connection
-  keep_tables = c("calls", "positions", "regions", "windows", 
-                  "mod_diff_positions", "mod_diff_regions", "mod_diff_windows",
-                  "collapsed_windows")
-  
-  on.exit(MethylSeqR:::.helper_purgeTables(db_con, keep_tables), add = TRUE)
+  on.exit(MethylSeqR:::.helper_purgeTables(db_con), add = TRUE)
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
   on.exit(MethylSeqR:::.helper_closeDB(database), add = TRUE)
 
