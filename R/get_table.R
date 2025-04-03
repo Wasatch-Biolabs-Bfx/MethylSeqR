@@ -39,7 +39,7 @@ get_table <- function(ch3_db,
     dat <- tbl(db_con, table_name) |> collect()
   } else {
     # Print a message if the table does not exist
-    message(paste0("Table '", tbl, "' does not exist in the database."))
+    message(paste0("Table '", table_name, "' does not exist in the database."))
   }
   
   return(dat)

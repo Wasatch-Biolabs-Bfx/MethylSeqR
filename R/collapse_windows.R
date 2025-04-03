@@ -80,6 +80,10 @@ collapse_windows <- function(ch3_db,
       chrom,
       MIN(start) AS start,
       MAX(\"end\") AS \"end\",
+      AVG(mh_counts_control) as avg_mh_counts_control,
+      AVG(mh_counts_case) as avg_mh_counts_case,
+      AVG(mh_frac_control) as avg_mh_frac_control,
+      AVG(mh_frac_case) as avg_mh_frac_case,
       AVG(meth_diff) AS avg_meth_diff,
       COUNT(*) AS num_windows
     FROM RegionGroups
