@@ -1,7 +1,7 @@
 Package: MethylSeqR
 Type: Package
 Title: Process & Analyze Nanopore Sequencing Methylation Data
-Version: 0.5.0
+Version: 0.8.0
 Author: Jonathon Hill PhD, Hailey Zimmerman
 Maintainer: Jonathon Hill <jonathon@wasatchbiolabs.com> and Hailey Zimmerman <hailey@renewbt.com>
 Description: MethylSeqR creates methylation databases, and processes it with unique options.
