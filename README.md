@@ -30,7 +30,7 @@ library(MethylSeqR)
 ***For Linux Users:*** *System packages may need to be intalled in order to use devtools. Instructions can be found online. An example guide for this can be found [here](https://www.digitalocean.com/community/tutorials/how-to-install-r-packages-using-devtools-on-ubuntu-16-04).*
 
 ## Paradigm 
-Begin with CH3 files and build a database using the `make_ch3_db()`. This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
+Begin with CH3 files created by Wasatch Biolabs and build a database using the `make_ch3_db()`. This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
 
 After a database is created, a user can summarize their data by position (`summarize_positions()`), by regions (`summarize_regions()`) or windows (`summarize_windows()`). A differential methylation analysis can be conducted on positional, regional, or window data using `calc_mod_diff()`. If you would like to see key stats on your database, including what unique sample names are in the data for a differential analysis, call `get_db_stats()`.
 
