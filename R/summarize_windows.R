@@ -82,7 +82,7 @@ summarize_windows <- function(ch3_db,
         SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS h_frac,
         SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS mh_frac
     FROM calls
-    WHERE chrom IN ({glue_collapse(glue(\"'{chrs}'\"), sep = ', ')})
+    WHERE chrom IN ({glue::glue_collapse(glue(\"'{chrs}'\"), sep = ', ')})
     GROUP BY sample_name, chrom, start, \"end\"
     HAVING num_calls >= {min_num_calls};  -- Filter based on min_num_calls
 ")

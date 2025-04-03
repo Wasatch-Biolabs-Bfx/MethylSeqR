@@ -85,7 +85,7 @@ All these functions will be explained below.
 
 ## summarize_positions
 This function summarizes methylation data (from the calls table) by each unique 
-position in the genome.
+position in the genome. A table called "positions" will be built into the database.
 
 ```{r}
 # Specify the path to the database
@@ -104,6 +104,7 @@ include a position in the summary with `min_num_calls` (default is 1).
 This function summarizes methylation data based on specified regions defined in 
 a BED, TSV, or CSV file. It performs a join operation between the methylation 
 data and the regions specified in the annotation file, allowing for different types of joins.
+A table called "regions" will be built into the database.
 
 ```{r}
 # Specify the path to the database
@@ -126,6 +127,7 @@ include a region in the summary with `min_num_calls` (default is 1).
 This function summarizes methylation data from a ch3_db database by creating 
 sliding windows over the specified genomic regions. It allows for the adjustment 
 of window size and step size to control the granularity of the summarization.
+A table called "windows" will be built into the database.
 
 ```{r}
 # Specify the path to the database
@@ -146,13 +148,40 @@ of calls required to include a window in the summary with `min_num_calls` (defau
 `overwrite` is a logical indicating whether to overwrite the existing "windows" 
 table if it exists. Default is TRUE.
 
+## summarize_reads
+This function summarizes methylation data from a ch3_db database by the reads.
+A table called "reads" will be built into the database.
+
+```{r}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Calculate windows
+summarize_reads(ch3_db)
+```
+
+There is only 1 required arguments. `ch3_db` is a list containing the database 
+file path. This should be a string representing a path to the database, or a valid
+"ch3_db" class object. Optionally, `key_table` is a path to an external table which
+can be used to filter for unique windows of interest. It should have a "chrom", 
+"start", and "end" column to specify which windows are of interest. The reads table 
+will be filtered for just those windows from the key_table.Lastly, `min_CGs` specifies
+the minimum number of CG sites for a read to be included. If a read has less than 
+that argument, it will not be included in the table.
+
 # Differential Methylation
 ## calc_mod_diff
 This function calculates differential methylation between specified case and control groups using various statistical methods. 
 
 Differential methylation can be calculated from <b><i>positional</i></b>, <b><i>regional</i></b>, or <b><i>window</i></b> methylation data.
 
-Calling this function creates a `meth_diff` table within the database, where differential methylation data can be found. As of our current model, calling `calc_mod_diff` again on a different set of data will overwrite previous data in the `meth_diff` table.
+Calling this function creates a unique mod_diff table within the database, where 
+differential methylation data can be found. Depending on what type of data is called, 
+the table output will be named accordingly. For example, if calc_mod_diff is called 
+on positional data, the data will be named `mod_diff_positions`. If called on windows 
+data, it will be `mod_diff_windows`, etc. Calling `calc_mod_diff` again on the same set of data 
+will overwrite previous data in the `mod_diff_{type}` table (ex. mod_diff_windows will be 
+rewritten if called again on windows data).
 
 ```{r}
 # Specify the path to the database
@@ -163,6 +192,25 @@ calc_mod_diff(ch3_db = ch3_db,
               call_type = "positions",
               cases = "blood",
               controls = "sperm")
+``` 
+
+## collapse_windows
+This function only works on a mod_diff_windows table already in the database.
+After a differential methylation analysis is called on windows, this will collapse 
+significant windows by merging contiguous regions that meet the specified criteria.
+
+The only required parameter is the link to the database. Optionally, a user may specify
+the following arguments.`max_distance`is the maximum allowable distance between consecutive
+significant windows for merging (default: 1000). `sig_cutoff` is the significance 
+threshold for adjusted p-values (default: 0.05). Lastly, `min_diff` specifies the
+minimum absolute methylation difference required for inclusion in the analysis (default: 0.5).
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+  
+# Collapse significant windows
+collapse_windows("my_data.ch3.db")
 ``` 
 
 # Quality Control 
@@ -241,14 +289,40 @@ run_qc(ch3_db)
 You can access data in your database with two different functions.
 
 ## get_table
-To retrieve a single table into your local environment for further analysis, 
+To retrieve a single table into your local environment for further analysis within R, 
 using `get_table` will transform it into a tibble and store it into a variable.
 Arguments required includes the database, and name of the table to be retrieved.
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Get any table in your database and create a variable in R to work with
+positions = get_table("my_data.ch3.db", "positions")
+regions = get_table("my_data.ch3.db", "regions")
+
+mod_diff_regions = get_table("my_data.ch3.db", "mod_diff_regions")
+collapsed_windows = get_table("my_data.ch3.db", "collapsed_windows")
+```
 
 ## export_table
 To export one or more tables into a CSV file, use `export_table`. This function 
 takes three arguments, the database, which tables to export, and the path where 
 the CSV files will be saved. 
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Export the table to your computer
+export_table("my_data.ch3.db", 
+             table = "windows", 
+             out_path = "/Desktop/My_Folder/windows.csv")
+
+export_table("my_data.ch3.db", 
+             table = "mod_diff_windows", 
+             out_path = "/Desktop/My_Folder/mod_diff_windows.csv")
+```
 
 
 # Conclusion
