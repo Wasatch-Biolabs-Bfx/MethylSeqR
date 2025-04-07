@@ -38,7 +38,7 @@ collapse_windows <- function(ch3_db,
                              min_diff = 0.5,
                              output_table_name = "collapsed_windows") 
 {
-  database <- MethylSeqR:::.helper_connectDB(ch3_db)
+  database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
   # Check if "mod_diff" table exists
@@ -47,9 +47,9 @@ collapse_windows <- function(ch3_db,
                      Please run 'mod_diff()' on windows data first to generate it."))
   }
   
-  on.exit(MethylSeqR:::.helper_purgeTables(db_con), add = TRUE)
+  on.exit(.helper_purgeTables(db_con), add = TRUE)
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
-  on.exit(MethylSeqR:::.helper_closeDB(database), add = TRUE)
+  on.exit(.helper_closeDB(database), add = TRUE)
   
   query <- 
     glue(

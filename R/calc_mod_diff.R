@@ -47,9 +47,9 @@ calc_mod_diff <- function(ch3_db,
   
   # Specify on exit what to do...
   # Finish up: purge extra tables & update table list and close the connection
-  on.exit(MethylSeqR:::.helper_purgeTables(db_con), add = TRUE)
+  on.exit(.helper_purgeTables(db_con), add = TRUE)
   on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
-  on.exit(MethylSeqR:::.helper_closeDB(database), add = TRUE)
+  on.exit(.helper_closeDB(database), add = TRUE)
 
   # check for windows function
   if (!dbExistsTable(db_con, call_type)) { # add db_con into object and put in every function...
@@ -61,8 +61,6 @@ calc_mod_diff <- function(ch3_db,
   if (dbExistsTable(db_con, mod_diff_table)) {
     dbRemoveTable(db_con, mod_diff_table)
   }
-  
-  dbExecute(db_con, "VACUUM;")  # <-- Add this to free space immediately
   
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
