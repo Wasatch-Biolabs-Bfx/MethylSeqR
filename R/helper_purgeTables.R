@@ -19,7 +19,7 @@
   # keep_tables involves any possible table created for the database.
   keep_tables = c("calls", "positions", "regions", "windows", 
                   "mod_diff_positions", "mod_diff_regions", "mod_diff_windows",
-                  "collapsed_windows", "reads")
+                  "collapsed_windows", "reads", "classified_reads")
   tryCatch(
     {
       # List all tables in the database
