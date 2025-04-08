@@ -48,6 +48,7 @@ classify_reads <- function(ch3_db,
   dbWriteTable(db_con, "temp_key_table", annotation, temporary = TRUE)
   
   dbExecute(db_con, "DROP TABLE IF EXISTS classified_reads;")
+  
   query <- glue("
   CREATE TABLE classified_reads AS
   SELECT
