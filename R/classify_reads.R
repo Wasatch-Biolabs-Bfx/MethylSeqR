@@ -4,7 +4,7 @@ classify_reads <- function(ch3_db,
                            control,
                            meth_diff_threshold = 0.1) {
   
-  database <- MethylSeqR:::.helper_connectDB(ch3_db)
+  database <- .helper_connectDB(ch3_db)
   db_con <- database$db_con
   
   # Check if "mod_diff" table exists
@@ -47,6 +47,7 @@ classify_reads <- function(ch3_db,
   dbExecute(db_con, "DROP TABLE IF EXISTS temp_key_table;")
   dbWriteTable(db_con, "temp_key_table", annotation, temporary = TRUE)
   
+  dbExecute(db_con, "DROP TABLE IF EXISTS classified_reads;")
   query <- glue("
   CREATE TABLE classified_reads AS
   SELECT
@@ -56,8 +57,8 @@ classify_reads <- function(ch3_db,
     r.last_cpg_pos,
     r.mh_frac,
     CASE
-      WHEN ABS(r.mh_frac - k.avg_mh_frac_control) <= 0.1 THEN '{control}'
-      WHEN ABS(r.mh_frac - k.avg_mh_frac_case) <= 0.1 THEN '{case}'
+      WHEN ABS(r.mh_frac - k.avg_mh_frac_control) <= {meth_diff_threshold} THEN '{control}'
+      WHEN ABS(r.mh_frac - k.avg_mh_frac_case) <= {meth_diff_threshold} THEN '{case}'
       ELSE 'unknown'
     END AS classification
   FROM
