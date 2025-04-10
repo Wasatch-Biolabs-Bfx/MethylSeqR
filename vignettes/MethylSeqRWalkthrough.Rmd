@@ -58,7 +58,7 @@ probability threshold.  Only calls with a probability greater than or equal to
 this value will be included. Default is 0.9. `min_base_qual` is a numeric value 
 representing the minimum base quality. Only reads with quality scores at or above 
 this threshold will be included. Default is 10. `flag` An optional numeric value 
-specifying a flag-based filter for the data.If NULL, no flag filtering is applied.
+specifying a flag-based filter for the data. If NULL, no flag filtering is applied.
 And lastly, `chr_prefix`is a boolean value stating whether or not to keep the chr prefix 
 in the chromosome column. Default is TRUE, and "chr" will be kept in front of every
 chr number.
