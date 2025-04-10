@@ -18,6 +18,7 @@
 #' @examples
 #' #Specify the path to the database
 #'  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+#'  region_bed = system.file("Islands_hg38_test.csv", package = "MethylSeqR")
 #'  
 #'  # Summarize Reads
 #'  summarize_reads(ch3_db, region_bed)
