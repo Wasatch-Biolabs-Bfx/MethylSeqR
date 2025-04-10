@@ -47,7 +47,7 @@ files, and creates a database in the form of a local file.
 ## make_ch3_db
 `make_ch3_db()` requires 2 arguments. First, A string representing the directory
 path containing CH3 files (`ch3_files`), and second, a string representing the 
-path where the positions database will be created (`db_name`). 
+path where the database will be created (`db_name`). 
 
 4 additional special arguments exist if needed. `chrom` allows a list representation 
 of all chromosomes wanted to be included in the positional data, not limited to 
