@@ -42,12 +42,11 @@ To get detailed instructions and help working through the package, build and fol
 ```{r, eval = FALSE}
 browseVignettes("MethylSeqR")
 ```
-and click on HTML in your browser. Or, call
+and click on HTML in your browser. Or, to browse the vignette in your R environment, call
 
 ```{r, eval = FALSE}
 vignette("MethylSeqRWalkthrough")
 ```
-To browse the vignette in your R environment.
 
 #### Developed by Wasatch Biolabs.
 #### Visit us on [our website](https://www.wasatchbiolabs.com/) for more details.
