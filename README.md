@@ -20,8 +20,7 @@ install.packages("devtools")
 library(devtools)
 
 # Install MethylSeqR from GitHub
-devtools::install_github("Wasatch-Biolabs-Bfx/MethylSeqR", build_vignettes = FALSE)
-# for now, do NOT build vignette.
+devtools::install_github("Wasatch-Biolabs-Bfx/MethylSeqR", build_vignettes = TRUE)
 
 # Access Package
 library(MethylSeqR)
@@ -37,6 +36,18 @@ After a database is created, a user can summarize their data by position (`summa
 `run_qc()` can be called to visually assess any data. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment.
 
 ***Warning*** *- If using samples other than human or with unique chromosome names, remember to adjust the chrs argument in each function!*
+
+## Vignette
+To get detailed instructions and help working through the package, build and follow along the vignette by calling:
+```{r, eval = FALSE}
+browseVignettes("MethylSeqR")
+```
+and click on HTML in your browser. Or, call
+
+```{r, eval = FALSE}
+vignette("MethylSeqRWalkthrough")
+```
+To browse the vignette in your R environment.
 
 #### Developed by Wasatch Biolabs.
 #### Visit us on [our website](https://www.wasatchbiolabs.com/) for more details.
