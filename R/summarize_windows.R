@@ -164,31 +164,4 @@ summarize_windows <- function(ch3_db,
   dbExecute(db_con, "INSERT INTO windows SELECT * FROM temp_table")
   dbRemoveTable(db_con, "temp_table")
   
-  # old version...
-  # db_tbl |>
-  #   mutate(
-  #     start = start - ((start - offset) %% window_size),
-  #     na.rm = TRUE) |>
-  #   filter(
-  #     start > 0) |>
-  #   summarize(
-  #     .by = c(sample_name, chrom, start),
-  #     num_CpGs = n(),  # count number of rows per window = num CpGs
-  #     num_calls = sum(num_calls, na.rm = TRUE),
-  #     across(ends_with("_counts"), ~sum(.x, na.rm = TRUE)),
-  #     across(ends_with("_frac"), ~sum(.x * num_calls, na.rm = TRUE) / sum(num_calls, na.rm = TRUE))) |>
-  #   mutate(
-  #     end = start + window_size - 1) |>
-  #   select(sample_name, chrom, start, end, everything()) |>
-  #   compute(name = "temp_table", temporary = TRUE)
-  # 
-  # # Create or append table
-  # dbExecute(db_con, 
-  #           "CREATE TABLE IF NOT EXISTS windows AS 
-  #             SELECT * FROM temp_table WHERE 1=0")
-  # 
-  # dbExecute(db_con, 
-  #           "INSERT INTO windows SELECT * FROM temp_table")
-  # 
-  # dbRemoveTable(db_con, "temp_table")
 }
