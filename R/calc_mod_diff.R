@@ -79,6 +79,22 @@ calc_mod_diff <- function(ch3_db,
     filter(
       !is.na(exp_group))
   
+  # Get unique sample names in the data
+  all_samples <- unique(pull(in_dat, sample_name))
+  if (any(!cases %in% all_samples)) {
+    stop(paste(
+      "Check case names - some case samples are missing from the data:",
+      paste(cases[!cases %in% all_samples], collapse = ", ")
+    ))
+  }
+  
+  if (any(!controls %in% all_samples)) {
+    stop(paste(
+      "Check control names- some control samples are not in the data:",
+      paste(controls[!controls %in% all_samples], collapse = ", ")
+    ))
+  }
+  
   # Calculate p-vals and diffs
   result <- switch(calc_type,
                    fast_fisher = .calc_diff_fisher(in_dat,
