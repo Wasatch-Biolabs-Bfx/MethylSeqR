@@ -195,32 +195,42 @@ calc_mod_diff <- function(ch3_db,
   
 }
 
-
-.fast_fisher <- function(q, m, n, k)
-{
-  # derived from https://github.com/al2na/methylKit/issues/96
+.fast_fisher <- function(q, m, n, k) {
+  # Calculate values once
+  dhyper_val <- 0.5 * dhyper(q, m, n, k)
   
-  mat <- cbind(q, m, n, k)
+  pval_right <- phyper(q, m, n, k, lower.tail = FALSE) + dhyper_val
+  pval_left  <- phyper(q - 1, m, n, k, lower.tail = TRUE) + dhyper_val
   
-  apply(mat, 1,
-        \(qmnk)
-        {
-          dhyper_val <- 0.5 * dhyper(x = qmnk[1], m = qmnk[2],
-                                     n = qmnk[3], k = qmnk[4])
-          
-          pval_right <- phyper(q = qmnk[1], m = qmnk[2],
-                               n = qmnk[3], k = qmnk[4],
-                               lower.tail = FALSE) + dhyper_val
-          
-          pval_left  <- phyper(q = qmnk[1] - 1, m = qmnk[2],
-                               n = qmnk[3], k = qmnk[4],
-                               lower.tail = TRUE) + dhyper_val
-          
-          return(ifelse(test = pval_right > pval_left,
-                        yes  = pval_left * 2,
-                        no   = pval_right * 2))
-        })
+  # Return min tail * 2
+  pmin(pval_right, pval_left) * 2
 }
+
+# .fast_fisher <- function(q, m, n, k)
+# {
+#   # derived from https://github.com/al2na/methylKit/issues/96
+#   
+#   mat <- cbind(q, m, n, k)
+#   
+#   apply(mat, 1,
+#         \(qmnk)
+#         {
+#           dhyper_val <- 0.5 * dhyper(x = qmnk[1], m = qmnk[2],
+#                                      n = qmnk[3], k = qmnk[4])
+#           
+#           pval_right <- phyper(q = qmnk[1], m = qmnk[2],
+#                                n = qmnk[3], k = qmnk[4],
+#                                lower.tail = FALSE) + dhyper_val
+#           
+#           pval_left  <- phyper(q = qmnk[1] - 1, m = qmnk[2],
+#                                n = qmnk[3], k = qmnk[4],
+#                                lower.tail = TRUE) + dhyper_val
+#           
+#           return(ifelse(test = pval_right > pval_left,
+#                         yes  = pval_left * 2,
+#                         no   = pval_right * 2))
+#         })
+# }
 
 
 .r_fisher <- function(a, b, c, d)
