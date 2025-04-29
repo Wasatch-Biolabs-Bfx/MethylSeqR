@@ -156,7 +156,7 @@ summarize_regions <- function(ch3_db,
     count_columns <- paste0("COALESCE(SUM(p.c_counts), 0) AS c_counts, ")
   }
   if ("m" %in% mod_type) {
-    count_columns <- paste0("COALESCE(SUM(p.m_counts), 0) AS m_counts, ")
+    count_columns <- paste0(count_columns, "COALESCE(SUM(p.m_counts), 0) AS m_counts, ")
     frac_columns <- paste0(frac_columns, "COALESCE(SUM(p.m_counts * p.num_calls) / NULLIF(SUM(p.num_calls), 0), 0) AS m_frac, ")
   }
   if ("h" %in% mod_type) {
