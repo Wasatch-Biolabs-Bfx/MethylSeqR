@@ -206,6 +206,7 @@ calc_mod_diff <- function(ch3_db,
   pmin(pval_right, pval_left) * 2
 }
 
+# old fast fisher
 # .fast_fisher <- function(q, m, n, k)
 # {
 #   # derived from https://github.com/al2na/methylKit/issues/96
