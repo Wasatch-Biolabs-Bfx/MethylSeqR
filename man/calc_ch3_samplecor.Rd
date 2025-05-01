@@ -10,7 +10,8 @@ calc_ch3_samplecor(
   plot = TRUE,
   save_path = NULL,
   plot_sample_order = NULL,
-  plot_title = "Sample Correlation Matrix"
+  plot_title = "Sample Correlation Matrix",
+  max_rows = NULL
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ calc_ch3_samplecor(
 which uses the default order.}
 
 \item{plot_title}{A string. The title of the correlation heatmap. Default is "Sample Correlation Matrix".}
+
+\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
 }
 \value{
 A correlation matrix of modification fractions across samples. If `plot = TRUE`, a ggplot object of the correlation 
