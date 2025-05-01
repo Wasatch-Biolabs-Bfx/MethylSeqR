@@ -121,7 +121,7 @@ calc_ch3_diff <- function(ch3_db,
     message(paste0("Mod diff analysis complete - ", 
                    mod_diff_table, 
                    " table successfully created!\n"))
-    message("Call collapse_windows() to collapse significant windows.")
+    message("Call collapse_ch3_windows() to collapse significant windows.")
   } else {
     message(paste0("Mod diff analysis complete - ", 
                    mod_diff_table, 

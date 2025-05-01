@@ -12,6 +12,7 @@
 #' @param plot_sample_order A character vector specifying the desired order of samples in the plot. Default is NULL, 
 #'   which uses the default order.
 #' @param plot_title A string. The title of the correlation heatmap. Default is "Sample Correlation Matrix".
+#' @param max_rows The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.
 #'
 #' @details
 #' This function connects to the ch3 files database, retrieves data based on the `call_type` parameter, and computes the 
@@ -42,7 +43,8 @@ calc_ch3_samplecor <- function(ch3_db,
                        plot = TRUE,
                        save_path = NULL,
                        plot_sample_order = NULL,
-                       plot_title = "Sample Correlation Matrix")
+                       plot_title = "Sample Correlation Matrix",
+                       max_rows = NULL)
 {
   # Open the database connection
   database <- .ch3helper_connectDB(ch3_db)
@@ -61,8 +63,23 @@ calc_ch3_samplecor <- function(ch3_db,
     stop(paste0(call_type, " Table does not exist. You can create it by..."))
   }
   
+  # If max_rows is specified, check table size and sample rows randomly in SQL
+  if (!is.null(max_rows)) {
+    row_count <- dbGetQuery(db_con, paste0("SELECT COUNT(*) as n FROM ", call_type))$n
+    
+    if (row_count < max_rows) {
+      stop(paste0("Table '", call_type, "' only has ", row_count, " rows, which is fewer than max_rows = ", max_rows, ". Pick less rows."))
+    }
+    
+    # Use SQL random sampling with ORDER BY RANDOM()
+    modseq_dat <- dbGetQuery(db_con, paste0("SELECT * FROM ", call_type, " ORDER BY RANDOM() LIMIT ", max_rows))
+  } else {
+    # Retrieve full table if max_rows is not specified
+    modseq_dat <- tbl(db_con, call_type) |> collect()
+  }
+  
   # Retrieve the 'positions' table
-  modseq_dat <- tbl(db_con, call_type) |> collect()
+  # modseq_dat <- tbl(db_con, call_type) |> collect()
   
   if (call_type == "regions") {
     print("regional data")
