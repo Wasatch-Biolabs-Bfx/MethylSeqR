@@ -40,20 +40,18 @@
 #' 
 #' @export
 
-run_ch3_query <- function(
+run_ch3_dplyr <- function(
     ch3_db, 
     table_name, 
     expr, 
     mode = c("collect", "compute"), 
-    output_table = NULL
-) {
+    output_table = NULL) 
+{
   mode <- match.arg(mode)
   
-  con <- dbConnect(duckdb(), dbdir = ch3_db, read_only = FALSE)
-  
-  message("Tables in database: ", paste(dbListTables(con), collapse = ", "))
-  
-  on.exit(dbDisconnect(con, shutdown = TRUE))
+  start_time <- Sys.time()
+  # Connect to the database
+  database <- .ch3helper_connectDB(ch3_db)
   
   tbl_ref <- tbl(con, table_name)
   
@@ -62,6 +60,11 @@ run_ch3_query <- function(
   if (mode == "collect") {
     # Just collect the results into R
     out <- collect(result)
+    
+    end_time <- Sys.time()
+    message("Query Finished. Time elapsed: ", end_time - start_time, "\n")
+    ch3_db <- .ch3helper_closeDB(ch3_db)
+    
     return(out)
   } else if (mode == "compute") {
     if (is.null(output_table)) {
@@ -69,11 +72,31 @@ run_ch3_query <- function(
     }
     
     # Drop existing table
-    dbExecute(con, paste0("DROP TABLE IF EXISTS ", output_table))
+    dbExecute(database$con, paste0("DROP TABLE IF EXISTS ", output_table))
     
     # Compute into a new table
     computed <- compute(result, name = output_table, temporary = FALSE)
     
-    invisible(NULL)  # No need to return anything
+    end_time <- Sys.time()
+    message("Query Finished. Time elapsed: ", end_time - start_time, "\n")
+    ch3_db <- .ch3helper_closeDB(ch3_db)
+    
+    invisible(ch3_db)
   }
+}
+
+run_ch3_sql <- function(ch3_db, 
+                        query) 
+{
+  start_time <- Sys.time()
+  # Connect to the database
+  database <- .ch3helper_connectDB(ch3_db)
+  
+  dbExecute(database$con, query)
+  
+  end_time <- Sys.time()
+  message("Query Finished. Time elapsed: ", end_time - start_time, "\n")
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  
+  invisible(ch3_db)
 }
