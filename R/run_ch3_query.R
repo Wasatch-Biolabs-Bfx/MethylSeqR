@@ -33,11 +33,6 @@
 #'   output_table = "filtered_data"
 #' )
 #' }
-#' 
-#' # Count the number of rows in the calls table
-#' run_ch3_sql(
-#'   ch3_db = "my_data.ch3.db,
-#'   query = "CREATE TABLE call_count AS SELECT COUNT(*) AS num_rows FROM calls;)
 #'
 #' @importFrom DBI dbConnect dbDisconnect dbExecute dbListTables
 #' @importFrom duckdb duckdb
@@ -90,6 +85,25 @@ run_ch3_dplyr <- function(
   }
 }
 
+#' Execute a query on a CH3 Database
+#'
+#' Connects to a DuckDB database, evaluates a user-supplied sql query and closes the database.
+#'
+#' @param ch3_db Path to the DuckDB database file (e.g., `"my_data.ch3.db"`).
+#' @param query An sql query supported by the duckdb database framework.
+#'
+#' @return a ch3_db object to allow piping
+#'
+#' @examples
+#' \dontrun{
+#' # Count the number of rows in the calls table
+#' run_ch3_sql(
+#'   ch3_db = "my_data.ch3.db",
+#'   query = "CREATE TABLE call_count AS SELECT COUNT(*) AS num_rows FROM calls;")
+#' }
+#' 
+#' @importFrom DBI dbExecute 
+#' 
 #' @export
 
 run_ch3_sql <- function(ch3_db, 

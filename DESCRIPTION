@@ -1,13 +1,16 @@
 Package: MethylSeqR
 Type: Package
-Title: Process & Analyze Nanopore Sequencing Methylation Data
+Title: Process and Analyze Nanopore Sequencing Methylation Data
 Version: 0.8.0
-Author: Jonathon Hill PhD, Hailey Zimmerman
-Maintainer: Jonathon Hill <jonathon@wasatchbiolabs.com> and Hailey Zimmerman <hailey@renewbt.com>
-Description: MethylSeqR creates methylation databases, and processes it with unique options.
-    Data can be summarized by posiitons, windows, or provided an annotation bed file, by unique genomic regions.
-    The package also offers quality control functions, differential methylation, and a sliding window analysis.
-License: What license it uses
+Authors@R: 
+    c(
+      person(given = "Jonathon", family = "Hill", role = c("aut", "cre"), email = "jonathon@wasatchbiolabs.com"),
+      person(given = "Hailey", family = "Zimmerman", role = "aut", email = "hailey@renewbt.com")
+    )
+Description: MethylSeqR creates methylation databases and processes them with customizable options.
+    Data can be summarized by positions, windows, or provided genomic annotations (e.g., BED files).
+    The package includes quality control, differential methylation analysis, and sliding window support.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
 RoxygenNote: 7.3.2

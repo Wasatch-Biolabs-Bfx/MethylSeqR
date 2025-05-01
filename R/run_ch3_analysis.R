@@ -38,7 +38,8 @@
 #'   calculated statistics and p-values for each position, region, or window, depending on the `call_type`.
 #'   The result is printed to the console.
 #'
-#' @importFrom dplyr select filter matches pivot_longer pivot_wider unite semi_join
+#' @importFrom dplyr select filter matches semi_join
+#' @importFrom tidyr pivot_longer pivot_wider unite
 #' @importFrom utils write.csv
 #' @importFrom stats setNames
 #' @importFrom fs dir_create

@@ -50,7 +50,6 @@
 #'
 #' @importFrom dplyr select summarise pull n_distinct count mutate collect
 #' @importFrom arrow open_dataset
-#' @importFrom utils prettyNum
 #' 
 #' @export
 
