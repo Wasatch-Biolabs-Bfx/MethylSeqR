@@ -9,6 +9,7 @@
 #' @param plot Logical, if \code{TRUE}, the function will generate a histogram of
 #' the coverage data. Default is \code{FALSE}.
 #' @param save_path Pathway to save the plot to. Usually .pdf or .png.
+#' @param max_rows The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.
 #'
 #' @return If \code{plot} is \code{FALSE}, the function prints summary statistics
 #' and percentiles of the coverage data. If \code{plot} is \code{TRUE}, it prints a
@@ -28,7 +29,8 @@
 plot_ch3_cov <- function(ch3_db,
                           call_type = "positions",
                           plot = TRUE,
-                          save_path = NULL)
+                          save_path = NULL,
+                         max_rows = NULL)
 {
   # Open the database connection
   database <- .ch3helper_connectDB(ch3_db)
@@ -47,7 +49,23 @@ plot_ch3_cov <- function(ch3_db,
     stop(paste0(call_type, " Table does not exist. You can create it by..."))
   }
   
-  modseq_dat = tbl(db_con, call_type) 
+  # Determine total number of rows first
+  total_rows <- tbl(db_con, call_type) |> summarise(n = n()) |> pull(n)
+  
+  # Sample in SQL if max_rows is given and valid
+  if (!is.null(max_rows)) {
+    if (max_rows > total_rows) {
+      stop(paste0("Requested max_rows (", max_rows, 
+                  ") exceeds available rows in the table (", total_rows, ")."))
+    }
+    
+    modseq_dat <- tbl(db_con, sql(paste0(
+      "SELECT * FROM ", call_type, 
+      " USING SAMPLE ", max_rows, " ROWS"
+    )))
+  } else {
+    modseq_dat <- tbl(db_con, call_type)
+  }
   
   # Checks
   stopifnot("Invalid dataframe format. A 'num_calls' or 'mean_num_calls' column must be present." =

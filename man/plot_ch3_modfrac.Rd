@@ -8,7 +8,8 @@ plot_ch3_modfrac(
   ch3_db,
   call_type = c("positions", "regions"),
   plot = TRUE,
-  save_path = NULL
+  save_path = NULL,
+  max_rows = NULL
 )
 }
 \arguments{
@@ -20,6 +21,8 @@ Default is "positions". Can also be "regions".}
 \item{plot}{A logical value. If TRUE, a histogram of methylation values is plotted. Default is FALSE.}
 
 \item{save_path}{Pathway to save the plot to. Usually .pdf or .png.}
+
+\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
 }
 \value{
 If `plot` is FALSE, the function prints a summary of the methylation statistics and quantiles. 

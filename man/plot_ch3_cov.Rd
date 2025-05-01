@@ -4,7 +4,13 @@
 \alias{plot_ch3_cov}
 \title{Calculate and Plot Coverage Statistics}
 \usage{
-plot_ch3_cov(ch3_db, call_type = "positions", plot = TRUE, save_path = NULL)
+plot_ch3_cov(
+  ch3_db,
+  call_type = "positions",
+  plot = TRUE,
+  save_path = NULL,
+  max_rows = NULL
+)
 }
 \arguments{
 \item{ch3_db}{A data base either linking to the file name or of class ch3_db.}
@@ -15,6 +21,8 @@ plot_ch3_cov(ch3_db, call_type = "positions", plot = TRUE, save_path = NULL)
 the coverage data. Default is \code{FALSE}.}
 
 \item{save_path}{Pathway to save the plot to. Usually .pdf or .png.}
+
+\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
 }
 \value{
 If \code{plot} is \code{FALSE}, the function prints summary statistics

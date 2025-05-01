@@ -7,6 +7,7 @@
 #' @param call_type A string representing the name of the table in the database from which to pull the data. 
 #' Default is "positions".
 #' @param save_path Pathway to save the plot to. Usually .pdf or .png.
+#' @param max_rows The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.
 #'
 #' @details
 #' The function connects to the specified DuckDB database, retrieves the methylation data from the specified call type table, 
@@ -29,7 +30,8 @@
 #' @export
 plot_ch3_pca <- function(ch3_db, 
                        call_type = "positions",
-                       save_path = NULL) {
+                       save_path = NULL,
+                       max_rows = NULL) {
   # Open the database connection
   database <- .ch3helper_connectDB(ch3_db)
   db_con <- database$db_con
@@ -38,8 +40,20 @@ plot_ch3_pca <- function(ch3_db,
   # Finish up: update table list and close the connection
   on.exit(.ch3helper_closeDB(database), add = TRUE)
 
-  # Retrieve the data from the database
-  modseq_dat <- tbl(db_con, call_type) %>% collect()  # Collect data to bring it into memory
+  # If max_rows is specified, check table size and sample rows randomly in SQL
+  if (!is.null(max_rows)) {
+    row_count <- dbGetQuery(db_con, paste0("SELECT COUNT(*) as n FROM ", call_type))$n
+    
+    if (row_count < max_rows) {
+      stop(paste0("Table '", call_type, "' only has ", row_count, " rows, which is fewer than max_rows = ", max_rows, ". Pick less rows."))
+    }
+    
+    # Use SQL random sampling with ORDER BY RANDOM()
+    modseq_dat <- dbGetQuery(db_con, paste0("SELECT * FROM ", call_type, " ORDER BY RANDOM() LIMIT ", max_rows))
+  } else {
+    # Retrieve full table if max_rows is not specified
+    modseq_dat <- tbl(db_con, call_type) |> collect()
+  }
   
   # Omit any missing values
   modseq_dat <- na.omit(modseq_dat)
