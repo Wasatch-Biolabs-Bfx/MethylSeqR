@@ -25,9 +25,10 @@
 #'
 #' @return The updated `ch3_db` object with the summarized windows data added to the DuckDB database.
 #'
-#' @importFrom DBI dbExecute dbExistsTable dbRemoveTable
-#' @importFrom dplyr tbl summarize mutate filter select everything across ends_with
-#' @importFrom progress progress_bar
+#' @importFrom DBI dbConnect dbDisconnect dbExecute dbExistsTable dbRemoveTable
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl
+#' @importFrom glue glue glue_collapse
 #' 
 #' @examples
 #'  # Specify the path to the database
@@ -95,26 +96,11 @@ summarize_ch3_windows <- function(ch3_db,
   offsets <- seq(1, window_size - 1, by = step_size)
   
   cat("Building windows table...")
-  # Create Progress Bar
-  pb <- progress_bar$new(
-    format = "[:bar] :percent [Elapsed time: :elapsed]",
-    total = length(offsets) + 1,
-    complete = "=",   
-    incomplete = "-", 
-    current = ">",    
-    clear = FALSE,    
-    width = 100)
-  
-  # Tick progress bar to make it show up (first loop can be long)
-  pb$tick()
-  
   
   # Conduct analysis. 
   # Creates tiled windows and then loops to create sliding window
   for (offset in offsets) {
     .make_window(db_tbl, db_con, offset, window_size)
-    # Advance progress bar
-    pb$tick()
   }
 
   if (dbExistsTable(db_con, "temp_table"))
@@ -163,5 +149,4 @@ summarize_ch3_windows <- function(ch3_db,
   dbExecute(db_con, "CREATE TABLE IF NOT EXISTS windows AS SELECT * FROM temp_table WHERE 1=0")
   dbExecute(db_con, "INSERT INTO windows SELECT * FROM temp_table")
   dbRemoveTable(db_con, "temp_table")
-  
 }

@@ -22,7 +22,11 @@
 #'  # Get coverage statistics for the 'positions' call type without plotting
 #'  plot_ch3_cov(ch3_db = ch3_db, call_type = "positions")
 #'
-#' @import dplyr ggplot2
+#' @importFrom DBI dbConnect dbDisconnect dbExistsTable
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl summarise pull sql
+#' @importFrom ggplot2 ggplot aes geom_histogram labs theme_minimal ggsave
+#' @importFrom stats quantile na.omit
 #'
 #' @export
 

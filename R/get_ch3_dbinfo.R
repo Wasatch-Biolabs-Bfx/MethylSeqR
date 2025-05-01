@@ -12,6 +12,11 @@
 #'  get_ch3_dbinfo(ch3_db = ch3_db)
 #'
 #' @return Invisibly returns a list of stats from the database.
+#' 
+#' @importFrom DBI dbConnect dbDisconnect dbGetQuery dbListTables
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl distinct arrange collect pull
+#' 
 #' @export
 
 get_ch3_dbinfo <- function(ch3_db) 

@@ -31,8 +31,6 @@
 #' \item{db_file}{The path to the created DuckDB database file.}
 #' \item{tables}{A list of tables available in the database.}
 #'
-#' @importFrom DBI dbExecute dbDisconnect dbListTables dbConnect
-#' @importFrom duckdb duckdb
 #'
 #' @examples
 #' # Example usage
@@ -41,7 +39,11 @@
 #' 
 #' make_ch3_db(ch3_files, db_name)
 #'
+#' @importFrom DBI dbConnect dbDisconnect dbExecute dbListTables
+#' @importFrom duckdb duckdb
+#' 
 #' @export
+
 make_ch3_db <- function(ch3_files, 
                         db_name,
                         chrom = NULL, 

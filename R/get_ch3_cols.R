@@ -13,12 +13,14 @@
 #' get_ch3_cols("my_data.ch3.db", "windows")
 #' }
 #'
-#' @import DBI
-#' @import duckdb
+#' @importFrom DBI dbConnect dbDisconnect dbListFields
+#' @importFrom duckdb duckdb
+#' 
 #' @export
+
 get_ch3_cols <- function(ch3_db, table_name) {
-  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ch3_db)
-  on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
+  con <- dbConnect(duckdb(), dbdir = ch3_db)
+  on.exit(dbDisconnect(con, shutdown = TRUE))
   
-  DBI::dbListFields(con, table_name)
+  dbListFields(con, table_name)
 }

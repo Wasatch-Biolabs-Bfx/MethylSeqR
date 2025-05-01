@@ -41,8 +41,6 @@
 #' If a \code{log_file} is provided, the results are written to it. Otherwise, 
 #' they are printed to the console unless \code{silently = TRUE}.
 #'
-#' @importFrom dplyr summarize mutate count pull select n_distinct
-#' @importFrom arrow open_dataset
 #' 
 #' @examples
 #' \dontrun{
@@ -50,7 +48,12 @@
 #' get_ch3_stats("example.ch3.parquet", log_file = "stats.log", silently = TRUE)
 #' }
 #'
+#' @importFrom dplyr select summarise pull n_distinct count mutate collect
+#' @importFrom arrow open_dataset
+#' @importFrom utils prettyNum
+#' 
 #' @export
+
 get_ch3_stats <- function(ch3_file, 
                           log_file = NULL,
                           min_reads = c(1, 5, 10, 15), 
@@ -179,8 +182,6 @@ get_ch3_stats <- function(ch3_file,
         "\t(", round(high_qual_calls$percent, 2), "%)\n", 
         sep = "")
   }
-  
-  
   
   # Return results invisibly
   invisible(

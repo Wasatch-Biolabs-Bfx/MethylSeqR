@@ -29,9 +29,12 @@
 #'         number of merged windows.
 #' }
 #'
-#' @import DBI
+#' @importFrom DBI dbConnect dbDisconnect dbExistsTable dbExecute
+#' @importFrom duckdb duckdb
 #' @importFrom glue glue
+#' 
 #' @export
+
 collapse_ch3_windows <- function(ch3_db, 
                              max_distance = 1000,
                              sig_cutoff = 0.05,
@@ -42,8 +45,8 @@ collapse_ch3_windows <- function(ch3_db,
   db_con <- database$db_con
   
   # Check if "mod_diff" table exists
-  if (!DBI::dbExistsTable(db_con, "mod_diff_windows")) {
-    stop(glue::glue("Error: Table 'mod_diff_windows' not found in the database. 
+  if (!dbExistsTable(db_con, "mod_diff_windows")) {
+    stop(glue("Error: Table 'mod_diff_windows' not found in the database. 
                      Please run 'mod_diff()' on windows data first to generate it."))
   }
   
@@ -90,7 +93,7 @@ collapse_ch3_windows <- function(ch3_db,
     GROUP BY chrom, region_id
     ORDER BY chrom, start;")
   
-  DBI::dbExecute(db_con, query)
+  dbExecute(db_con, query)
   
   message(paste0("Windows successfully collapsed - ", output_table_name, " created!"))
   

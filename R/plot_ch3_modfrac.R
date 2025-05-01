@@ -20,8 +20,7 @@
 #'
 #' @note The function assumes that the database has tables named according to the `call_type` parameter 
 #' (e.g., "positions", "regions"). It also expects specific columns for methylation data to exist.
-#'
-#' @import DBI dplyr ggplot2
+
 #'
 #' @return If `plot` is FALSE, the function prints a summary of the methylation statistics and quantiles. 
 #' If `plot` is TRUE, it displays a histogram of methylation values.
@@ -33,7 +32,14 @@
 #'  # Get methylation statistics for the 'positions' call type without plotting
 #'  plot_ch3_modfrac(ch3_db = ch3_db, call_type = "positions")
 #'
+#' @importFrom DBI dbConnect dbDisconnect dbExistsTable
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl summarise pull sql
+#' @importFrom ggplot2 ggplot aes geom_histogram labs theme_minimal ggsave
+#' @importFrom stats quantile
+#' 
 #' @export
+
 plot_ch3_modfrac<- function(ch3_db,
                           call_type = c("positions", "regions"),
                           plot = TRUE,

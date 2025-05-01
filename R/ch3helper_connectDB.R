@@ -11,13 +11,15 @@
 #' connection to the database.
 #'
 #' @note This function is intended for internal use within the package.
-#'
-#' @import DBI duckdb
 #' 
 #' @return A database connection object.
+#' 
+#' @importFrom DBI dbConnect dbListTables
+#' @importFrom duckdb duckdb
 #'
 #' @keywords internal
 #' 
+
 .ch3helper_connectDB <- function(ch3_db)
 {
   # Open the database connection

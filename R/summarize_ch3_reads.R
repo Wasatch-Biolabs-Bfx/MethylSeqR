@@ -23,6 +23,12 @@
 #'  # Summarize Reads
 #'  summarize_ch3_reads(ch3_db, region_bed)
 #'
+#' @importFrom DBI dbConnect dbDisconnect dbExecute dbExistsTable dbRemoveTable dbWriteTable
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl select
+#' @importFrom glue glue
+#' @importFrom tools file_ext
+#' @importFrom readr read_csv read_tsv
 #' @export
 
 summarize_ch3_reads <- function(ch3_db,

@@ -16,9 +16,6 @@
 #'
 #' @return A PCA plot is produced, showing the first two principal components of the methylation data.
 #' The function also prints a summary of the PCA results and the PCA data used for plotting.
-#'
-#' @import dbplyr
-#' @import ggplot2
 #' 
 #' @examples
 #'  # Specify the path to the database
@@ -27,7 +24,15 @@
 #'  # Calculate PCA
 #'  plot_ch3_pca(ch3_db)
 #'
+#' @importFrom DBI dbConnect dbDisconnect dbGetQuery
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl select mutate collect
+#' @importFrom tidyr pivot_wider
+#' @importFrom stats prcomp na.omit
+#' @importFrom ggplot2 ggplot aes geom_point theme_minimal labs ggsave
+#' 
 #' @export
+
 plot_ch3_pca <- function(ch3_db, 
                        call_type = "positions",
                        save_path = NULL,

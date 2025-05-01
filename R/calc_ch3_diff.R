@@ -19,9 +19,6 @@
 #' "meth_diff" table. 
 #'
 #' @return A list containing the updated "ch3_db" object with the latest tables in the database, including "meth_diff".
-#'
-#' @import dbplyr
-#' @import duckdb
 #' 
 #' @examples
 #'  # Specify the path to the database
@@ -32,8 +29,15 @@
 #'                call_type = "positions",
 #'                cases = c("Blood1_chr21", "Blood2_chr21", "Blood3_chr21"),
 #'                controls = c("Sperm1_chr21", "Sperm2_chr21", "Sperm3_chr21")))
+#'                
+#' @importFrom DBI dbConnect dbDisconnect dbExistsTable dbRemoveTable dbExecute dbWriteTable
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl select any_of mutate case_when filter pull unique summarize pivot_wider inner_join rename_with collect arrange
+#' @importFrom tidyr pivot_wider
+#' @importFrom stats fisher.test p.adjust dhyper phyper glm.fit pchisq
 #'
 #' @export
+
 calc_ch3_diff <- function(ch3_db,
                           call_type = "positions",
                           cases,
