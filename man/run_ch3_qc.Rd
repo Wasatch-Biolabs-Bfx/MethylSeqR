@@ -4,7 +4,7 @@
 \alias{run_ch3_qc}
 \title{Quality Control Wrapper for Methylation Data}
 \usage{
-run_ch3_qc(ch3_db, call_type = "calls", plot = TRUE)
+run_ch3_qc(ch3_db, call_type = "calls", plot = TRUE, max_rows = NULL)
 }
 \arguments{
 \item{ch3_db}{A database connection or object containing methylation data.}
@@ -13,6 +13,8 @@ run_ch3_qc(ch3_db, call_type = "calls", plot = TRUE)
 
 \item{plot}{A logical value indicating whether to generate plots for the statistical analyses.
 Defaults to TRUE. Set to FALSE to suppress plots.}
+
+\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
 }
 \value{
 This function does not return a value. It performs calculations and may produce plots based on the

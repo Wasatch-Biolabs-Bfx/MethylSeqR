@@ -50,3 +50,11 @@ generates a ggplot2 heatmap with correlation values displayed. Optionally, the p
 The function assumes that the database contains tables named according to the `call_type` parameter (e.g., "positions", 
 "regions", "windows"). It calculates the correlation matrix using the `pairwise.complete.obs` method, which handles missing data.
 }
+\examples{
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+
+# Run the correlation matrix function using the 'positions' call type and plot the results
+calc_ch3_samplecor(ch3_db = ch3_db, call_type = "positions")
+
+}
