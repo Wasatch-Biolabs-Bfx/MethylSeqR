@@ -4,7 +4,12 @@
 \alias{plot_ch3_pca}
 \title{Perform PCA on Methylation Data}
 \usage{
-plot_ch3_pca(ch3_db, call_type = "positions", save_path = NULL)
+plot_ch3_pca(
+  ch3_db,
+  call_type = "positions",
+  save_path = NULL,
+  max_rows = NULL
+)
 }
 \arguments{
 \item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
@@ -13,6 +18,8 @@ plot_ch3_pca(ch3_db, call_type = "positions", save_path = NULL)
 Default is "positions".}
 
 \item{save_path}{Pathway to save the plot to. Usually .pdf or .png.}
+
+\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
 }
 \value{
 A PCA plot is produced, showing the first two principal components of the methylation data.
