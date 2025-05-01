@@ -17,7 +17,7 @@
 #' @examples
 #' \dontrun{
 #' # Collect results of a filtered table into R
-#' run_ch3_query(
+#' run_ch3_dplyr(
 #'   ch3_db = "my_data.ch3.db",
 #'   table_name = "methylation_data",
 #'   expr = function(tbl_ref) dplyr::filter(tbl_ref, score > 0.5),
@@ -25,7 +25,7 @@
 #' )
 #'
 #' # Store the filtered result in a new table inside the database
-#' run_ch3_query(
+#' run_ch3_dplyr(
 #'   ch3_db = "my_data.ch3.db",
 #'   table_name = "methylation_data",
 #'   expr = function(tbl_ref) dplyr::filter(tbl_ref, score > 0.5),
@@ -33,6 +33,11 @@
 #'   output_table = "filtered_data"
 #' )
 #' }
+#' 
+#' # Count the number of rows in the calls table
+#' run_ch3_sql(
+#'   ch3_db = "my_data.ch3.db,
+#'   query = "CREATE TABLE call_count AS SELECT COUNT(*) AS num_rows FROM calls;)
 #'
 #' @importFrom DBI dbConnect dbDisconnect dbExecute dbListTables
 #' @importFrom duckdb duckdb
@@ -84,6 +89,8 @@ run_ch3_dplyr <- function(
     invisible(ch3_db)
   }
 }
+
+#' @export
 
 run_ch3_sql <- function(ch3_db, 
                         query) 
