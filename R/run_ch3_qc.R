@@ -8,6 +8,7 @@
 #' @param call_type A character string indicating the type of call to retrieve data (e.g., "positions", "regions").
 #' @param plot A logical value indicating whether to generate plots for the statistical analyses.
 #'               Defaults to TRUE. Set to FALSE to suppress plots.
+#' @param max_rows The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.
 #'
 #' @return This function does not return a value. It performs calculations and may produce plots based on the
 #'         results of the analysis.
@@ -24,7 +25,10 @@
 #'  run_qc(ch3_db, call_type = "positions")
 #'   
 #' @export
-run_ch3_qc <- function(ch3_db, call_type = "calls", plot = TRUE) {
+run_ch3_qc <- function(ch3_db, 
+                       call_type = "calls", 
+                       plot = TRUE, 
+                       max_rows = NULL) {
   message(paste0("running quality control on ", call_type, " table."))
   message("\n")
   
@@ -36,11 +40,11 @@ run_ch3_qc <- function(ch3_db, call_type = "calls", plot = TRUE) {
   }
   
   message("calculating coverage stats...")
-  plot_ch3_cov(ch3_db, call_type, plot = plot)
+  plot_ch3_cov(ch3_db, call_type, plot = plot, max_rows = max_rows)
   message("calculating mod stats...")
-  plot_ch3_modfrac(ch3_db, call_type, plot = plot)
+  plot_ch3_modfrac(ch3_db, call_type, plot = plot, max_rows = max_rows)
   message("calculating correlations...")
-  calc_ch3_samplecor(ch3_db, call_type, plot = plot)
+  calc_ch3_samplecor(ch3_db, call_type, plot = plot, max_rows = max_rows)
   message("running pca...")
-  plot_ch3_pca(ch3_db, call_type)
+  plot_ch3_pca(ch3_db, call_type, max_rows = max_rows)
 }

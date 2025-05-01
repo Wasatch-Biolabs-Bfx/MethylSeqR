@@ -31,7 +31,7 @@
 #'
 #' @examples
 #' # Specify the path to the database
-#' ch3_db <- system.file("my_data.ch3.db", package = "MethylSeq
+#' ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 #' 
 #' # Run the correlation matrix function using the 'positions' call type and plot the results
 #' calc_ch3_samplecor(ch3_db = ch3_db, call_type = "positions")
