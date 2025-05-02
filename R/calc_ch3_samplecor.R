@@ -35,8 +35,8 @@
 #'
 #' @importFrom DBI dbConnect dbDisconnect dbExistsTable dbGetQuery
 #' @importFrom duckdb duckdb
-#' @importFrom dplyr tbl select distinct arrange left_join mutate pivot_wider pull collect
-#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr tbl select distinct arrange left_join mutate pull collect
+#' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom ggplot2 ggplot aes geom_tile geom_text scale_fill_gradient2 scale_y_discrete theme_minimal labs theme element_text ggsave
 #' @importFrom stats cor
 #' 

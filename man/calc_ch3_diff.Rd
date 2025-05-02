@@ -50,5 +50,5 @@ It summarizes the data for cases and controls, calculates p-values based on the 
                call_type = "positions",
                cases = c("Blood1_chr21", "Blood2_chr21", "Blood3_chr21"),
                controls = c("Sperm1_chr21", "Sperm2_chr21", "Sperm3_chr21")))
-
+               
 }

@@ -32,5 +32,5 @@ table does not exist, a message is printed to indicate this.
  
  # Print out tables in the database
  make_pos_db(ch3_files, ch3_db) |> print()
-
+ 
 }

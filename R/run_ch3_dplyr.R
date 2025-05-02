@@ -40,20 +40,19 @@
 #' 
 #' @export
 
-run_ch3_query <- function(
+run_ch3_dplyr <- function(
     ch3_db, 
     table_name, 
     expr, 
-    mode = c("collect", "compute"),
-    output_table = NULL
-) {
+    mode = c("collect", "compute"), 
+    output_table = NULL) 
+{
+
   mode <- match.arg(mode)
   
-  con <- dbConnect(duckdb(), dbdir = ch3_db, read_only = FALSE)
-  
-  message("Tables in database: ", paste(dbListTables(con), collapse = ", "))
-  
-  on.exit(dbDisconnect(con, shutdown = TRUE))
+  start_time <- Sys.time()
+  # Connect to the database
+  database <- .ch3helper_connectDB(ch3_db)
   
   tbl_ref <- tbl(con, table_name)
   
@@ -62,6 +61,11 @@ run_ch3_query <- function(
   if (mode == "collect") {
     # Just collect the results into R
     out <- collect(result)
+    
+    end_time <- Sys.time()
+    message("Query Finished. Time elapsed: ", end_time - start_time, "\n")
+    ch3_db <- .ch3helper_closeDB(ch3_db)
+    
     return(out)
   } else if (mode == "compute") {
     if (is.null(output_table)) {
@@ -69,15 +73,52 @@ run_ch3_query <- function(
     }
     
     # Drop existing table
-    dbExecute(con, paste0("DROP TABLE IF EXISTS ", output_table))
+    dbExecute(database$con, paste0("DROP TABLE IF EXISTS ", output_table))
     
     # Compute into a new table
     computed <- compute(result, name = output_table, temporary = FALSE)
     
-    invisible(NULL)  # No need to return anything
+    end_time <- Sys.time()
+    message("Query Finished. Time elapsed: ", end_time - start_time, "\n")
+    ch3_db <- .ch3helper_closeDB(ch3_db)
+    
+    invisible(ch3_db)
   }
 }
 
-# add this function in!! 
-# run_ch3_sql <- function( query = ")
+#' Execute a query on a CH3 Database
+#'
+#' Connects to a DuckDB database, evaluates a user-supplied sql query and closes the database.
+#'
+#' @param ch3_db Path to the DuckDB database file (e.g., `"my_data.ch3.db"`).
+#' @param query An sql query supported by the duckdb database framework.
+#'
+#' @return a ch3_db object to allow piping
+#'
+#' @examples
+#' \dontrun{
+#' # Count the number of rows in the calls table
+#' run_ch3_sql(
+#'   ch3_db = "my_data.ch3.db",
+#'   query = "CREATE TABLE call_count AS SELECT COUNT(*) AS num_rows FROM calls;")
+#' }
+#' 
+#' @importFrom DBI dbExecute 
+#' 
+#' @export
 
+run_ch3_sql <- function(ch3_db, 
+                        query) 
+{
+  start_time <- Sys.time()
+  # Connect to the database
+  database <- .ch3helper_connectDB(ch3_db)
+  
+  dbExecute(database$con, query)
+  
+  end_time <- Sys.time()
+  message("Query Finished. Time elapsed: ", end_time - start_time, "\n")
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  
+  invisible(ch3_db)
+}
