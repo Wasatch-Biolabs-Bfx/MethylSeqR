@@ -56,7 +56,7 @@ ch3_db <- make_ch3_db(
 # Build and analyze through separate lines
 ch3_db <- make_ch3_db(ch3_files = "/ch3_files_directory", db_name = "my_data")
 summarize_ch3_windows(ch3_db)
-calc_ch3_diff(call_type = "windows", cases = c("sperm"), controls = c("blood"))
+calc_ch3_diff(ch3_db, call_type = "windows", cases = c("sperm"), controls = c("blood"))
 collapse_ch3_windows(ch3_db) 
 
 # Check to see what's in your database at any time
