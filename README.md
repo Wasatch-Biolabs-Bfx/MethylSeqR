@@ -30,7 +30,7 @@ library(MethylSeqR)
 ## Paradigm 
 Begin with CH3 files created by Wasatch Biolabs and build a database using the `make_ch3_db()`. This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
 
-After a database is created, a user can summarize their data by position (`summarize_ch3_positions()`), by regions (`summarize_ch3_regions()`), by windows (`summarize_ch3_windows()`), or by reads ((`summarize_ch3_reads()`). A differential methylation analysis can be conducted on positional, regional, or window data using `calc_ch3_diff()`. After calculating methylation differences between windows, use `colllapse_ch3_windows()` to collapse significant windows in a methylation dataset. This merges contiguous regions that meet the specified criteria.
+After a database is created, a user can summarize their data by position (`summarize_ch3_positions()`), by regions (`summarize_ch3_regions()`), by windows (`summarize_ch3_windows()`), or by reads ((`summarize_ch3_reads()`). A differential methylation analysis can be conducted on positional, regional, or window data using `calc_ch3_diff()`. After calculating methylation differences between windows, use `collapse_ch3_windows()` to collapse significant windows in a methylation dataset. This merges contiguous regions that meet the specified criteria.
 
 If you would like to see key stats on your database at any time, including what unique sample names are in the data for a differential analysis, call `get_ch3_dbinfo()`.
 
