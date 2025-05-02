@@ -14,15 +14,18 @@
 #'
 #' @return A tibble containing the collected data from the specified database table. If the table retrieval fails, an empty tibble is returned.
 #'
-#' @import dplyr
-#' @import duckdb
-#'
 #' @examples
 #' # Assuming ch3_db is a valid database object and "positions" is a table in the database
 #' ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 #' positions = get_ch3_table(ch3_db, "positions")
 #'
+#' @importFrom DBI dbConnect dbDisconnect dbListTables
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl collect
+#' @importFrom tibble tibble
+#' 
 #' @export
+
 get_ch3_table <- function(ch3_db, 
                       table_name,
                       max_rows = NULL)

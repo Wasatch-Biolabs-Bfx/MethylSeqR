@@ -13,9 +13,11 @@
 #' get_ch3_cols("my_data.ch3.db", "windows")
 #' }
 #'
-#' @import DBI
-#' @import duckdb
+#' @importFrom DBI dbConnect dbDisconnect dbListFields
+#' @importFrom duckdb duckdb
+#' 
 #' @export
+
 get_ch3_cols <- function(ch3_db, table_name) {
   ch3_db <- .ch3helper_connectDB(ch3_db)
   

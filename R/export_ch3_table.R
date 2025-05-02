@@ -16,14 +16,16 @@
 #' is closed safely using the `finally` block.
 #'
 #' @note The function assumes that the tables specified in `tables` exist in the database and can be accessed via the `DBI` package.
-#'
-#' @importFrom DBI dbListTables
-#' @importFrom dplyr tbl
-#' @import utils
 #' 
 #' @return NULL. The function writes the specified tables to CSV files.
+#' 
+#' @importFrom DBI dbConnect dbDisconnect dbListTables
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl
+#' @importFrom utils write.csv
 #'
 #' @export
+
 export_ch3_table <- function(ch3_db,
                          table = "positions",
                         out_path) 

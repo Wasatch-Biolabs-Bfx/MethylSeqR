@@ -11,9 +11,10 @@
 #'
 #' @return None. This function is called for its side effects (modifying the database).
 #'
-#' @import DBI
+#' @importFrom DBI dbListTables dbRemoveTable
 #'
 #' @keywords internal
+
 .ch3helper_purgeTables <- function(db_con)
 {
   # keep_tables involves any possible table created for the database.

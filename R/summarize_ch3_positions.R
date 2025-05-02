@@ -29,11 +29,13 @@
 #' # Summarize Positions
 #' summarize_ch3_positions(ch3_db)
 #'
-#' @importFrom DBI dbExecute dbDisconnect dbListTables
-#' @importFrom dplyr tbl summarize mutate filter
-#' @importFrom progress progress_bar
+#' @importFrom DBI dbConnect dbDisconnect dbExecute dbExistsTable dbRemoveTable
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl
+#' @importFrom glue glue glue_collapse
 #' 
 #' @export
+
 summarize_ch3_positions <- function(ch3_db,
                                 mod_type = c("c", "m", "h", "mh"),
                                 chrs = c(as.character(1:22), 

@@ -29,9 +29,12 @@
 #'         number of merged windows.
 #' }
 #'
-#' @import DBI
+#' @importFrom DBI dbConnect dbDisconnect dbExistsTable dbExecute
+#' @importFrom duckdb duckdb
 #' @importFrom glue glue
+#' 
 #' @export
+
 collapse_ch3_windows <- function(ch3_db, 
                              max_distance = 1000,
                              sig_cutoff = 0.05,
@@ -44,7 +47,7 @@ collapse_ch3_windows <- function(ch3_db,
   # Check if "mod_diff" table exists
   if (!DBI::dbExistsTable(ch3_db$con, "mod_diff_windows")) {
     stop(glue::glue("Error: Table 'mod_diff_windows' not found in the database. 
-                     Please run 'mod_diff()' on windows data first to generate it."))
+                     Please run 'mod_diff()' on windows data first to generate it.\n"))
   }
   
   cat("Collapsing windows on differential analysis results...\n")

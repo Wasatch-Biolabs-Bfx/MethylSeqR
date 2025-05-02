@@ -20,42 +20,45 @@
 #' !(chrom %in% c("chrX", "chrY")))
 #' }
 #'
-#' @import DBI
-#' @import dplyr
+#' @importFrom DBI dbConnect dbDisconnect dbExecute
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl filter
 #' @importFrom dbplyr sql_render
 #' @importFrom rlang enquos
+#' 
 #' @export
+
 filter_ch3_table <- function(ch3_db, input_table, output_table, ...) {
   if (missing(output_table)) {
     stop("Please specify an output_table name.")
   }
   
   # Capture filter conditions
-  conditions <- rlang::enquos(...)
+  conditions <- enquos(...)
   
   # Connect to DuckDB
-  con <- DBI::dbConnect(duckdb::duckdb(), dbdir = ch3_db)
-  on.exit(DBI::dbDisconnect(con, shutdown = TRUE))
+  con <- dbConnect(duckdb(), dbdir = ch3_db)
+  on.exit(dbDisconnect(con, shutdown = TRUE))
   
   # Create a lazy DuckDB table
-  tbl_expr <- dplyr::tbl(con, input_table)
+  tbl_expr <- tbl(con, input_table)
   
   # Apply filters lazily via dbplyr (this generates SQL, not local evaluation)
   filtered_expr <- tryCatch({
-    dplyr::filter(tbl_expr, !!!conditions)
+    filter(tbl_expr, !!!conditions)
   }, error = function(e) {
     stop("Error in filter conditions: ", e$message)
   })
   
   # Render SQL
-  sql_query <- dbplyr::sql_render(filtered_expr) %>% as.character()
+  sql_query <- sql_render(filtered_expr) |> as.character()
   
   # Use a temp table to stage results
   temp_table <- paste0("tmp_", input_table, "_", as.integer(Sys.time()))
-  DBI::dbExecute(con, sprintf("CREATE TEMP TABLE %s AS %s", temp_table, sql_query))
+  dbExecute(con, sprintf("CREATE TEMP TABLE %s AS %s", temp_table, sql_query))
   
   # Write to output_table
-  DBI::dbExecute(con, sprintf("CREATE OR REPLACE TABLE %s AS SELECT * FROM %s", output_table, temp_table))
+  dbExecute(con, sprintf("CREATE OR REPLACE TABLE %s AS SELECT * FROM %s", output_table, temp_table))
   
   invisible(ch3_db)
 }

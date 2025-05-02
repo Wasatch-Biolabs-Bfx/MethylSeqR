@@ -38,10 +38,13 @@
 #'   calculated statistics and p-values for each position, region, or window, depending on the `call_type`.
 #'   The result is printed to the console.
 #'
-#' @import dplyr
-#' @importFrom DBI dbExecute
+#' @importFrom dplyr select filter matches pivot_longer pivot_wider unite semi_join
+#' @importFrom utils write.csv
+#' @importFrom stats setNames
+#' @importFrom fs dir_create
 #'
 #' @export
+
 run_ch3_analysis <- function(ch3_db,
                          out_path,
                          call_type,
@@ -119,14 +122,14 @@ run_ch3_analysis <- function(ch3_db,
   data = get_table(ch3_db, call_type)
   
   cat("\nWriting out all CpG data...\n")
-  df_wide <- data %>%
-    select(sample_name, chrom, start, end, matches("_frac")) %>%
+  df_wide <- data |>
+    select(sample_name, chrom, start, end, matches("_frac")) |>
     pivot_longer(cols = matches("_frac"),  # pivot both mh_frac and h_frac
                  names_to = "frac_type",     # create a new column 'frac_type'
-                 values_to = "value") %>%    # pivot values into 'value' column
-    unite("sample_frac", sample_name, frac_type, sep = ".") %>%  # combine sample and frac_type
-    pivot_wider(names_from = sample_frac, values_from = value) %>% # spread the new 'sample_frac' into columns
-    select(chrom, start, end, everything()) %>%  # Ensure chrom, start, end come first
+                 values_to = "value") |>    # pivot values into 'value' column
+    unite("sample_frac", sample_name, frac_type, sep = ".") |>  # combine sample and frac_type
+    pivot_wider(names_from = sample_frac, values_from = value) |> # spread the new 'sample_frac' into columns
+    select(chrom, start, end, everything()) |>  # Ensure chrom, start, end come first
     select(chrom, start, end, sort(names(.)[4:length(.)]))  # Sort the sample columns in alphabetical order
   
   write.csv(df_wide, all_CGs_path, row.names = FALSE)
@@ -136,12 +139,12 @@ run_ch3_analysis <- function(ch3_db,
   cat(paste0("p-value threshold: ", p_val_max, "\n"))
   Sig_CGs_path <- file.path(new_dir, "Sig_CpGs.csv")
   
-  sig = mod_diff %>%
-    filter(p_val <= p_val_max) %>%
+  sig = mod_diff |>
+    filter(p_val <= p_val_max) |>
     select("chrom", "start", "end")
   
   # Now, filter the data to only keep rows that match chrom, start, end in sig
-  df_wide_significant <- df_wide %>%
+  df_wide_significant <- df_wide |>
     semi_join(sig, by = c("chrom", "start", "end"))
   
   write.csv(df_wide_significant, Sig_CGs_path, row.names = FALSE)

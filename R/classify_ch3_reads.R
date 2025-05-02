@@ -41,6 +41,13 @@
 #'   meth_diff_threshold = 0.1
 #' )
 #' }
+#' 
+#' @importFrom DBI dbConnect dbDisconnect dbExistsTable dbExecute dbWriteTable
+#' @importFrom duckdb duckdb
+#' @importFrom readr read_csv read_tsv
+#' @importFrom tools file_ext
+#' @importFrom dplyr tbl
+#' @importFrom glue glue
 #'
 #' @export
 
@@ -59,7 +66,7 @@ classify_ch3_reads <- function(ch3_db,
   }
   
   # Read in key_table and make sure the key_table looks like collapsed_windows...
-  file_ext <- tools::file_ext(key_table)
+  file_ext <- file_ext(key_table)
   
   if (file_ext == "csv") {
     annotation <- read_csv(key_table,

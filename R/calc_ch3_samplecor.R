@@ -22,9 +22,6 @@
 #'
 #' @note The function assumes that the database contains tables named according to the `call_type` parameter (e.g., "positions", 
 #' "regions", "windows"). It calculates the correlation matrix using the `pairwise.complete.obs` method, which handles missing data.
-#'
-#' @importFrom stats cor
-#' @import DBI tidyr ggplot2
 #' 
 #' @return A correlation matrix of modification fractions across samples. If `plot = TRUE`, a ggplot object of the correlation 
 #' matrix heatmap is also printed. If `save_path` is specified, the plot is saved to the given file path.
@@ -36,6 +33,13 @@
 #' # Run the correlation matrix function using the 'positions' call type and plot the results
 #' calc_ch3_samplecor(ch3_db = ch3_db, call_type = "positions")
 #'
+#' @importFrom DBI dbConnect dbDisconnect dbExistsTable dbGetQuery
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl select distinct arrange left_join mutate pivot_wider pull collect
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot aes geom_tile geom_text scale_fill_gradient2 scale_y_discrete theme_minimal labs theme element_text ggsave
+#' @importFrom stats cor
+#' 
 #' @export
 
 calc_ch3_samplecor <- function(ch3_db,

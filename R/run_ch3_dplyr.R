@@ -33,13 +33,14 @@
 #'   output_table = "filtered_data"
 #' )
 #' }
-#'
-#' @import DBI
-#' @import dplyr
-#' @import duckdb
+#' 
+#' @importFrom DBI dbConnect dbDisconnect dbExecute dbListTables
+#' @importFrom duckdb duckdb
+#' @importFrom dplyr tbl collect compute
 #' 
 #' @export
-run_ch3_dplyr <- function(
+
+run_ch3_query <- function(
     ch3_db, 
     table_name, 
     expr, 
@@ -48,7 +49,7 @@ run_ch3_dplyr <- function(
 ) {
   mode <- match.arg(mode)
   
-  con <- dbConnect(duckdb::duckdb(), dbdir = ch3_db, read_only = FALSE)
+  con <- dbConnect(duckdb(), dbdir = ch3_db, read_only = FALSE)
   
   message("Tables in database: ", paste(dbListTables(con), collapse = ", "))
   

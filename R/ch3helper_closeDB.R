@@ -8,11 +8,12 @@
 #' The function updates the `tables` attribute of the `ch3_db` object with the current list of tables in the connected database 
 #' before closing the connection.
 #'
-#' @import DBI
-#'
 #' @return None. This function is called for its side effects (updating the object and closing the connection).
 #'
+#' @importFrom DBI dbDisconnect dbListTables
+#'
 #' @keywords internal
+
 .ch3helper_closeDB <- function(ch3_db)
 {
   if (is.character(ch3_db$con) && ch3_db$con == "none") {

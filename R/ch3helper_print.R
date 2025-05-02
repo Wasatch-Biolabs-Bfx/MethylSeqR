@@ -14,8 +14,6 @@
 #' table does not exist, a message is printed to indicate this.
 #'
 #' @return None. This function is called for its side effects (printing information).
-#'
-#' @import DBI
 #' 
 #' @examples 
 #' # Specify the path to the database
@@ -24,6 +22,9 @@
 #'  
 #'  # Print out tables in the database
 #'  make_pos_db(ch3_files, ch3_db) |> print()
+#'  
+#' @importFrom DBI dbListTables
+#' @importFrom dplyr tbl
 #'
 #' @export
 
