@@ -4,7 +4,8 @@
 #'
 #' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
 #' @param table_name A string representing the name of the table to collect from the database.
-#' 
+#' @param max_rows The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.
+#'
 #' @details
 #' The function establishes a connection to the DuckDB database using \code{.helper_connectDB}.
 #' It retrieves the specified table as a tibble. If an error occurs during table retrieval, 
@@ -26,22 +27,25 @@
 #' @export
 
 get_ch3_table <- function(ch3_db, 
-                      table_name)
+                      table_name,
+                      max_rows = NULL)
 {
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   dat <- tibble()  # Initialize an empty tibble to return if there's an error
   
-  if (table_name %in% dbListTables(db_con)) {
-    # write out table to path given
-    dat <- tbl(db_con, table_name) |> collect()
+  if (table_name %in% dbListTables(ch3_db$con)) {
+    # Reference the table
+    table_ref <- tbl(ch3_db$con, table_name)
+    
+    if (!is.null(max_rows)) {
+      # Randomly sample max_rows rows (efficient with DuckDB)
+      dat <- table_ref |> slice_sample(n = max_rows) |> collect()
+    } else {
+      dat <- table_ref |> collect()
+    }
   } else {
-    # Print a message if the table does not exist
     message(paste0("Table '", table_name, "' does not exist in the database."))
   }
   

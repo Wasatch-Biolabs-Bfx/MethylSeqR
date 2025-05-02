@@ -68,16 +68,25 @@ make_ch3_db <- function(ch3_files,
     db_name <- paste0(db_name, ".ch3.db")
   } 
   
-  ch3_db <- list(db_file = db_name)
-  class(ch3_db) <- "ch3_db"
-  db_con <- dbConnect(duckdb(ch3_db$db_file), read_only = FALSE)
-  ch3_db$tables <- dbListTables(db_con)
+  cat("Building Database...\n")
   
-  on.exit(dbDisconnect(db_con, shutdown = TRUE))
+  # build the ch3_db object
+  ch3_db <- list(db_file = db_name, 
+                 current_table = NULL, 
+                 con = NULL)
+  
+  class(ch3_db) <- "ch3_db"
+  
+  # fill in the things in the list
+  # db_con <- dbConnect(duckdb(ch3_db$db_file), read_only = FALSE)
+  ch3_db$con <- dbConnect(duckdb(ch3_db$db_file), read_only = FALSE)
+  
+  # Specify on exit what to do...close the connection
+  #on.exit(.ch3helper_closeDB(ch3_db), add = TRUE)
   
   # Check if the table already exists and delete it if it does
-  for (table in dbListTables(db_con)) {
-    dbExecute(db_con, paste0("DROP TABLE ", table))
+  for (table in dbListTables(ch3_db$con)) {
+    dbExecute(ch3_db$con, paste0("DROP TABLE ", table))
   }
   
   # Start building the WHERE clause
@@ -109,7 +118,7 @@ make_ch3_db <- function(ch3_files,
   
   # Execute the query
   if (chr_prefix) {
-    dbExecute(db_con, 
+    dbExecute(ch3_db$con, 
               paste0("CREATE TABLE calls AS 
                    SELECT *, 
                           CASE WHEN chrom LIKE 'chr%' THEN chrom 
@@ -119,7 +128,7 @@ make_ch3_db <- function(ch3_files,
                    path, "]) ", 
                    where_clause)) 
   } else {
-    dbExecute(db_con, 
+    dbExecute(ch3_db$con, 
               paste0("CREATE TABLE calls AS 
                    SELECT *, 
                           CASE WHEN chrom LIKE 'chr%' THEN SUBSTRING(chrom, 4) 
@@ -128,15 +137,12 @@ make_ch3_db <- function(ch3_files,
                    FROM read_parquet([", 
                    path, "]) ", 
                    where_clause)) 
-    dbExecute(db_con, "ALTER TABLE calls DROP COLUMN chrom")
-    dbExecute(db_con, "ALTER TABLE calls RENAME COLUMN chrom_fixed TO chrom")
+    dbExecute(ch3_db$con, "ALTER TABLE calls DROP COLUMN chrom")
+    dbExecute(ch3_db$con, "ALTER TABLE calls RENAME COLUMN chrom_fixed TO chrom")
   }
   
-  message("Database successfully created at ", ch3_db$db_file)
-  ch3_db$tables <- dbListTables(db_con)
+  message("Database successfully created at ", ch3_db$db_file, "\n")
   
-  # message(paste0("Samples include: ", 
-  #                unique(pull(tbl(db_con, "calls"), sample_name))))
-  
+  ch3_db <- .ch3helper_closeDB(ch3_db)
   invisible(ch3_db)
 }

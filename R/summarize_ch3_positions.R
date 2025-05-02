@@ -43,26 +43,12 @@ summarize_ch3_positions <- function(ch3_db,
                                          paste0("Chr", 1:22), "ChrX", "ChrY", "ChrM"),
                                 min_num_calls = 1) 
 {
-  # Open the database connection - first check to make sure correct name is there
-  if (is.character(ch3_db)) {
-    if (!grepl(".ch3.db$", ch3_db)) {
-      ch3_db <- paste0(ch3_db, ".ch3.db")
-    }
-  }
-  
+  start_time <- Sys.time()
   # Connect to the database
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  # purge extra tables, update table list, and then close the connection
-  on.exit(.ch3helper_purgeTables(db_con), add = TRUE)  # Purge tables FIRST
-  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
-  on.exit(.ch3helper_closeDB(database), add = TRUE)        # Close DB LAST 
-  
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Increase temp storage limit to avoid memory issues
-  dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
+  dbExecute(ch3_db$con, "PRAGMA max_temp_directory_size='100GiB';")
   
   # Process data using duckplyr
   cat("Building positions table...\n")
@@ -88,14 +74,16 @@ summarize_ch3_positions <- function(ch3_db,
     HAVING num_calls >= {min_num_calls};  -- Filter based on min_num_calls
 ")
   
-  dbExecute(db_con, "DROP TABLE IF EXISTS positions;")  # Drop existing table
-  dbExecute(db_con, "VACUUM;")  # Clean up storage
-  dbExecute(db_con, query)  # Execute the query
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS positions;")  # Drop existing table
+  dbExecute(ch3_db$con, "VACUUM;")  # Clean up storage
+  dbExecute(ch3_db$con, query)  # Execute the query
   
-  message("Positions table successfully created!")
+  end_time <- Sys.time()
+  message("Positions table successfully created! Time elapsed: ", end_time - start_time, "\n")
   # Print a preview of what table looks like
-  print(head(tbl(db_con, "positions")))
+  print(head(tbl(ch3_db$con, "positions")))
   
-  # ch3_db$tables <- dbListTables(db_con)
+  ch3_db$current_table = "positions"
+  ch3_db <- .ch3helper_closeDB(ch3_db)
   invisible(ch3_db)
 }

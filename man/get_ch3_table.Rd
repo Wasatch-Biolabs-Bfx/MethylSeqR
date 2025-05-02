@@ -4,12 +4,14 @@
 \alias{get_ch3_table}
 \title{Collect Table from DuckDB Database as Tibble}
 \usage{
-get_ch3_table(ch3_db, table_name)
+get_ch3_table(ch3_db, table_name, max_rows = NULL)
 }
 \arguments{
 \item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
 
 \item{table_name}{A string representing the name of the table to collect from the database.}
+
+\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
 }
 \value{
 A tibble containing the collected data from the specified database table. If the table retrieval fails, an empty tibble is returned.
