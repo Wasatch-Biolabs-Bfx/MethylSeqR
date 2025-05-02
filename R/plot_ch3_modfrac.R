@@ -41,24 +41,19 @@ plot_ch3_modfrac<- function(ch3_db,
                           max_rows = NULL)
 {
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  # Finish up: update table list and close the connection
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   if (length(call_type) > 1) {
     call_type = c("positions")
   }
   
   # Check for specific table and connect to it in the database
-  if (!dbExistsTable(db_con, call_type)) {
-    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+  if (!dbExistsTable(ch3_db$con, call_type)) {
+    stop(paste0(call_type, " Table does not exist in the database. Check spelling or make sure you create it first.\n"))
   }
   
   # Determine total number of rows first
-  total_rows <- tbl(db_con, call_type) |> summarise(n = n()) |> pull(n)
+  total_rows <- tbl(ch3_db$con, call_type) |> summarise(n = n()) |> pull(n)
   
   # Sample in SQL if max_rows is given and valid
   if (!is.null(max_rows)) {
@@ -67,12 +62,12 @@ plot_ch3_modfrac<- function(ch3_db,
                   ") exceeds available rows in the table (", total_rows, ")."))
     }
     
-    modseq_dat <- tbl(db_con, sql(paste0(
+    modseq_dat <- tbl(ch3_db$con, sql(paste0(
       "SELECT * FROM ", call_type, 
       " USING SAMPLE ", max_rows, " ROWS"
     )))
   } else {
-    modseq_dat <- tbl(db_con, call_type)
+    modseq_dat <- tbl(ch3_db$con, call_type)
   } 
   
   # decide if per base or per region
@@ -132,4 +127,7 @@ plot_ch3_modfrac<- function(ch3_db,
       cat("Statistics plot saved to ", save_path, "\n")
       }
   }
+  
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  invisible(ch3_db)
 }

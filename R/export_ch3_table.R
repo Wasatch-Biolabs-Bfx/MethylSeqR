@@ -5,7 +5,7 @@
 #'
 #' @param ch3_db A string. The path to the database containing ch3 files from nanopore data.
 #' @param table A character vector specifying the table to be exported from the database. Default is "positions".
-#' @param out_path A string. The path where the CSV files will be saved.
+#' @param out_path A string. The path to the directory where the CSV files will be saved. The file will automatically be named "{table name}.csv". 
 #'
 #' @details
 #' The function connects to the specified database and iterates through the list of table names provided in the `tables` parameter. 
@@ -29,11 +29,7 @@ export_ch3_table <- function(ch3_db,
                         out_path) 
 {
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # If the out_path does not end with ".csv", append "_<tablename>.csv"
   if (!grepl("\\.csv$", out_path)) {
@@ -43,10 +39,10 @@ export_ch3_table <- function(ch3_db,
       out_path <- paste0(out_path, "/")
     }
     
-    out_path <- paste0(out_path, "_", table, ".csv")
+    out_path <- paste0(out_path, table, ".csv")
   }
   
-  all_tables <- dbListTables(db_con)
+  all_tables <- dbListTables(ch3_db$con)
   
   if (table %in% all_tables) {
       # Print the table name
@@ -54,14 +50,14 @@ export_ch3_table <- function(ch3_db,
       # Specify the file path
       
     #  FUTURE CODE TO IMPLEMENT...
-    # dbExecute(db_con, 
+    # dbExecute(ch3_db$con, 
     #           paste("COPY (SELECT * FROM", table, 
     #                 ") TO '", out_path, 
     #                 "' WITH (FORMAT CSV, HEADER TRUE);", sep = ""))
     #   
     #   
       # write out table to path given
-      write.csv(tbl(db_con, table),
+      write.csv(tbl(ch3_db$con, table),
                 file = out_path,
                 row.names = FALSE,
                 quote = FALSE)
@@ -70,5 +66,6 @@ export_ch3_table <- function(ch3_db,
       message(paste0("Table '", tbl, "' does not exist in the database."))
     }
   
-  invisible(database)
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  invisible(ch3_db)
 }

@@ -22,14 +22,27 @@
 {
   # Open the database connection
   if (inherits(ch3_db, "character")) { # if given a string file name- create a new database
-    database <- list(db_file = ch3_db)
+    # Open the database connection - first check to make sure correct name is there
+    if (is.character(ch3_db)) {
+      if (!grepl(".ch3.db$", ch3_db)) {
+        ch3_db <- paste0(ch3_db, ".ch3.db")
+      }
+    }
+    # make ch3_object
+    database <- list(db_file = ch3_db, current_table = NULL, con = NULL)
     class(database) <- "ch3_db"
-    database$db_con <- dbConnect(duckdb(database$db_file), read_only = FALSE)
-    database$tables <- dbListTables(database$db_con)
-    return(database)
     
-  } else if (inherits(ch3_db, "ch3_db")) { # if given a 
-    ch3_db$db_con <- dbConnect(duckdb(ch3_db$db_file), read_only = FALSE)
+    #add in the connection
+    database$con <- dbConnect(duckdb(database$db_file), read_only = FALSE)
+    defer(.ch3helper_closeDB(database$con), parent.frame())
+    
+    # return database object
+    return(database)
+  
+  } else if (inherits(ch3_db, "ch3_db")) { # if given a ch3_db OBJECT!
+    ch3_db$con <- dbConnect(duckdb(ch3_db$db_file), read_only = FALSE)
+    defer(.ch3helper_closeDB(ch3_db), parent.frame())
+    
     return(ch3_db)
     
   } else {

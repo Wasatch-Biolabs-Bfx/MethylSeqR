@@ -28,17 +28,13 @@ get_ch3_table <- function(ch3_db,
                       max_rows = NULL)
 {
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   dat <- tibble()  # Initialize an empty tibble to return if there's an error
   
-  if (table_name %in% dbListTables(db_con)) {
+  if (table_name %in% dbListTables(ch3_db$con)) {
     # Reference the table
-    table_ref <- tbl(db_con, table_name)
+    table_ref <- tbl(ch3_db$con, table_name)
     
     if (!is.null(max_rows)) {
       # Randomly sample max_rows rows (efficient with DuckDB)

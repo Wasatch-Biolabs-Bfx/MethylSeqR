@@ -33,26 +33,21 @@ plot_ch3_pca <- function(ch3_db,
                        save_path = NULL,
                        max_rows = NULL) {
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  # Finish up: update table list and close the connection
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
 
   # If max_rows is specified, check table size and sample rows randomly in SQL
   if (!is.null(max_rows)) {
-    row_count <- dbGetQuery(db_con, paste0("SELECT COUNT(*) as n FROM ", call_type))$n
+    row_count <- dbGetQuery(ch3_db$con, paste0("SELECT COUNT(*) as n FROM ", call_type))$n
     
     if (row_count < max_rows) {
       stop(paste0("Table '", call_type, "' only has ", row_count, " rows, which is fewer than max_rows = ", max_rows, ". Pick less rows."))
     }
     
     # Use SQL random sampling with ORDER BY RANDOM()
-    modseq_dat <- dbGetQuery(db_con, paste0("SELECT * FROM ", call_type, " ORDER BY RANDOM() LIMIT ", max_rows))
+    modseq_dat <- dbGetQuery(ch3_db$con, paste0("SELECT * FROM ", call_type, " ORDER BY RANDOM() LIMIT ", max_rows))
   } else {
     # Retrieve full table if max_rows is not specified
-    modseq_dat <- tbl(db_con, call_type) |> collect()
+    modseq_dat <- tbl(ch3_db$con, call_type) |> collect()
   }
   
   # Omit any missing values
@@ -119,4 +114,7 @@ plot_ch3_pca <- function(ch3_db,
     ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
     cat("PCA plot saved to ", save_path, "\n")
   }
+  
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  invisible(ch3_db)
 }

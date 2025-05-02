@@ -47,39 +47,31 @@ calc_ch3_samplecor <- function(ch3_db,
                        max_rows = NULL)
 {
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  # Finish up: update table list and close the connection
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   if (length(call_type) > 1) {
     call_type = c("positions")
   }
   
   # Check if the call_type table exists in the database
-  if (!dbExistsTable(db_con, call_type)) {
+  if (!dbExistsTable(ch3_db$con, call_type)) {
     stop(paste0(call_type, " Table does not exist. You can create it by..."))
   }
   
   # If max_rows is specified, check table size and sample rows randomly in SQL
   if (!is.null(max_rows)) {
-    row_count <- dbGetQuery(db_con, paste0("SELECT COUNT(*) as n FROM ", call_type))$n
+    row_count <- dbGetQuery(ch3_db$con, paste0("SELECT COUNT(*) as n FROM ", call_type))$n
     
     if (row_count < max_rows) {
       stop(paste0("Table '", call_type, "' only has ", row_count, " rows, which is fewer than max_rows = ", max_rows, ". Pick less rows."))
     }
     
     # Use SQL random sampling with ORDER BY RANDOM()
-    modseq_dat <- dbGetQuery(db_con, paste0("SELECT * FROM ", call_type, " ORDER BY RANDOM() LIMIT ", max_rows))
+    modseq_dat <- dbGetQuery(ch3_db$con, paste0("SELECT * FROM ", call_type, " ORDER BY RANDOM() LIMIT ", max_rows))
   } else {
     # Retrieve full table if max_rows is not specified
-    modseq_dat <- tbl(db_con, call_type) |> collect()
+    modseq_dat <- tbl(ch3_db$con, call_type) |> collect()
   }
-  
-  # Retrieve the 'positions' table
-  # modseq_dat <- tbl(db_con, call_type) |> collect()
   
   if (call_type == "regions") {
     print("regional data")
@@ -202,5 +194,8 @@ calc_ch3_samplecor <- function(ch3_db,
       cat("Correlation plot saved to ", save_path, "\n")
     }
   }
+  
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  invisible(ch3_db)
       
 }

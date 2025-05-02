@@ -47,24 +47,18 @@ summarize_ch3_windows <- function(ch3_db,
                          min_num_calls = 1,
                          overwrite = TRUE) 
 {
+  start_time <- Sys.time()
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  # Finish up: purge extra tables & update table list and close the connection
-  on.exit(.ch3helper_purgeTables(db_con), add = TRUE)
-  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Increase temp storage limit to avoid memory issues
-  dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
+  dbExecute(ch3_db$con, "PRAGMA max_temp_directory_size='100GiB';")
   
-  if (dbExistsTable(db_con, "windows") & overwrite)
-    dbRemoveTable(db_con, "windows")
+  if (dbExistsTable(ch3_db$con, "windows") & overwrite)
+    dbRemoveTable(ch3_db$con, "windows")
   
-  if (dbExistsTable(db_con, "temp_table"))
-    dbRemoveTable(db_con, "temp_table")
+  if (dbExistsTable(ch3_db$con, "temp_table"))
+    dbRemoveTable(ch3_db$con, "temp_table")
   
   query <- glue("
     CREATE TABLE temp_positions AS 
@@ -87,14 +81,15 @@ summarize_ch3_windows <- function(ch3_db,
     HAVING num_calls >= {min_num_calls};  -- Filter based on min_num_calls
 ")
   
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_positions;")  # Drop existing table
-  dbExecute(db_con, "VACUUM;")  # Clean up storage
-  dbExecute(db_con, query)  # Execute the query
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS temp_positions;")  # Drop existing table
+  dbExecute(ch3_db$con, "VACUUM;")  # Clean up storage
+  dbExecute(ch3_db$con, query)  # Execute the query
   
   # Calc windows in each frame
   offsets <- seq(1, window_size - 1, by = step_size)
   
   cat("Building windows table...")
+  cat("\n")
   # Create Progress Bar
   pb <- progress_bar$new(
     format = "[:bar] :percent [Elapsed time: :elapsed]",
@@ -112,20 +107,23 @@ summarize_ch3_windows <- function(ch3_db,
   # Conduct analysis. 
   # Creates tiled windows and then loops to create sliding window
   for (offset in offsets) {
-    .make_window(db_tbl, db_con, offset, window_size)
+    .make_window(db_tbl, ch3_db$con, offset, window_size)
     # Advance progress bar
     pb$tick()
   }
 
-  if (dbExistsTable(db_con, "temp_table"))
-    dbRemoveTable(db_con, "temp_table")
+  if (dbExistsTable(ch3_db$con, "temp_table"))
+    dbRemoveTable(ch3_db$con, "temp_table")
   # Close progress bar
   pb$terminate()
   
-  message("Windows table successfully created!")
-  print(head(tbl(db_con, "windows")))
+  end_time <- Sys.time()
+  message("Windows table successfully created! Time elapsed: ", end_time - start_time, "\n")
+  print(head(tbl(ch3_db$con, "windows")))
   
-  invisible(database)
+  ch3_db$current_table = "windows"
+  ch3_db <- .ch3helper_cleanup(ch3_db)
+  invisible(ch3_db)
 }
 
 .make_window <- function(db_tbl, db_con, offset, window_size)

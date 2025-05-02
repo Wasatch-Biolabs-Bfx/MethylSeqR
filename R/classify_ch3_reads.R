@@ -50,18 +50,13 @@ classify_ch3_reads <- function(ch3_db,
                            control,
                            meth_diff_threshold = 0.1) {
   
-  database <- .helper_connectDB(ch3_db)
-  db_con <- database$db_con
+  ch3_db <- .helper_connectDB(ch3_db)
   
   # Check if "mod_diff" table exists
-  if (!DBI::dbExistsTable(db_con, "reads")) {
+  if (!DBI::dbExistsTable(ch3_db$con, "reads")) {
     stop(glue::glue("Error: Table 'reads' not found in the database. 
                      Please run 'summarize_reads()' on windows data first to generate it."))
   }
-  
-  on.exit(.ch3helper_purgeTables(db_con), add = TRUE)
-  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
   
   # Read in key_table and make sure the key_table looks like collapsed_windows...
   file_ext <- tools::file_ext(key_table)
@@ -90,10 +85,10 @@ classify_ch3_reads <- function(ch3_db,
   }
   
   # Upload annotation as a temporary table
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_key_table;")
-  dbWriteTable(db_con, "temp_key_table", annotation, temporary = TRUE)
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS temp_key_table;")
+  dbWriteTable(ch3_db$con, "temp_key_table", annotation, temporary = TRUE)
   
-  dbExecute(db_con, "DROP TABLE IF EXISTS classified_reads;")
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS classified_reads;")
   
   query <- glue("
   CREATE TABLE classified_reads AS
@@ -117,14 +112,16 @@ classify_ch3_reads <- function(ch3_db,
     AND r.first_cpg_pos BETWEEN k.start AND k.end;
   ")
   
-  dbExecute(db_con, query)
+  dbExecute(ch3_db$con, query)
   
   # Drop temporary tables
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_key_table;")
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS temp_key_table;")
   
   cat("\n")
   message("classified_reads table successfully created!")
-  print(head(tbl(db_con, "classified_reads")))
+  ch3_db$current_table = "classified_reads"
+  print(head(tbl(ch3_db$con, "classified_reads")))
   
-  invisible(database)
+  ch3_db <- .ch3helper_cleanup(ch3_db)
+  invisible(ch3_db)
 }
