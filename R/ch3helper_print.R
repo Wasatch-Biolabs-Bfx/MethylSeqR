@@ -28,53 +28,21 @@
 #'
 #' @export
 
-print.ch3_db <- function(ch3_db, tables = "") {
-  # Open the database connection
-  database <- .helper_connectDB(ch3_db)
-  db_con <- database$db_con
+print.ch3_db <- function(ch3_db) {
+  cat("<ch3_db object>\n")
   
-  tryCatch(
+  cat("Database file:\n")
+  cat("  ", ch3_db$db_file, "\n")
+  
+  cat("Current table:\n")
+  cat("  ", ifelse(is.null(ch3_db$current_table), "NULL", ch3_db$current_table), "\n")
+  
+  cat("Connection:\n")
+  
+  if (is.character(ch3_db$con) && ch3_db$con == "none") {
+    cat("  NULL\n")
+  } else
     {
-      # List all tables in the database
-      cat("Last table added: ")
-      cat(database$last_table)
-      cat("\n")
-      cat("\n")
-      all_tables <- dbListTables(db_con)
-      cat("All tables currently in database:\n")
-      
-      # Print each table name
-      for (tbl_name in all_tables) {
-        cat(tbl_name, "\n")
-      }
-      cat("\n")
-      
-      if (tables == "all") {
-        tables <- all_tables
-      } else if (tables == "") {
-        tables <- database$last_table
-      }
-      
-      for (tb_name in tables) {
-        if (tb_name %in% all_tables) {
-          # Print the table name
-          cat("Printing table: ", tb_name, "\n")
-          
-          # Fetch the first few rows and print them
-          print(head(tbl(db_con, tb_name)))
-          
-        } else {
-          # Print a message if the table does not exist
-          message(paste0("Table '", tb_name, "' does not exist in the database."))
-        }
-      }
-    }, 
-    error = function(e) {
-      # Print custom error message
-      message("An error occurred: ", e$message)
-    }, 
-    finally = {
-      .helper_closeDB(database)
-    }
-  )
+    cat("  Active DBI connection\n")
+  }
 }

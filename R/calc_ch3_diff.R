@@ -45,33 +45,29 @@ calc_ch3_diff <- function(ch3_db,
                           mod_type = "mh",
                           calc_type = "fast_fisher")
 {
+  start_time <- Sys.time()
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  # Finish up: purge extra tables & update table list and close the connection
-  on.exit(.ch3helper_purgeTables(db_con), add = TRUE)
-  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
 
   # check for windows function
-  if (!dbExistsTable(db_con, call_type)) { # add db_con into object and put in every function...
+  if (!dbExistsTable(ch3_db$con, call_type)) { # add db_con into object and put in every function...
     stop(paste0(call_type, " table does not exist. Build it with summarize_positions, summarize_regions, or summarize_windows."))
   }
   
   mod_diff_table <- paste0("mod_diff_", call_type)
   
-  if (dbExistsTable(db_con, mod_diff_table)) {
-    dbRemoveTable(db_con, mod_diff_table)
+  if (dbExistsTable(ch3_db$con, mod_diff_table)) {
+    dbRemoveTable(ch3_db$con, mod_diff_table)
   }
   
+  cat("Running differential analysis...")
+  cat("\n")
   # Set stat to use
   mod_counts_col <- paste0(mod_type[1], "_counts")
   
   # Label cases and controls
   in_dat <-
-    tbl(db_con, call_type) |>
+    tbl(ch3_db$con, call_type) |>
     select(
       sample_name, any_of(c("region_name", "chrom", "start", "end")),
       c_counts, mod_counts = !!mod_counts_col) |>
@@ -115,21 +111,33 @@ calc_ch3_diff <- function(ch3_db,
     mutate(p_adjust = p.adjust(p_val, method = "BH")) |>
     arrange(p_adjust) |>
     dbWriteTable(
-      conn = db_con, 
+      conn = ch3_db$con, 
       name = mod_diff_table, 
       append = TRUE
     )
 
-  
+  end_time <- Sys.time()
+  cat("\n")
   if (call_type == "windows") {
-    message(paste0("Mod diff analysis complete - ", 
+    message(paste0("Mod diff analysis complete! ", 
                    mod_diff_table, 
-                   " table successfully created!\n"))
+                   " table successfully created!\nTime elapsed: ", 
+                   end_time - start_time, 
+                   "\n"))
     message("Call collapse_ch3_windows() to collapse significant windows.")
   } else {
-    message(paste0("Mod diff analysis complete - ", 
+    message(paste0("Mod diff analysis complete! ", 
                    mod_diff_table, 
-                   " table successfully created!"))
+                   " table successfully created!\nTime elapsed: ", 
+                   end_time - start_time, 
+                   "\n"))
+    
+    # Print a preview of what table looks like
+    print(head(tbl(ch3_db$con, mod_diff_table)))
+    
+    ch3_db$current_table = mod_diff_table
+    ch3_db <- .ch3helper_cleanup(ch3_db)
+    invisible(ch3_db)
   }
   
   # if (call_type == "windows" && collapse_windows == TRUE) {
@@ -138,9 +146,9 @@ calc_ch3_diff <- function(ch3_db,
   #   message("collapsed_windows table successfully created!\n")
   # }
   
-  print(head(tbl(db_con, mod_diff_table)))
+  print(head(tbl(ch3_db$con, mod_diff_table)))
 
-  invisible(database)
+  invisible(ch3_db)
 }
 
 ## Calculate p-values using fisher exact tests. If there are multiple samples,

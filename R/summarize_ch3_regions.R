@@ -46,6 +46,7 @@ summarize_ch3_regions <- function(ch3_db,
                                       paste0("Chr", 1:22), "ChrX", "ChrY", "ChrM"),
                               min_num_calls = 1)
 {
+  start_time <- Sys.time()
   # Determine the file type (csv, tsv, or bed)
   file_ext <- tools::file_ext(region_file)
   
@@ -81,19 +82,11 @@ summarize_ch3_regions <- function(ch3_db,
 
   
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  # Finish up: purge extra tables & update table list and close the connection
-  on.exit(.ch3helper_purgeTables(db_con), add = TRUE)
-  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Increase temp storage limit to avoid memory issues
-  dbExecute(db_con, "PRAGMA max_temp_directory_size='100GiB';")
-  dbExecute(db_con, "PRAGMA memory_limit='100GiB';")
-  
+  dbExecute(ch3_db$con, "PRAGMA max_temp_directory_size='100GiB';")
+  dbExecute(ch3_db$con, "PRAGMA memory_limit='100GiB';")
   
   # Create regional data frame- offer a left, right or inner join
   # left join- keep reads that are outside of the annotation table
@@ -101,12 +94,12 @@ summarize_ch3_regions <- function(ch3_db,
   # inner join- regions in both annotation and data frame...
   
   # Drop the regions table if it already exists
-  dbExecute(db_con, "DROP TABLE IF EXISTS regions;")
-  dbExecute(db_con, "VACUUM;")  # <-- Add this to free space immediately
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS regions;")
+  dbExecute(ch3_db$con, "VACUUM;")  # <-- Add this to free space immediately
   
   cat("Building regions table...")
   
-  db_tbl = tbl(db_con, "calls") |>
+  db_tbl = tbl(ch3_db$con, "calls") |>
     filter(chrom %in% chrs) |>  # Filter for selected chromosomes
     summarize(
       .by = c(sample_name, chrom, start, end),
@@ -142,12 +135,12 @@ summarize_ch3_regions <- function(ch3_db,
   db_tbl <- db_tbl |> select(all_of(selected_columns))
   
   # Upload annotation as a temporary table
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
-  dbWriteTable(db_con, "temp_annotation", annotation, temporary = TRUE)
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS temp_annotation;")
+  dbWriteTable(ch3_db$con, "temp_annotation", annotation, temporary = TRUE)
   
   # Upload positions (db_tbl) as a temporary table
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_positions;")
-  dbWriteTable(db_con, "temp_positions", collect(db_tbl), temporary = TRUE)
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS temp_positions;")
+  dbWriteTable(ch3_db$con, "temp_positions", collect(db_tbl), temporary = TRUE)
   
   # Dynamically construct the SQL query for modification types
   count_columns <- ""
@@ -193,15 +186,18 @@ summarize_ch3_regions <- function(ch3_db,
   GROUP BY p.sample_name, a.region_name, a.chrom, a.start, a.end;
   ")
   
-  dbExecute(db_con, query)
+  dbExecute(ch3_db$con, query)
   
   # Drop temporary tables
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_positions;")
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS temp_annotation;")
+  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS temp_positions;")
   
   cat("\n")
-  message("Regions table successfully created!")
-  print(head(tbl(db_con, "regions")))
-    
-  invisible(database)
+  end_time <- Sys.time()
+  message("Regions table successfully created! Time elapsed: ", end_time - start_time, "\n")
+  print(head(tbl(ch3_db$con, "regions")))
+  
+  ch3_db$current_table = "regions"
+  ch3_db <- .ch3helper_cleanup(ch3_db)
+  invisible(ch3_db)
 }

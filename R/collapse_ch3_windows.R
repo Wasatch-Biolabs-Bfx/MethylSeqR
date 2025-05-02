@@ -41,18 +41,16 @@ collapse_ch3_windows <- function(ch3_db,
                              min_diff = 0.5,
                              output_table_name = "collapsed_windows") 
 {
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
+  start_time <- Sys.time()
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Check if "mod_diff" table exists
-  if (!dbExistsTable(db_con, "mod_diff_windows")) {
-    stop(glue("Error: Table 'mod_diff_windows' not found in the database. 
-                     Please run 'mod_diff()' on windows data first to generate it."))
+  if (!DBI::dbExistsTable(ch3_db$con, "mod_diff_windows")) {
+    stop(glue::glue("Error: Table 'mod_diff_windows' not found in the database. 
+                     Please run 'mod_diff()' on windows data first to generate it.\n"))
   }
   
-  on.exit(.ch3helper_purgeTables(db_con), add = TRUE)
-  on.exit(dbExecute(db_con, "VACUUM;"), add = TRUE)  # <-- Ensure space is reclaimed
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  cat("Collapsing windows on differential analysis results...\n")
   
   query <- 
     glue(
@@ -93,9 +91,14 @@ collapse_ch3_windows <- function(ch3_db,
     GROUP BY chrom, region_id
     ORDER BY chrom, start;")
   
-  dbExecute(db_con, query)
+  DBI::dbExecute(ch3_db$con, query)
   
-  message(paste0("Windows successfully collapsed - ", output_table_name, " created!"))
+  end_time <- Sys.time()
+  cat("\n")
+  message(paste0("Windows successfully collapsed - ", output_table_name, " created! Time elapsed: ", end_time - start_time, "\n"))
   
-  return(invisible(NULL))
+  ch3_db$current_table = output_table_name
+  ch3_db <- .ch3helper_cleanup(ch3_db)
+  
+  invisible(ch3_db)
 }
