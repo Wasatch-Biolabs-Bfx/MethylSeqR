@@ -60,24 +60,24 @@ plot_ch3_pca <- function(ch3_db,
   
   if (call_type == "regions") {
     # Aggregate mean_mh_frac by sample and region_name
-    test_wide <- modseq_dat %>%
-      select(c(region_name, sample_name, mh_frac)) %>%
-      pivot_wider(names_from = sample_name, values_from = mh_frac) %>%
-      na.omit() %>%
+    test_wide <- modseq_dat |>
+      select(c(region_name, sample_name, mh_frac)) |>
+      pivot_wider(names_from = sample_name, values_from = mh_frac) |>
+      na.omit() |>
       as.data.frame()  # Convert to dataframe
   } else if (call_type == "windows") {
     # Aggregate mean_mh_frac by chr_pos and sample_name
-    test_wide <- modseq_dat %>%
-      mutate(window = paste(chrom, start, end, sep = "_")) %>%
-      pivot_wider(id_cols = window, names_from = sample_name, values_from = mh_frac) %>%
-      na.omit() %>%
+    test_wide <- modseq_dat |>
+      mutate(window = paste(chrom, start, end, sep = "_")) |>
+      pivot_wider(id_cols = window, names_from = sample_name, values_from = mh_frac) |>
+      na.omit() |>
       as.data.frame()  # Convert to dataframe
   } else {
     # Aggregate mean_mh_frac by chr_pos and sample_name
-    test_wide <- modseq_dat %>%
-      mutate(chr_pos = paste(chrom, start, end, sep = "_")) %>%
-      pivot_wider(id_cols = chr_pos, names_from = sample_name, values_from = mh_frac) %>%
-      na.omit() %>%
+    test_wide <- modseq_dat |>
+      mutate(chr_pos = paste(chrom, start, end, sep = "_")) |>
+      pivot_wider(id_cols = chr_pos, names_from = sample_name, values_from = mh_frac) |>
+      na.omit() |>
       as.data.frame()  # Convert to dataframe
   }
   

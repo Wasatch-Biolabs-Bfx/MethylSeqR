@@ -16,6 +16,7 @@
 #' 
 #' @importFrom DBI dbConnect dbListTables
 #' @importFrom duckdb duckdb
+#' @importFrom withr defer
 #'
 #' @keywords internal
 #' 
@@ -36,7 +37,7 @@
     
     #add in the connection
     database$con <- dbConnect(duckdb(database$db_file), read_only = FALSE)
-    defer(.ch3helper_closeDB(database$con), parent.frame())
+    defer(.ch3helper_closeDB(database), parent.frame())
     
     # return database object
     return(database)

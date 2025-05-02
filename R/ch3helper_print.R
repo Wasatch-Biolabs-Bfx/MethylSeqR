@@ -41,8 +41,11 @@ print.ch3_db <- function(ch3_db) {
   
   if (is.character(ch3_db$con) && ch3_db$con == "none") {
     cat("  NULL\n")
+  } else if (!dbIsValid(ch3_db$con))
+  {
+    cat("  NULL\n")
   } else
-    {
+  {
     cat("  Active DBI connection\n")
   }
 }

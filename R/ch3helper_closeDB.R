@@ -10,7 +10,7 @@
 #'
 #' @return None. This function is called for its side effects (updating the object and closing the connection).
 #'
-#' @importFrom DBI dbDisconnect dbListTables
+#' @importFrom DBI dbDisconnect dbListTables dbIsValid
 #'
 #' @keywords internal
 

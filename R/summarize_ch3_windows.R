@@ -89,7 +89,7 @@ summarize_ch3_windows <- function(ch3_db,
   # Calc windows in each frame
   offsets <- seq(1, window_size - 1, by = step_size)
   
-  cat("Building windows table...")
+  cat("Building windows table...\n")
   
   # Conduct analysis. 
   # Creates tiled windows and then loops to create sliding window
@@ -99,8 +99,6 @@ summarize_ch3_windows <- function(ch3_db,
 
   if (dbExistsTable(ch3_db$con, "temp_table"))
     dbRemoveTable(ch3_db$con, "temp_table")
-  # Close progress bar
-  pb$terminate()
   
   end_time <- Sys.time()
   message("Windows table successfully created! Time elapsed: ", end_time - start_time, "\n")

@@ -32,7 +32,8 @@
 #'                
 #' @importFrom DBI dbConnect dbDisconnect dbExistsTable dbRemoveTable dbExecute dbWriteTable
 #' @importFrom duckdb duckdb
-#' @importFrom dplyr tbl select any_of mutate case_when filter pull summarize inner_join rename_with collect arrange
+#' @importFrom dplyr select any_of mutate case_when filter pull summarize inner_join join_by rename_with collect arrange
+#' @importFrom dbplyr tbl
 #' @importFrom tidyr pivot_wider
 #' @importFrom stats fisher.test p.adjust dhyper phyper glm.fit pchisq
 #'
@@ -131,13 +132,6 @@ calc_ch3_diff <- function(ch3_db,
                    " table successfully created!\nTime elapsed: ", 
                    end_time - start_time, 
                    "\n"))
-    
-    # Print a preview of what table looks like
-    print(head(tbl(ch3_db$con, mod_diff_table)))
-    
-    ch3_db$current_table = mod_diff_table
-    ch3_db <- .ch3helper_cleanup(ch3_db)
-    invisible(ch3_db)
   }
   
   # if (call_type == "windows" && collapse_windows == TRUE) {
@@ -146,8 +140,11 @@ calc_ch3_diff <- function(ch3_db,
   #   message("collapsed_windows table successfully created!\n")
   # }
   
+  # Print a preview of what table looks like
   print(head(tbl(ch3_db$con, mod_diff_table)))
-
+  
+  ch3_db$current_table = mod_diff_table
+  ch3_db <- .ch3helper_cleanup(ch3_db)
   invisible(ch3_db)
 }
 
