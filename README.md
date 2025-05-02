@@ -36,7 +36,7 @@ If you would like to see key stats on your database at any time, including what 
 
 `run_ch3_qc()` can be called to visually assess any data. Running a QC can take a long time on large data, so set the argument `max_rows` to a reaosnable value (ex. 1000) to assess data faster. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment. Similarily, use `max_calls` if you are fine with a smaller, randomized set of data.
 
-###Example code
+### Example code
 ```{r, eval = FALSE}
 setwd("/home/directory/analysis")
 
