@@ -8,8 +8,6 @@
 }
 \arguments{
 \item{ch3_db}{An object containing information about the database, including the list of tables.}
-
-\item{db_con}{A database connection object. This should be a connection created by a database connection function.}
 }
 \value{
 None. This function is called for its side effects (updating the object and closing the connection).

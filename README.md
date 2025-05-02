@@ -6,7 +6,7 @@
 # MethylSeqR
 
 ## Version 0.8.0 
-**(Updated April 3 2025)**
+**(Updated May 2 2025)**
 
 ***Note***: *This is an early release - changes may occur that significantly change the functionality and structure of the data and functions. The user should be aware that subsequent releases may break code written using earlier releases.*
 
@@ -30,9 +30,37 @@ library(MethylSeqR)
 ## Paradigm 
 Begin with CH3 files created by Wasatch Biolabs and build a database using the `make_ch3_db()`. This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
 
-After a database is created, a user can summarize their data by position (`summarize_positions()`), by regions (`summarize_regions()`) or windows (`summarize_windows()`). A differential methylation analysis can be conducted on positional, regional, or window data using `calc_mod_diff()`. If you would like to see key stats on your database, including what unique sample names are in the data for a differential analysis, call `get_db_stats()`.
+After a database is created, a user can summarize their data by position (`summarize_ch3_positions()`), by regions (`summarize_ch3_regions()`), by windows (`summarize_ch3_windows()`), or by reads ((`summarize_ch3_reads()`). A differential methylation analysis can be conducted on positional, regional, or window data using `calc_ch3_diff()`. After calculating methylation differences between windows, use `colllapse_ch3_windows()` to collapse significant windows in a methylation dataset. This merges contiguous regions that meet the specified criteria.
 
-`run_qc()` can be called to visually assess any data. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment.
+If you would like to see key stats on your database at any time, including what unique sample names are in the data for a differential analysis, call `get_ch3_dbinfo()`.
+
+`run_ch3_qc()` can be called to visually assess any data. Running a QC can take a long time on large data, so set the argument `max_rows` to a reaosnable value (ex. 1000) to assess data faster. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment. Similarily, use `max_calls` if you are fine with a smaller, randomized set of data.
+
+###Example code
+```{r, eval = FALSE}
+setwd("/home/directory/analysis")
+
+# Build database and run analysis
+ch3_db <- make_ch3_db(
+  ch3_files = "/ch3_files_directory", 
+             db_name = "my_data") |>
+  summarize_ch3_windows() |>
+  calc_ch3_diff(call_type = "windows",
+              cases =
+                c("sperm"),
+              controls =
+                c("blood")) |>
+  collapse_ch3_windows() 
+
+# Check to see what's in your database
+get_ch3_dbinfo(ch3_db)
+
+# Export differentially methylated data to your computer
+export_ch3_table(ch3_db, "collapsed_windows", "/results_directory")
+
+#DONE! Data has been analyzed and exported!
+
+```
 
 ***Warning*** *- If using samples other than human or with unique chromosome names, remember to adjust the chrs argument in each function!*
 
