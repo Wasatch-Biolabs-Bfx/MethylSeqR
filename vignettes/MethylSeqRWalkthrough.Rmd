@@ -213,6 +213,29 @@ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 collapse_ch3_windows("my_data.ch3.db")
 ``` 
 
+## run_ch3_analysis
+This function automates an entire workflow in one command. It identifies differences in DNA methylation patterns between two groups (cases and controls) by summarizing methylation data at various genomic scales (positions, regions, or windows) and then performing statistical tests, outputting the results into organized CSV files within one directory.
+
+`run_ch3_analysis()` creates a new subdirectory named "Mod_Diff_Analysis_Results" within the out_path where all the data will be written to. It writes three CSV files into the "Mod_Diff_Analysis_Results" directory by directly copying tables from the DuckDB database:
+
+**mod_diff.csv**: Contains the results of the differential analysis (e.g., p-values, fold changes) for each position, region, or window. The source table in the database is determined by diff_table_name.
+
+**All_CpGs.csv**: Contains all the summarized methylation data for the chosen call_type (positions, regions, or windows) across all samples. The source table in the database is determined by call_type.
+
+**Sig_CpGs.csv**: Contains summarized methylation data for only those positions/regions/windows that are deemed significantly differentially methylated, based on the p_val_max threshold.
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+  
+# Collapse significant windows
+run_ch3_analysis(ch3_db, 
+             out_path = "/Users/analysis",
+             call_type = "windows",
+             cases = c("sperm"),
+             controls = c("blood"))
+``` 
+
 # Quality Control 
 
 A variety of quality control functions are available to visually assess 
