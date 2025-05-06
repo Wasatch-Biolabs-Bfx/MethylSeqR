@@ -186,7 +186,6 @@ run_ch3_analysis <- function(ch3_db,
   
   # Calculate the elapsed time
   elapsed_time <- end_time - start_time
-  
   # Print out the elapsed time
   cat("Time elapsed:", elapsed_time, "\n")
   
