@@ -118,6 +118,9 @@ run_ch3_analysis <- function(ch3_db,
   # Write out the mod_diff table from analysis
   mod_diff_path <- file.path(new_dir, "mod_diff.csv")
   # Write the data frame to a CSV file DIRECTLY from the database
+  # Connect to the database
+  ch3_db <- .ch3helper_connectDB(ch3_db)
+
   dbExecute(
     ch3_db$con,
     glue("COPY {diff_table_name} TO '{mod_diff_path}' (HEADER, DELIMITER ',')")
@@ -126,31 +129,13 @@ run_ch3_analysis <- function(ch3_db,
   # Write out all methylation data form all samples
   cat("\nWriting out all CpG data...\n")
   
-  # Connect to the database
-  ch3_db <- .ch3helper_connectDB(ch3_db)
-  
   all_CGs_path <- file.path(new_dir, "All_CpGs.csv")
-  sql <- glue("
-    COPY (
-      SELECT chrom, start, end,
-             *
-      FROM (
-        SELECT chrom, start, end,
-               sample_name || '.' || frac_type AS sample_frac,
-               value
-        FROM (
-          SELECT chrom, start, end, sample_name,
-                 UNPIVOT(value FOR frac_type IN (mh_frac, h_frac))
-          FROM {call_type}
-        )
-      )
-      PIVOT(SUM(value) FOR sample_frac IN (
-        SELECT DISTINCT sample_name || '.' || frac_type FROM {call_type}
-      ))
-    ) TO '{all_CGs_path}' (HEADER, DELIMITER ',')
-    ")
   
-  DBI::dbExecute(ch3_db$con, sql)
+  dbExecute(
+    ch3_db$con,
+    glue("COPY {call_type} TO '{all_CGs_path}' (HEADER, DELIMITER ',')")
+  )
+  
   # data = get_table(ch3_db, call_type)
   # 
   # cat("\nWriting out all CpG data...\n")
@@ -174,33 +159,15 @@ run_ch3_analysis <- function(ch3_db,
   
   sql <- glue("
     COPY (
-      SELECT wide.*
-      FROM (
-        SELECT chrom, start, end,
-               *
-        FROM (
-          SELECT chrom, start, end,
-                 sample_name || '.' || frac_type AS sample_frac,
-                 value
-          FROM (
-            SELECT chrom, start, end, sample_name,
-                   UNPIVOT(value FOR frac_type IN (mh_frac, h_frac))
-            FROM {call_type}
-          )
-        )
-        PIVOT(SUM(value) FOR sample_frac IN (
-          SELECT DISTINCT sample_name || '.' || frac_type
-          FROM {call_type}
-        ))
-      ) AS wide
-      SEMI JOIN (
-        SELECT chrom, start, end
-        FROM mod_diff
-        WHERE p_val <= {p_val_max}
-      ) sig
-      ON wide.chrom = sig.chrom AND wide.start = sig.start AND wide.end = sig.end
+      SELECT call.*
+      FROM {`call_type`} AS call
+      JOIN {`diff_table_name`} AS diff
+      ON call.chrom = diff.chrom
+         AND call.start = diff.start
+         AND call.\"end\" = diff.\"end\"
+      WHERE diff.p_val <= {p_val_max}
     ) TO '{Sig_CGs_path}' (HEADER, DELIMITER ',')
-    ")
+  ")
   
   dbExecute(ch3_db$con, sql)
   # sig = mod_diff |>
