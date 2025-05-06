@@ -55,10 +55,10 @@ get_ch3_dbinfo <- function(ch3_db)
   
   # Unique Sample Names (if "calls" table exists)
   if ("calls" %in% tables) {
-    sample_names <- tbl(ch3_db$con, "calls") %>%
-      distinct(sample_name) %>%
-      arrange(sample_name) %>%
-      collect() %>%
+    sample_names <- tbl(ch3_db$con, "calls") |>
+      distinct(sample_name) |>
+      arrange(sample_name) |>
+      collect() |>
       pull(sample_name)
     
     cat("\nUnique Sample Names:\n")
