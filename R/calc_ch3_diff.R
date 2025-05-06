@@ -32,8 +32,7 @@
 #'                
 #' @importFrom DBI dbConnect dbDisconnect dbExistsTable dbRemoveTable dbExecute dbWriteTable
 #' @importFrom duckdb duckdb
-#' @importFrom dplyr select any_of mutate case_when filter pull summarize inner_join join_by rename_with collect arrange
-#' @importFrom dbplyr tbl
+#' @importFrom dplyr tbl select any_of mutate case_when filter pull summarize inner_join join_by rename_with collect arrange
 #' @importFrom tidyr pivot_wider
 #' @importFrom stats fisher.test p.adjust dhyper phyper glm.fit pchisq
 #'
