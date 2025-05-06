@@ -127,6 +127,8 @@ classify_ch3_reads <- function(ch3_db,
   cat("\n")
   message("classified_reads table successfully created!")
   ch3_db$current_table = "classified_reads"
+  
+  # print out table header for user
   print(head(tbl(ch3_db$con, "classified_reads")))
   
   ch3_db <- .ch3helper_cleanup(ch3_db)
