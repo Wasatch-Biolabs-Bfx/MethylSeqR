@@ -79,20 +79,23 @@ run_ch3_analysis <- function(ch3_db,
   
   # First, summarize by call type requested
   if (call_type == "positions") { 
-    summarize_positions(ch3_db)
+    summarize_ch3_positions(ch3_db)
+    diff_table_name = "mod_diff_positions"
   } else if (call_type == "regions") {
     if (is.null(region_file)) { # check to make sure user included an annotation file
       stop(paste("Error: region annotation file missing.\n
                  Please include path to annotation file in the region_file argument of this function.\n"))
     }
-    summarize_regions(ch3_db, region_file)
+    summarize_ch3_regions(ch3_db, region_file)
+    diff_table_name = "mod_diff_regions"
   } else if (call_type == "windows") {
-    summarize_windows(ch3_db, window_size, step_size)
+    summarize_ch3_windows(ch3_db, window_size, step_size)
+    diff_table_name = "mod_diff_windows"
   }
   
   # Second, run differential modification analysis...
   cat("\nBeginning Differential Analysis...\n")
-  calc_mod_diff(ch3_db,
+  calc_ch3_diff(ch3_db,
                 call_type,
                 cases,
                 controls,
@@ -114,51 +117,115 @@ run_ch3_analysis <- function(ch3_db,
   
   # Write out the mod_diff table from analysis
   mod_diff_path <- file.path(new_dir, "mod_diff.csv")
-  # Write the data frame to a CSV file
-  mod_diff = get_table(ch3_db, "mod_diff")
-  write.csv(mod_diff, mod_diff_path, row.names = FALSE)
+  # Write the data frame to a CSV file DIRECTLY from the database
+  dbExecute(
+    ch3_db$con,
+    glue("COPY {diff_table_name} TO '{mod_diff_path}' (HEADER, DELIMITER ',')")
+  )
   
   # Write out all methylation data form all samples
-  all_CGs_path <- file.path(new_dir, "All_CpGs.csv")
-  data = get_table(ch3_db, call_type)
-  
   cat("\nWriting out all CpG data...\n")
-  df_wide <- data |>
-    select(sample_name, chrom, start, end, matches("_frac")) |>
-    pivot_longer(cols = matches("_frac"),  # pivot both mh_frac and h_frac
-                 names_to = "frac_type",     # create a new column 'frac_type'
-                 values_to = "value") |>    # pivot values into 'value' column
-    unite("sample_frac", sample_name, frac_type, sep = ".") |>  # combine sample and frac_type
-    pivot_wider(names_from = sample_frac, values_from = value) |> # spread the new 'sample_frac' into columns
-    select(chrom, start, end, everything()) |>  # Ensure chrom, start, end come first
-    select(chrom, start, end, sort(names(.)[4:length(.)]))  # Sort the sample columns in alphabetical order
   
-  write.csv(df_wide, all_CGs_path, row.names = FALSE)
+  # Connect to the database
+  ch3_db <- .ch3helper_connectDB(ch3_db)
+  
+  all_CGs_path <- file.path(new_dir, "All_CpGs.csv")
+  sql <- glue("
+    COPY (
+      SELECT chrom, start, end,
+             *
+      FROM (
+        SELECT chrom, start, end,
+               sample_name || '.' || frac_type AS sample_frac,
+               value
+        FROM (
+          SELECT chrom, start, end, sample_name,
+                 UNPIVOT(value FOR frac_type IN (mh_frac, h_frac))
+          FROM {call_type}
+        )
+      )
+      PIVOT(SUM(value) FOR sample_frac IN (
+        SELECT DISTINCT sample_name || '.' || frac_type FROM {call_type}
+      ))
+    ) TO '{all_CGs_path}' (HEADER, DELIMITER ',')
+    ")
+  
+  DBI::dbExecute(ch3_db$con, sql)
+  # data = get_table(ch3_db, call_type)
+  # 
+  # cat("\nWriting out all CpG data...\n")
+  # df_wide <- data |>
+  #   select(sample_name, chrom, start, end, matches("_frac")) |>
+  #   pivot_longer(cols = matches("_frac"),  # pivot both mh_frac and h_frac
+  #                names_to = "frac_type",     # create a new column 'frac_type'
+  #                values_to = "value") |>    # pivot values into 'value' column
+  #   unite("sample_frac", sample_name, frac_type, sep = ".") |>  # combine sample and frac_type
+  #   pivot_wider(names_from = sample_frac, values_from = value) |> # spread the new 'sample_frac' into columns
+  #   select(chrom, start, end, everything()) |>  # Ensure chrom, start, end come first
+  #   select(chrom, start, end, sort(names(.)[4:length(.)]))  # Sort the sample columns in alphabetical order
+  # 
+  # write.csv(df_wide, all_CGs_path, row.names = FALSE)
   
   # Write out only the significant regions of interests methylation data...
   cat("\nWriting out significant CpG data based on differential analysis...\n")
   cat(paste0("p-value threshold: ", p_val_max, "\n"))
+  
   Sig_CGs_path <- file.path(new_dir, "Sig_CpGs.csv")
   
-  sig = mod_diff |>
-    filter(p_val <= p_val_max) |>
-    select("chrom", "start", "end")
+  sql <- glue("
+    COPY (
+      SELECT wide.*
+      FROM (
+        SELECT chrom, start, end,
+               *
+        FROM (
+          SELECT chrom, start, end,
+                 sample_name || '.' || frac_type AS sample_frac,
+                 value
+          FROM (
+            SELECT chrom, start, end, sample_name,
+                   UNPIVOT(value FOR frac_type IN (mh_frac, h_frac))
+            FROM {call_type}
+          )
+        )
+        PIVOT(SUM(value) FOR sample_frac IN (
+          SELECT DISTINCT sample_name || '.' || frac_type
+          FROM {call_type}
+        ))
+      ) AS wide
+      SEMI JOIN (
+        SELECT chrom, start, end
+        FROM mod_diff
+        WHERE p_val <= {p_val_max}
+      ) sig
+      ON wide.chrom = sig.chrom AND wide.start = sig.start AND wide.end = sig.end
+    ) TO '{Sig_CGs_path}' (HEADER, DELIMITER ',')
+    ")
   
-  # Now, filter the data to only keep rows that match chrom, start, end in sig
-  df_wide_significant <- df_wide |>
-    semi_join(sig, by = c("chrom", "start", "end"))
-  
-  write.csv(df_wide_significant, Sig_CGs_path, row.names = FALSE)
+  dbExecute(ch3_db$con, sql)
+  # sig = mod_diff |>
+  #   filter(p_val <= p_val_max) |>
+  #   select("chrom", "start", "end")
+  # 
+  # # Now, filter the data to only keep rows that match chrom, start, end in sig
+  # df_wide_significant <- df_wide |>
+  #   semi_join(sig, by = c("chrom", "start", "end"))
+  # 
+  # write.csv(df_wide_significant, Sig_CGs_path, row.names = FALSE)
   
   cat("\nRun Analysis Complete!\n")
   
   # Record the end time
   end_time <- Sys.time()
   
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  
   # Calculate the elapsed time
   elapsed_time <- end_time - start_time
   
   # Print out the elapsed time
   cat("Time elapsed:", elapsed_time, "\n")
+  
+  invisible(ch3_db)
   
 }
