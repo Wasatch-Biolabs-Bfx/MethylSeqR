@@ -71,7 +71,6 @@ run_ch3_analysis <- function(ch3_db,
   }
   
   cat("\nRunning Analyses...\n")
-  
   # Record the start time
   start_time <- Sys.time()
   
