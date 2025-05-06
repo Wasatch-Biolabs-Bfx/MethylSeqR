@@ -36,6 +36,8 @@ If you would like to see key stats on your database at any time, including what 
 
 `run_ch3_qc()` can be called to visually assess any data. Running a QC can take a long time on large data, so set the argument `max_rows` to a reaosnable value (ex. 1000) to assess data faster. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment. Similarily, use `max_calls` if you are fine with a smaller, randomized set of data.
 
+If you would like to run everything in one command, call `run_ch3_analysis()`.
+
 ### Example code
 You can pipe your functions together, or feel free to call each function one line at a time. Below are two examples of this.
 ```{r, eval = FALSE}
@@ -58,6 +60,13 @@ ch3_db <- make_ch3_db(ch3_files = "/ch3_files_directory", db_name = "my_data")
 summarize_ch3_windows(ch3_db)
 calc_ch3_diff(ch3_db, call_type = "windows", cases = c("sperm"), controls = c("blood"))
 collapse_ch3_windows(ch3_db) 
+
+# Run entire differential methylation analysis in one function
+run_ch3_analysis(ch3_db, 
+             out_path = "/analysis",
+             call_type = "windows",
+             cases = c("sperm"),
+             controls = c("blood"))
 
 # Check to see what's in your database at any time
 get_ch3_dbinfo(ch3_db)
