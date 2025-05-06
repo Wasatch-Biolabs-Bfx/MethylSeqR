@@ -190,5 +190,4 @@ run_ch3_analysis <- function(ch3_db,
   cat("Time elapsed:", elapsed_time, "\n")
   
   invisible(ch3_db)
-  
 }
