@@ -1,7 +1,7 @@
 Package: MethylSeqR
 Type: Package
 Title: Process and Analyze Nanopore Sequencing Methylation Data
-Version: 0.8.0
+Version: 0.8.1
 Authors@R: 
     c(
       person(given = "Jonathon", family = "Hill", role = c("aut", "cre"), email = "jonathon@wasatchbiolabs.com"),
