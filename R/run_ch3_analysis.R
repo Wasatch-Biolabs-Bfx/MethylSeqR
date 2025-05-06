@@ -154,7 +154,16 @@ run_ch3_analysis <- function(ch3_db,
   
   Sig_CGs_path <- file.path(new_dir, "Sig_CpGs.csv")
   
-  sql <- glue("
+  # automatically collapse if windows is selected
+  if (call_type == "windows") {
+    collapse_ch3_windows(ch3_db)
+    
+    dbExecute(
+      ch3_db$con,
+      glue("COPY collapsed_windows TO '{Sig_CGs_path}' (HEADER, DELIMITER ',')")
+    )
+  } else{
+    sql <- glue("
     COPY (
       SELECT call.*
       FROM {`call_type`} AS call
@@ -165,8 +174,10 @@ run_ch3_analysis <- function(ch3_db,
       WHERE diff.p_val <= {p_val_max}
     ) TO '{Sig_CGs_path}' (HEADER, DELIMITER ',')
   ")
-  
-  dbExecute(ch3_db$con, sql)
+    
+    dbExecute(ch3_db$con, sql)
+  }
+
   # sig = mod_diff |>
   #   filter(p_val <= p_val_max) |>
   #   select("chrom", "start", "end")
