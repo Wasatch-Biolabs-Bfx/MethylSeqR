@@ -131,46 +131,73 @@ summarize_ch3_reads <- function(ch3_db,
   dbWriteTable(db_con, "temp_annotation", annotation, temporary = TRUE)
 
   # Create the filtered_calls table
-  dbExecute(db_con, "DROP TABLE IF EXISTS filtered_calls;")
+  # dbExecute(db_con, "DROP TABLE IF EXISTS filtered_calls;")
 
-  dbExecute(db_con, "
-    CREATE TABLE filtered_calls AS
-    SELECT calls.*
-    FROM calls
-    JOIN temp_annotation
-    ON calls.chrom = temp_annotation.chrom
-    AND calls.start >= temp_annotation.start
-    AND calls.end <= temp_annotation.end;
-")
+#   dbExecute(db_con, "
+#     CREATE TABLE filtered_calls AS
+#     SELECT calls.*
+#     FROM calls
+#     JOIN temp_annotation
+#     ON calls.chrom = temp_annotation.chrom
+#     AND calls.start >= temp_annotation.start
+#     AND calls.end <= temp_annotation.end;
+# ")
 
   # Summarize reads using the filtered calls table
   # Included: filter total_calls by the min_CGs parameter wanted!
-  dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
+  # dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
   dbExecute(db_con, "DROP TABLE IF EXISTS reads;")
 
-  query <- glue("
-    CREATE TABLE reads AS
-    SELECT
-        ANY_VALUE(sample_name) AS sample_name,
-        read_id,
-        ANY_VALUE(chrom) AS chrom,
-        COUNT(*) AS total_calls,
-        MIN(start) AS first_cpg_pos,
-        MAX(\"end\") AS last_cpg_pos,
-        ANY_VALUE(read_length) AS read_length,
-        SUM(CASE WHEN call_code = '-' THEN 1 ELSE 0 END) AS c_counts,
-        SUM(CASE WHEN call_code = 'm' THEN 1 ELSE 0 END) AS m_counts,
-        SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) AS h_counts,
-        SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) AS mh_counts,
-        SUM(CASE WHEN call_code = 'm' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS m_frac,
-        SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS h_frac,
-        SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS mh_frac
-    FROM filtered_calls
-    GROUP BY read_id
-    HAVING total_calls >= {min_CGs};
-")
+#   query <- glue("
+#     CREATE TABLE reads AS
+#     SELECT
+#         ANY_VALUE(sample_name) AS sample_name,
+#         read_id,
+#         ANY_VALUE(chrom) AS chrom,
+#         COUNT(*) AS total_calls,
+#         MIN(start) AS first_cpg_pos,
+#         MAX(\"end\") AS last_cpg_pos,
+#         ANY_VALUE(read_length) AS read_length,
+#         SUM(CASE WHEN call_code = '-' THEN 1 ELSE 0 END) AS c_counts,
+#         SUM(CASE WHEN call_code = 'm' THEN 1 ELSE 0 END) AS m_counts,
+#         SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) AS h_counts,
+#         SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) AS mh_counts,
+#         SUM(CASE WHEN call_code = 'm' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS m_frac,
+#         SUM(CASE WHEN call_code = 'h' THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS h_frac,
+#         SUM(CASE WHEN call_code IN ('m', 'h') THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS mh_frac
+#     FROM filtered_calls
+#     GROUP BY read_id
+#     HAVING total_calls >= {min_CGs};
+# ")
 
+  query <- glue("
+  CREATE TABLE reads AS
+  SELECT
+    ANY_VALUE(c.sample_name) AS sample_name,
+    c.read_id,
+    ANY_VALUE(c.chrom) AS chrom,
+    COUNT(*) AS total_calls,
+    MIN(c.start) AS first_cpg_pos,
+    MAX(c.end) AS last_cpg_pos,
+    ANY_VALUE(c.read_length) AS read_length,
+    SUM(CASE WHEN c.call_code = '-' THEN 1 ELSE 0 END) AS c_counts,
+    SUM(CASE WHEN c.call_code = 'm' THEN 1 ELSE 0 END) AS m_counts,
+    SUM(CASE WHEN c.call_code = 'h' THEN 1 ELSE 0 END) AS h_counts,
+    SUM(CASE WHEN c.call_code IN ('m', 'h') THEN 1 ELSE 0 END) AS mh_counts,
+    SUM(CASE WHEN c.call_code = 'm' THEN 1.0 ELSE 0 END) / COUNT(*) AS m_frac,
+    SUM(CASE WHEN c.call_code = 'h' THEN 1.0 ELSE 0 END) / COUNT(*) AS h_frac,
+    SUM(CASE WHEN c.call_code IN ('m', 'h') THEN 1.0 ELSE 0 END) / COUNT(*) AS mh_frac
+  FROM calls c
+  JOIN temp_annotation a
+    ON c.chrom = a.chrom
+    AND c.start >= a.start
+    AND c.end <= a.end
+  GROUP BY c.read_id
+  HAVING total_calls >= {min_CGs};
+")
+  
   dbExecute(db_con, query)
+  dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
   dbExecute(db_con, "DROP TABLE IF EXISTS filtered_calls;")
 }
 
