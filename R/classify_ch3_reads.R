@@ -57,7 +57,7 @@ classify_ch3_reads <- function(ch3_db,
                            control,
                            meth_diff_threshold = 0.1) {
   
-  ch3_db <- .helper_connectDB(ch3_db)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Check if "mod_diff" table exists
   if (!DBI::dbExistsTable(ch3_db$con, "reads")) {
