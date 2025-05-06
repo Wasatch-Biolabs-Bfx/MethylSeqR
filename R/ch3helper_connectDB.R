@@ -47,7 +47,6 @@
     defer(.ch3helper_closeDB(ch3_db), parent.frame())
     
     return(ch3_db)
-    
   } else {
     stop("Invalid ch3_db class. Must be character or ch3_db.")
   }
