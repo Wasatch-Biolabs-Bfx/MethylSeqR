@@ -50,6 +50,7 @@ calc_ch3_samplecor <- function(ch3_db,
                        plot_title = "Sample Correlation Matrix",
                        max_rows = NULL)
 {
+  start_time <- Sys.time()
   # Open the database connection
   ch3_db <- .ch3helper_connectDB(ch3_db)
   
@@ -192,6 +193,9 @@ calc_ch3_samplecor <- function(ch3_db,
                                        hjust = 1))
     print(p)
     
+    end_time <- Sys.time()
+    message("Correlation analysis complete - Time elapsed: ", end_time - start_time, "\n")
+    # Print a preview of what table looks like
     # Save the plot if save_path is specified
     if (!is.null(save_path)) {
       ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)

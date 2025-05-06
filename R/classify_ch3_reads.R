@@ -57,6 +57,7 @@ classify_ch3_reads <- function(ch3_db,
                            control,
                            meth_diff_threshold = 0.1) {
   
+  start_time <- Sys.time()
   ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Check if "mod_diff" table exists
@@ -125,7 +126,9 @@ classify_ch3_reads <- function(ch3_db,
   dbExecute(ch3_db$con, "DROP TABLE IF EXISTS temp_key_table;")
   
   cat("\n")
-  message("classified_reads table successfully created!")
+  end_time <- Sys.time()
+  
+  message("classified_reads table successfully created! Time elapsed: ", end_time - start_time, "\n")
   ch3_db$current_table = "classified_reads"
   
   # print out table header for user

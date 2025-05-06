@@ -36,7 +36,9 @@
 plot_ch3_pca <- function(ch3_db, 
                        call_type = "positions",
                        save_path = NULL,
-                       max_rows = NULL) {
+                       max_rows = NULL) 
+{
+  start_time <- Sys.time()
   # Open the database connection
   ch3_db <- .ch3helper_connectDB(ch3_db)
 
@@ -120,6 +122,8 @@ plot_ch3_pca <- function(ch3_db,
     cat("PCA plot saved to ", save_path, "\n")
   }
   
+  end_time <- Sys.time()
+  message("Time elapsed: ", end_time - start_time, "\n")
   ch3_db <- .ch3helper_closeDB(ch3_db)
   invisible(ch3_db)
 }

@@ -52,9 +52,9 @@ run_ch3_dplyr <- function(
   
   start_time <- Sys.time()
   # Connect to the database
-  database <- .ch3helper_connectDB(ch3_db)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
-  tbl_ref <- tbl(con, table_name)
+  tbl_ref <- tbl(ch3_db$con, table_name)
   
   result <- force(expr(tbl_ref))
   
@@ -73,7 +73,7 @@ run_ch3_dplyr <- function(
     }
     
     # Drop existing table
-    dbExecute(database$con, paste0("DROP TABLE IF EXISTS ", output_table))
+    dbExecute(ch3_db$con, paste0("DROP TABLE IF EXISTS ", output_table))
     
     # Compute into a new table
     computed <- compute(result, name = output_table, temporary = FALSE)
@@ -112,9 +112,9 @@ run_ch3_sql <- function(ch3_db,
 {
   start_time <- Sys.time()
   # Connect to the database
-  database <- .ch3helper_connectDB(ch3_db)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
-  dbExecute(database$con, query)
+  dbExecute(ch3_db$con, query)
   
   end_time <- Sys.time()
   message("Query Finished. Time elapsed: ", end_time - start_time, "\n")

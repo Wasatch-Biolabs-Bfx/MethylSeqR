@@ -53,6 +53,7 @@ make_ch3_db <- function(ch3_files,
                         flag = NULL,
                         chr_prefix = TRUE)
 {
+  start_time <- Sys.time()
   # Check if folder/files exist and create string for query
   if (any(!file.exists(ch3_files))) {
     stop("One or more file/folder names do not exist.")
@@ -141,7 +142,9 @@ make_ch3_db <- function(ch3_files,
     dbExecute(ch3_db$con, "ALTER TABLE calls RENAME COLUMN chrom_fixed TO chrom")
   }
   
-  message("Database successfully created at ", ch3_db$db_file, "\n")
+  end_time <- Sys.time()
+  
+  message("Database successfully created at ", ch3_db$db_file, "\nTime elapsed: ", end_time - start_time, "\n")
   
   ch3_db <- .ch3helper_closeDB(ch3_db)
   invisible(ch3_db)
