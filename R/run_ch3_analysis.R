@@ -70,8 +70,6 @@ run_ch3_analysis <- function(ch3_db,
     stop("Error: The 'controls' argument is required and cannot be NULL. Please specify which samples are to be controls for differential analysis.")
   }
   
-  # get_db_stats(ch3_db)
-  
   cat("\nRunning Analyses...\n")
   
   # Record the start time
