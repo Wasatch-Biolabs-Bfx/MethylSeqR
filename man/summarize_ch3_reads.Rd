@@ -4,10 +4,17 @@
 \alias{summarize_ch3_reads}
 \title{Summarize Reads in a Database}
 \usage{
-summarize_ch3_reads(ch3_db, key_table = NULL, min_CGs = 5)
+summarize_ch3_reads(
+  ch3_db,
+  table_name = "reads",
+  key_table = NULL,
+  min_CGs = 5
+)
 }
 \arguments{
 \item{ch3_db}{A character string specifying the path to the DuckDB database.}
+
+\item{table_name}{A string specifying what the user would like the name to be called in the database. Default is "reads".}
 
 \item{key_table}{(Optional) A character string specifying the path to a key table (CSV, TSV, or BED) used for filtering reads. If NULL, no filtering is applied.}
 

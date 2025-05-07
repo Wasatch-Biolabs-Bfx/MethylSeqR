@@ -7,6 +7,7 @@
 #' interacts with the database to generate a `reads` table.
 #'
 #' @param ch3_db A character string specifying the path to the DuckDB database.
+#' @param table_name A string specifying what the user would like the name to be called in the database. Default is "reads".
 #' @param key_table (Optional) A character string specifying the path to a key table (CSV, TSV, or BED) used for filtering reads. If NULL, no filtering is applied.
 #' @param min_CGs An integer specifying the minimum number of CG sites required for a read to be included in the summary.
 #'
@@ -32,8 +33,9 @@
 #' @export
 
 summarize_ch3_reads <- function(ch3_db,
-                            key_table = NULL,
-                            min_CGs = 5) 
+                                table_name = "reads",
+                                key_table = NULL,
+                                min_CGs = 5) 
 {
   start_time <- Sys.time()
   
@@ -44,35 +46,40 @@ summarize_ch3_reads <- function(ch3_db,
   
   cat("Building reads table...")
   
+  if (dbExistsTable(ch3_db$con, table_name))
+    dbRemoveTable(ch3_db$con, table_name)
+  
   # If a key_table is provided, filter reads, THEN summarize.
   if (!is.null(key_table)) {
-    .filter_then_sum_reads(ch3_db$con, 
+    .filter_then_sum_reads(ch3_db$con,
+                           table_name,
                            key_table, 
                            min_CGs)
   } else {
     # If no key table, then just regularly summarize the reads.
     .sum_reads(ch3_db$con, 
+               table_name,
                min_CGs)
   }
   
   cat("\n")
   end_time <- Sys.time()
-  message("Reads table successfully created! Time elapsed: ", end_time - start_time, "\n")
-  print(head(tbl(ch3_db$con, "reads")))
+  message("Reads table successfully created as ", table_name, " in database!\n", 
+          "Time elapsed: ", end_time - start_time, "\n")
+  print(head(tbl(ch3_db$con, table_name)))
   
-  ch3_db$current_table = "reads"
+  ch3_db$current_table = table_name
   ch3_db <- .ch3helper_cleanup(ch3_db)
   invisible(ch3_db)
 }
 
 
-.sum_reads <- function(db_con, min_CGs) {
+.sum_reads <- function(db_con, table_name, min_CGs) {
   # Summarize reads using the filtered calls table
   # Included: filter total_calls by the min_CGs parameter wanted!
-  dbExecute(db_con, "DROP TABLE IF EXISTS reads;")
   
   query <- glue("
-    CREATE TABLE reads AS 
+    CREATE TABLE {table_name} AS 
     SELECT
         ANY_VALUE(sample_name) AS sample_name,
         read_id,
@@ -98,7 +105,7 @@ summarize_ch3_reads <- function(ch3_db,
 }
 
 
-.filter_then_sum_reads <- function(db_con, key_table, min_CGs) {
+.filter_then_sum_reads <- function(db_con, table_name, key_table, min_CGs) {
   # Read in key_table, determine the file type (csv, tsv, or bed)
   file_ext <- tools::file_ext(key_table)
   if (file_ext == "csv") {
@@ -146,7 +153,6 @@ summarize_ch3_reads <- function(ch3_db,
   # Summarize reads using the filtered calls table
   # Included: filter total_calls by the min_CGs parameter wanted!
   # dbExecute(db_con, "DROP TABLE IF EXISTS temp_annotation;")
-  dbExecute(db_con, "DROP TABLE IF EXISTS reads;")
 
 #   query <- glue("
 #     CREATE TABLE reads AS
@@ -171,7 +177,7 @@ summarize_ch3_reads <- function(ch3_db,
 # ")
 
   query <- glue("
-  CREATE TABLE reads AS
+  CREATE TABLE {table_name} AS
   SELECT
     ANY_VALUE(c.sample_name) AS sample_name,
     c.read_id,
