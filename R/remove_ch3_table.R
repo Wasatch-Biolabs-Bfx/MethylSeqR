@@ -3,11 +3,10 @@
 #' This function checks if a table exists and, if so, removes it.
 #' It provides messages about the outcome.
 #'
-#' @param con A DBIConnection object to the database.
+#' @param ch3_db A database object.
 #' @param table_name A string specifying the name of the table to remove.
 #'
-#' @return Invisibly returns TRUE if the table was removed or didn't exist,
-#'         and FALSE if an error occurred during an attempted removal.
+#' @return Invisibly returns the database with the removed table.
 #'
 #' @importFrom DBI dbExistsTable dbRemoveTable
 #' @importFrom glue glue

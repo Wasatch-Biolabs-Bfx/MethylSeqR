@@ -5,6 +5,7 @@
 #' of window size and step size to control the granularity of the summarization.
 #'
 #' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
+#' @param table_name A string specifying what the user would like the name to be called in the database. Default is "windows".
 #' @param call_type A string indicating the type of data to summarize. Default is "positions".
 #' @param window_size An integer specifying the size of the sliding window in base pairs. Default is 1000.
 #' @param step_size An integer specifying the number of base pairs to step forward with each window. Default is 10.
