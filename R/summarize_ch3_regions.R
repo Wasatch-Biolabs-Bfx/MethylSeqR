@@ -5,6 +5,7 @@
 #' the regions specified in the annotation file, allowing for different types of joins.
 #'
 #' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
+#' @param table_name A string specifying what the user would like the name to be called in the database. Default is "regions".
 #' @param region_file A string representing the path to the BED or CSV file that contains the region annotations.
 #' @param mod_type A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
 #' `"m"` (methylation), `"h"` (hydroxymethylation), 
@@ -39,6 +40,7 @@
 #'
 #' @export
 summarize_ch3_regions <- function(ch3_db,
+                              table_name = "regions",
                               region_file,
                               mod_type = c("c", "m", "h", "mh"),
                               chrs = c(as.character(1:22), 
@@ -94,7 +96,9 @@ summarize_ch3_regions <- function(ch3_db,
   # inner join- regions in both annotation and data frame...
   
   # Drop the regions table if it already exists
-  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS regions;")
+  if (dbExistsTable(ch3_db$con, table_name))
+    dbRemoveTable(ch3_db$con, table_name)
+  
   dbExecute(ch3_db$con, "VACUUM;")  # <-- Add this to free space immediately
   
   cat("Building regions table...")
@@ -168,7 +172,7 @@ summarize_ch3_regions <- function(ch3_db,
   
   # Create the final query with dynamic columns
   query <- paste0("
-  CREATE TABLE regions AS
+  CREATE TABLE ", table_name," AS
   SELECT 
     p.sample_name, 
     a.region_name,
@@ -194,10 +198,12 @@ summarize_ch3_regions <- function(ch3_db,
   
   cat("\n")
   end_time <- Sys.time()
-  message("Regions table successfully created! Time elapsed: ", end_time - start_time, "\n")
-  print(head(tbl(ch3_db$con, "regions")))
+  message("Windows table successfully created as ", table_name, " in database!\n", 
+          "Time elapsed: ", end_time - start_time, "\n")
   
-  ch3_db$current_table = "regions"
+  print(head(tbl(ch3_db$con, table_name)))
+  
+  ch3_db$current_table = table_name
   ch3_db <- .ch3helper_cleanup(ch3_db)
   invisible(ch3_db)
 }

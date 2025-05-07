@@ -6,6 +6,7 @@
 \usage{
 summarize_ch3_regions(
   ch3_db,
+  table_name = "regions",
   region_file,
   mod_type = c("c", "m", "h", "mh"),
   chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
@@ -15,6 +16,8 @@ summarize_ch3_regions(
 }
 \arguments{
 \item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
+
+\item{table_name}{A string specifying what the user would like the name to be called in the database. Default is "regions".}
 
 \item{region_file}{A string representing the path to the BED or CSV file that contains the region annotations.}
 

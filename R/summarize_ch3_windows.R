@@ -105,9 +105,9 @@ summarize_ch3_windows <- function(ch3_db,
   end_time <- Sys.time()
   message("Windows table successfully created as ", table_name, " in database!\n", 
           "Time elapsed: ", end_time - start_time, "\n")
-  print(head(tbl(ch3_db$con, "windows")))
+  print(head(tbl(ch3_db$con, table_name)))
   
-  ch3_db$current_table = "windows"
+  ch3_db$current_table = table_name
   ch3_db <- .ch3helper_cleanup(ch3_db)
   invisible(ch3_db)
 }
