@@ -39,6 +39,7 @@
 #'
 #' @export
 summarize_ch3_windows <- function(ch3_db,
+                        table_name = "windows",
                          window_size = 1000,
                          step_size = 10,
                          mod_type = c("c", "m", "h", "mh"),
@@ -55,8 +56,8 @@ summarize_ch3_windows <- function(ch3_db,
   # Increase temp storage limit to avoid memory issues
   dbExecute(ch3_db$con, "PRAGMA max_temp_directory_size='100GiB';")
   
-  if (dbExistsTable(ch3_db$con, "windows") & overwrite)
-    dbRemoveTable(ch3_db$con, "windows")
+  if (dbExistsTable(ch3_db$con, table_name) & overwrite)
+    dbRemoveTable(ch3_db$con, table_name)
   
   if (dbExistsTable(ch3_db$con, "temp_table"))
     dbRemoveTable(ch3_db$con, "temp_table")
@@ -94,14 +95,15 @@ summarize_ch3_windows <- function(ch3_db,
   # Conduct analysis. 
   # Creates tiled windows and then loops to create sliding window
   for (offset in offsets) {
-    .make_window(db_tbl, ch3_db$con, offset, window_size)
+    .make_window(db_tbl, ch3_db$con, table_name, offset, window_size)
   }
 
   if (dbExistsTable(ch3_db$con, "temp_table"))
     dbRemoveTable(ch3_db$con, "temp_table")
   
   end_time <- Sys.time()
-  message("Windows table successfully created! Time elapsed: ", end_time - start_time, "\n")
+  message("Windows table successfully created as ", table_name, " in database!\n", 
+          "Time elapsed: ", end_time - start_time, "\n")
   print(head(tbl(ch3_db$con, "windows")))
   
   ch3_db$current_table = "windows"
@@ -109,7 +111,7 @@ summarize_ch3_windows <- function(ch3_db,
   invisible(ch3_db)
 }
 
-.make_window <- function(db_tbl, db_con, offset, window_size)
+.make_window <- function(db_tbl, db_con, table_name, offset, window_size)
 {
   query <- glue::glue("
     CREATE TEMP TABLE temp_table AS
@@ -141,7 +143,12 @@ summarize_ch3_windows <- function(ch3_db,
 
   dbExecute(db_con, query)
   
-  dbExecute(db_con, "CREATE TABLE IF NOT EXISTS windows AS SELECT * FROM temp_table WHERE 1=0")
-  dbExecute(db_con, "INSERT INTO windows SELECT * FROM temp_table")
+  # Create table structure (schema only)
+  create_query <- glue_sql("CREATE TABLE IF NOT EXISTS {`table_name`} AS SELECT * FROM temp_table WHERE 1=0", .con = db_con)
+  dbExecute(db_con, create_query)
+  
+  # Insert data
+  insert_query <- glue_sql("INSERT INTO {`table_name`} SELECT * FROM temp_table", .con = db_con)
+  dbExecute(db_con, insert_query)
   dbRemoveTable(db_con, "temp_table")
 }
