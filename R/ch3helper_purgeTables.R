@@ -17,31 +17,15 @@
 
 .ch3helper_purgeTables <- function(db_con)
 {
-  # keep_tables involves any possible table created for the database.
-  keep_tables = c("calls", "positions", "regions", "windows", 
-                  "mod_diff_positions", "mod_diff_regions", "mod_diff_windows",
-                  "collapsed_windows", "reads", "classified_reads")
-  tryCatch(
-    {
-      # List all tables in the database
-      all_tables <- dbListTables(db_con)
-      
-      # Remove tables that are not in the 'keep_tables' list
-      for (table in all_tables) {
-        if (!(table %in% keep_tables)) {
-          # message(paste0("Removing table: ", table))
-          dbRemoveTable(db_con, table)
-        }
-      }
-      
-    }, 
-    error = function(e) 
-    {
-      # Print custom error message
-      message("An error occurred: ", e$message)
-    }, 
-    finally = 
-      {
-        return(db_con)
-      })
+  # List all tables in the database
+  all_tables <- dbListTables(db_con)
+  
+  # Remove tables that start with "temp"
+  for (table in all_tables) {
+    if (startsWith(table, "temp")) {
+      dbRemoveTable(db_con, table)
+    }
+  }
+  
+  return(db_con)
 }

@@ -60,7 +60,7 @@ calc_ch3_samplecor <- function(ch3_db,
   
   # Check if the call_type table exists in the database
   if (!dbExistsTable(ch3_db$con, call_type)) {
-    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+    stop(paste0(call_type, " Table does not exist in the database. Check spelling or make sure you create it first.\n"))
   }
   
   # If max_rows is specified, check table size and sample rows randomly in SQL
