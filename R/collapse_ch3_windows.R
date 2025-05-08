@@ -45,8 +45,8 @@ collapse_ch3_windows <- function(ch3_db,
   ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Check if "mod_diff" table exists
-  if (!DBI::dbExistsTable(ch3_db$con, "mod_diff_windows")) {
-    stop(glue::glue("Error: Table 'mod_diff_windows' not found in the database. 
+  if (!dbExistsTable(ch3_db$con, "mod_diff_windows")) {
+    stop(glue("Error: Table 'mod_diff_windows' not found in the database. 
                      Please run 'mod_diff()' on windows data first to generate it.\n"))
   }
   
