@@ -5,14 +5,14 @@
 #' once a differential modification analysis (calc_ch3_diff()) has been called.
 #'
 #' @param ch3_db A DuckDB database connection object or path to the database.
+#' @param table_name Character. Name of the output table to store collapsed
+#'        windows (default: "collapsed_windows").
 #' @param max_distance Numeric. The maximum allowable distance between consecutive
 #'        significant windows for merging (default: 1000).
 #' @param sig_cutoff Numeric. The significance threshold for adjusted p-values
 #'        (default: 0.05).
 #' @param min_diff Numeric. The minimum absolute methylation difference required
 #'        for inclusion in the analysis (default: 0.5).
-#' @param output_table_name Character. Name of the output table to store collapsed
-#'        windows (default: "collapsed_windows").
 #'
 #' @return This function does not return an object; it creates or replaces the
 #'         `collapsed_windows` table in the database.
@@ -36,10 +36,10 @@
 #' @export
 
 collapse_ch3_windows <- function(ch3_db, 
+                             table_name = "collapsed_windows",
                              max_distance = 1000,
                              sig_cutoff = 0.05,
-                             min_diff = 0.5,
-                             output_table_name = "collapsed_windows") 
+                             min_diff = 0.5) 
 {
   start_time <- Sys.time()
   ch3_db <- .ch3helper_connectDB(ch3_db)
@@ -54,7 +54,7 @@ collapse_ch3_windows <- function(ch3_db,
   
   query <- 
     glue(
-      "CREATE OR REPLACE TABLE {output_table_name} AS
+      "CREATE OR REPLACE TABLE {table_name} AS
     WITH FilteredWindows AS (
       SELECT *
       FROM mod_diff_windows
@@ -95,9 +95,9 @@ collapse_ch3_windows <- function(ch3_db,
   
   end_time <- Sys.time()
   cat("\n")
-  message(paste0("Windows successfully collapsed - ", output_table_name, " created! Time elapsed: ", end_time - start_time, "\n"))
+  message(paste0("Windows successfully collapsed - ", table_name, " created! Time elapsed: ", end_time - start_time, "\n"))
   
-  ch3_db$current_table = output_table_name
+  ch3_db$current_table = table_name
   ch3_db <- .ch3helper_cleanup(ch3_db)
   
   invisible(ch3_db)
