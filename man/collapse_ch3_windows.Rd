@@ -6,14 +6,17 @@
 \usage{
 collapse_ch3_windows(
   ch3_db,
+  table_name = "collapsed_windows",
   max_distance = 1000,
   sig_cutoff = 0.05,
-  min_diff = 0.5,
-  output_table_name = "collapsed_windows"
+  min_diff = 0.5
 )
 }
 \arguments{
 \item{ch3_db}{A DuckDB database connection object or path to the database.}
+
+\item{table_name}{Character. Name of the output table to store collapsed
+windows (default: "collapsed_windows").}
 
 \item{max_distance}{Numeric. The maximum allowable distance between consecutive
 significant windows for merging (default: 1000).}
@@ -23,9 +26,6 @@ significant windows for merging (default: 1000).}
 
 \item{min_diff}{Numeric. The minimum absolute methylation difference required
 for inclusion in the analysis (default: 0.5).}
-
-\item{output_table_name}{Character. Name of the output table to store collapsed
-windows (default: "collapsed_windows").}
 }
 \value{
 This function does not return an object; it creates or replaces the

@@ -4,6 +4,7 @@
 #' coverage and call counts into a `positions` table.
 #'
 #' @param ch3_db A DuckDB database connection or file path (character) to the `.ch3.db` file.
+#' @param table_name A string specifying what the user would like the name to be called in the database. Default is "positions".
 #' @param mod_type A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
 #' `"m"` (methylation), `"h"` (hydroxymethylation), 
 #'   and `"mh"` (methylated + hydroxymethylated).
@@ -37,6 +38,7 @@
 #' @export
 
 summarize_ch3_positions <- function(ch3_db,
+                                    table_name = "positions",
                                 mod_type = c("c", "m", "h", "mh"),
                                 chrs = c(as.character(1:22), 
                                          paste0("chr", 1:22), "chrX", "chrY", "chrM",
@@ -54,7 +56,7 @@ summarize_ch3_positions <- function(ch3_db,
   cat("Building positions table...\n")
   
   query <- glue("
-    CREATE TABLE positions AS 
+    CREATE TABLE {table_name} AS 
     SELECT
         sample_name,
         chrom,
@@ -74,16 +76,20 @@ summarize_ch3_positions <- function(ch3_db,
     HAVING num_calls >= {min_num_calls};  -- Filter based on min_num_calls
 ")
   
-  dbExecute(ch3_db$con, "DROP TABLE IF EXISTS positions;")  # Drop existing table
+  if (dbExistsTable(ch3_db$con, table_name))
+    dbRemoveTable(ch3_db$con, table_name)
+  
   dbExecute(ch3_db$con, "VACUUM;")  # Clean up storage
   dbExecute(ch3_db$con, query)  # Execute the query
   
   end_time <- Sys.time()
-  message("Positions table successfully created! Time elapsed: ", end_time - start_time, "\n")
-  # Print a preview of what table looks like
-  print(head(tbl(ch3_db$con, "positions")))
+  message("Positions table successfully created as ", table_name, " in database!\n", 
+          "Time elapsed: ", end_time - start_time, "\n")
   
-  ch3_db$current_table = "positions"
+  # Print a preview of what table looks like
+  print(head(tbl(ch3_db$con, table_name)))
+  
+  ch3_db$current_table = table_name
   ch3_db <- .ch3helper_closeDB(ch3_db)
   invisible(ch3_db)
 }
