@@ -95,7 +95,21 @@ collapse_ch3_windows <- function(ch3_db,
   
   end_time <- Sys.time()
   cat("\n")
-  message(paste0("Windows successfully collapsed - ", table_name, " created! Time elapsed: ", end_time - start_time, "\n"))
+  total_time_difftime <- end_time - start_time
+  
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("Windows successfully collapsed - ", table_name, " created!",
+            "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
+  } else {
+    # Otherwise, display in numeric seconds
+    message("Windows successfully collapsed - ", table_name, " created!", 
+            "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
+  }
   
   ch3_db$current_table = table_name
   ch3_db <- .ch3helper_cleanup(ch3_db)

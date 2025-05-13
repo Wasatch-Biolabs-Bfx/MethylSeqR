@@ -198,8 +198,22 @@ summarize_ch3_regions <- function(ch3_db,
   
   cat("\n")
   end_time <- Sys.time()
-  message("Windows table successfully created as ", table_name, " in database!\n", 
-          "Time elapsed: ", end_time - start_time, "\n")
+  
+  total_time_difftime <- end_time - start_time
+  
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("Regions table successfully created as ", table_name, " in database!",
+            "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
+  } else {
+    # Otherwise, display in numeric seconds
+    message("Regions table successfully created as ", table_name, " in database!", 
+            "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
+  }
   
   print(head(tbl(ch3_db$con, table_name)))
   

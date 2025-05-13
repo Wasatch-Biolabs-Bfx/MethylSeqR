@@ -117,21 +117,25 @@ calc_ch3_diff <- function(ch3_db,
     )
 
   end_time <- Sys.time()
-  cat("\n")
-  if (call_type == "windows") {
-    message(paste0("Mod diff analysis complete! ", 
-                   mod_diff_table, 
-                   " table successfully created!\nTime elapsed: ", 
-                   end_time - start_time, 
-                   "\n"))
-    message("Call collapse_ch3_windows() to collapse significant windows.")
+  total_time_difftime <- end_time - start_time
+  
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("Mod diff analysis complete! ", mod_diff_table, " table successfully created!",
+            "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
   } else {
-    message(paste0("Mod diff analysis complete! ", 
-                   mod_diff_table, 
-                   " table successfully created!\nTime elapsed: ", 
-                   end_time - start_time, 
-                   "\n"))
+    # Otherwise, display in numeric seconds
+    message("Mod diff analysis complete! ", mod_diff_table, " table successfully created!", 
+            "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
   }
+  
+  if (call_type == "windows") {
+    message("Call collapse_ch3_windows() to collapse significant windows.\n")
+  } 
   
   # if (call_type == "windows" && collapse_windows == TRUE) {
   #   cat("\nCollapsing Windows...\n")

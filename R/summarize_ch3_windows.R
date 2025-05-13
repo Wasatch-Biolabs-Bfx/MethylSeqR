@@ -103,8 +103,23 @@ summarize_ch3_windows <- function(ch3_db,
     dbRemoveTable(ch3_db$con, "temp_table")
   
   end_time <- Sys.time()
-  message("Windows table successfully created as ", table_name, " in database!\n", 
-          "Time elapsed: ", end_time - start_time, "\n")
+  
+  total_time_difftime <- end_time - start_time
+  
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("Windows table successfully created as ", table_name, " in database!",
+            "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
+  } else {
+    # Otherwise, display in numeric seconds
+    message("Windows table successfully created as ", table_name, " in database!", 
+            "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
+  }
+
   print(head(tbl(ch3_db$con, table_name)))
   
   ch3_db$current_table = table_name

@@ -83,8 +83,22 @@ summarize_ch3_positions <- function(ch3_db,
   dbExecute(ch3_db$con, query)  # Execute the query
   
   end_time <- Sys.time()
-  message("Positions table successfully created as ", table_name, " in database!\n", 
-          "Time elapsed: ", end_time - start_time, "\n")
+  
+  total_time_difftime <- end_time - start_time
+  
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("Positions table successfully created as ", table_name, " in database!",
+            "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
+  } else {
+    # Otherwise, display in numeric seconds
+    message("Positions table successfully created as ", table_name, " in database!", 
+            "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
+  }
   
   # Print a preview of what table looks like
   print(head(tbl(ch3_db$con, table_name)))

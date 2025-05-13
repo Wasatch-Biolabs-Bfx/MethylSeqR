@@ -133,7 +133,22 @@ classify_ch3_reads <- function(ch3_db,
   cat("\n")
   end_time <- Sys.time()
   
-  message(paste0("Classified reads table successfully created as '", table_name, "' in database! Time elapsed: ", end_time - start_time, "\n"))
+  total_time_difftime <- end_time - start_time
+  
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("Classified reads table successfully created as '", table_name, "' in database!",
+            "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
+  } else {
+    # Otherwise, display in numeric seconds
+    message("Classified reads table successfully created as '", table_name, "' in database!", 
+            "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
+  }
+  
   ch3_db$current_table = table_name
   
   # print out table header for user
