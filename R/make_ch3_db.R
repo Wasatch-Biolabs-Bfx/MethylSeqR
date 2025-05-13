@@ -144,7 +144,21 @@ make_ch3_db <- function(ch3_files,
   
   end_time <- Sys.time()
   
-  message("Database successfully created at ", ch3_db$db_file, "\nTime elapsed: ", end_time - start_time, "\n")
+  total_time_difftime <- end_time - start_time
+  
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("Database successfully created at ", ch3_db$db_file,
+            "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
+  } else {
+    # Otherwise, display in numeric seconds
+    message("Database successfully created at ", ch3_db$db_file,
+            "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
+  }
   
   ch3_db <- .ch3helper_closeDB(ch3_db)
   invisible(ch3_db)
