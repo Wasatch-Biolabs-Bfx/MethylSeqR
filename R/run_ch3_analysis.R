@@ -83,10 +83,10 @@ run_ch3_analysis <- function(ch3_db,
       stop(paste("Error: region annotation file missing.\n
                  Please include path to annotation file in the region_file argument of this function.\n"))
     }
-    summarize_ch3_regions(ch3_db, region_file)
+    summarize_ch3_regions(ch3_db, region_file = region_file)
     diff_table_name = "mod_diff_regions"
   } else if (call_type == "windows") {
-    summarize_ch3_windows(ch3_db, window_size, step_size)
+    summarize_ch3_windows(ch3_db, window_size = window_size, step_size = step_size)
     diff_table_name = "mod_diff_windows"
   }
   
@@ -194,11 +194,19 @@ run_ch3_analysis <- function(ch3_db,
   end_time <- Sys.time()
   
   ch3_db <- .ch3helper_closeDB(ch3_db)
+  total_time_difftime <- end_time - start_time
   
-  # Calculate the elapsed time
-  elapsed_time <- end_time - start_time
-  # Print out the elapsed time
-  cat("Time elapsed:", elapsed_time, "\n")
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("Time elapsed: ", round(total_minutes, 2), " minutes\n")
+  } else {
+    # Otherwise, display in numeric seconds
+    message("Time elapsed: ", round(total_seconds, 2), " seconds\n")
+  }
   
   invisible(ch3_db)
 }

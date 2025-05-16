@@ -6,6 +6,7 @@
 \usage{
 summarize_ch3_positions(
   ch3_db,
+  table_name = "positions",
   mod_type = c("c", "m", "h", "mh"),
   chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
     1:22), "ChrX", "ChrY", "ChrM"),
@@ -14,6 +15,8 @@ summarize_ch3_positions(
 }
 \arguments{
 \item{ch3_db}{A DuckDB database connection or file path (character) to the `.ch3.db` file.}
+
+\item{table_name}{A string specifying what the user would like the name to be called in the database. Default is "positions".}
 
 \item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
 `"m"` (methylation), `"h"` (hydroxymethylation), 
