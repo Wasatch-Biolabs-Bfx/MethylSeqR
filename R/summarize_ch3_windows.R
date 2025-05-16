@@ -29,7 +29,7 @@
 #' @importFrom DBI dbConnect dbDisconnect dbExecute dbExistsTable dbRemoveTable
 #' @importFrom duckdb duckdb
 #' @importFrom dplyr tbl
-#' @importFrom glue glue glue_collapse
+#' @importFrom glue glue glue_collapse glue_sql
 #' 
 #' @examples
 #'  # Specify the path to the database
