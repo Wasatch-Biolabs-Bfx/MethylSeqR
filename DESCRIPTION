@@ -4,8 +4,8 @@ Title: Process and Analyze Nanopore Sequencing Methylation Data
 Version: 0.8.1
 Authors@R: 
     c(
-      person(given = "Jonathon", family = "Hill", role = c("aut", "cre"), email = "jonathon@wasatchbiolabs.com"),
-      person(given = "Hailey", family = "Zimmerman", role = "aut", email = "hailey@renewbt.com")
+      person(given = "Jonathon", family = "Hill", email = "jonathon@wasatchbiolabs.com", role = c("aut", "cre")),
+      person(given = "Hailey", family = "Zimmerman", email = "hailey@renewbt.com", role = "aut")
     )
 Description: MethylSeqR creates methylation databases and processes them with customizable options.
     Data can be summarized by positions, windows, or provided genomic annotations (e.g., BED files).
