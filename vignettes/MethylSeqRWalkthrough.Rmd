@@ -112,7 +112,7 @@ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 
 region_bed = system.file("Islands_hg38_test.csv", package = "MethylSeqR")
 # Summarize Regions using annotation table
-summarize_ch3_regions(ch3_db, region_bed)
+summarize_ch3_regions(ch3_db, region_file = region_bed)
 ```
 
 There are 2 required arguments. `ch3_db` is a list containing the database file 
