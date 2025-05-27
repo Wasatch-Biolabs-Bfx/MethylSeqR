@@ -16,7 +16,6 @@
 #' Jonathon Hill \email{jonathon@wasatchbiolabs.com} (aut, cre)
 #' Hailey Zimmerman \email{hailey@renewbt.com} (aut)
 #' 
-#' @docType Package
 #' @name MethylSeqR
 #'
 #' @references
@@ -25,7 +24,7 @@
 #' 
 #' For bug reports and feature requests:  
 #' https://github.com/Wasatch-Biolabs-Bfx/MethylSeqR
-NULL
+"_PACKAGE"
 
 .onAttach <- function(lib, pkg)
 {
