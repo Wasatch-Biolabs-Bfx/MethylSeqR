@@ -104,26 +104,26 @@ classify_ch3_reads <- function(ch3_db,
     dbRemoveTable(ch3_db$con, table_name)
   
   query <- glue("
-  CREATE TABLE {table_name} AS
-  SELECT
-    r.sample_name,
-    r.read_id,
-    r.first_cpg_pos,
-    r.last_cpg_pos,
-    r.mh_frac,
+    CREATE TABLE {table_name} AS
+    SELECT
+      r.sample_name,
+      r.read_id,
+      r.first_cpg_pos,
+      r.last_cpg_pos,
+      r.mh_frac,
     CASE
       WHEN ABS(r.mh_frac - k.avg_mh_frac_control) <= {meth_diff_threshold} THEN '{control}'
       WHEN ABS(r.mh_frac - k.avg_mh_frac_case) <= {meth_diff_threshold} THEN '{case}'
-      ELSE 'unknown'
+    ELSE 'unknown'
     END AS classification
-  FROM
-    {reads_table} r
-  JOIN
-    temp_key_table k
-  ON
-    r.chrom = k.chrom
-    AND r.first_cpg_pos BETWEEN k.start AND k.end;
-  ")
+    FROM
+      {reads_table} r
+    JOIN
+      temp_key_table k
+    ON
+      r.chrom = k.chrom
+      AND r.first_cpg_pos <= k.end
+      AND r.last_cpg_pos >= k.start")
   
   dbExecute(ch3_db$con, query)
   
