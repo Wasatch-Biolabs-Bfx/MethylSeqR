@@ -6,7 +6,6 @@
 #' @param file_name Path to the input file (tab-delimited) containing methylation calls.
 #' @param sample_name Name of the sample to embed in the output archive filenames.
 #' @param out_path Output directory where the `.ch3` files will be written.
-#' @param short_ids Logical; default is `TRUE`, shortens `read_id` by trimming prefixes to reduce file size.
 #'
 #' @return (Invisibly) the path template to the output archive files.
 #' Also prints a message with timing information.
@@ -25,39 +24,15 @@
 #' }
 #'
 #' @export
+
 make_ch3_archive <- function(file_name, 
                              sample_name,
-                             out_path,
-                             short_ids = TRUE) 
+                             out_path) 
 {
   start_time <- Sys.time()
   
   stopifnot("Invalid file_name" = 
               file.exists(file_name))
-  
-  # UNUSED NOW as of 03/25/25 : was in , col_types = col_types in open_delim_dataset()
-  # Setup Call Types. Important because genome references sometimes use 1 or chr1
-  # col_types <- schema(read_id = string(),
-  #                     forward_read_position	= uint32(),
-  #                     ref_position = uint64(),
-  #                     chrom = string(),
-  #                     mod_strand = string(),
-  #                     ref_strand = string(),
-  #                     ref_mod_strand = string(),
-  #                     fw_soft_clipped_start	= uint32(),
-  #                     fw_soft_clipped_end	= uint32(),
-  #                     read_length	= uint32(),
-  #                     call_prob	= float(),
-  #                     call_code	= string(),
-  #                     base_qual	= uint8(),
-  #                     ref_kmer = string(),
-  #                     query_kmer = string(),
-  #                     canonical_base = string(),
-  #                     modified_primary_base = string(),
-  #                     fail = string(),
-  #                     inferred = string(),
-  #                     within_alignment = string(),
-  #                     flag = uint16())
   
   # Read data as arrow table
   meth_data <- 
@@ -70,9 +45,6 @@ make_ch3_archive <- function(file_name,
     mutate(
       sample_name = sample_name, 
       .before = read_id) |>
-    mutate( # create shrot read IDs if TRUE, compresses file size.
-      read_id = if_else(short_ids, gsub(".*-", "", read_id), read_id),
-      .after = sample_name) |>
     mutate(
       start = if_else(ref_mod_strand == "-" & query_kmer == "CG", 
                       ref_position - 1,
