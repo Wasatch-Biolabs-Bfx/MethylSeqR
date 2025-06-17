@@ -41,10 +41,10 @@
 #' @export
 
 plot_ch3_modfrac<- function(ch3_db,
-                          call_type = c("positions", "regions"),
-                          plot = TRUE,
-                          save_path = NULL,
-                          max_rows = NULL)
+                            call_type = c("positions", "regions"),
+                            plot = TRUE,
+                            save_path = NULL,
+                            max_rows = NULL)
 {
   start_time <- Sys.time()
   # Open the database connection
@@ -83,12 +83,8 @@ plot_ch3_modfrac<- function(ch3_db,
   # grab mh frac info- prioritize mh_frac over m_frac
   if ("mh_frac" %in% colnames(modseq_dat)) {
     goodMeth = 100 * pull(modseq_dat, mh_frac)
-  } else if ("mean_mh_frac" %in% colnames(modseq_dat)) {
-    goodMeth = 100 * pull(modseq_dat, mean_mh_frac)
   } else if ("m_frac" %in% colnames(modseq_dat)) {
     goodMeth = 100 * pull(modseq_dat, m_frac)
-  } else if ("mean_m_frac" %in% colnames(modseq_dat)) {
-    goodMeth = 100 * pull(modseq_dat, mean_m_frac)
   }
   
   qts <- c(seq(0, 0.9, 0.1), 0.95, 0.99, 0.995, 0.999, 1)
@@ -121,18 +117,18 @@ plot_ch3_modfrac<- function(ch3_db,
     
     # Create the histogram
     p <- ggplot(plot, aes(x = methylation_value)) +
-            geom_histogram(binwidth = 10, fill = "cornflowerblue",
-                           color = "black", linewidth = 0.25) +
-            labs(title = "Histogram of % CpG Methylation",
-                 x = x_title, y = "Frequency") +
-            theme_minimal()
+      geom_histogram(binwidth = 10, fill = "cornflowerblue",
+                     color = "black", linewidth = 0.25) +
+      labs(title = "Histogram of % CpG Methylation",
+           x = x_title, y = "Frequency") +
+      theme_minimal()
     print(p)
     
     # Save the plot if save_path is specified
     if (!is.null(save_path)) {
       ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
       cat("Statistics plot saved to ", save_path, "\n")
-      }
+    }
   }
   
   end_time <- Sys.time()
