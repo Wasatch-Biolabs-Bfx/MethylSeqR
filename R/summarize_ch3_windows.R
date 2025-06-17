@@ -65,6 +65,12 @@ summarize_ch3_windows <- function(ch3_db,
   if (dbExistsTable(ch3_db$con, "temp_table"))
     dbRemoveTable(ch3_db$con, "temp_table")
   
+  if (step_size == 10) {
+    cat("\nStep size is set to 10. A larger database may take longer to process.\n")
+    cat("Consider setting step_size = 100 for a faster analysis...\n")
+    cat("\n")
+  }
+  
   query <- glue("
     CREATE TABLE temp_positions AS 
     SELECT
