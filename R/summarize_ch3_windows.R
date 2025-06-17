@@ -55,7 +55,9 @@ summarize_ch3_windows <- function(ch3_db,
   ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Increase temp storage limit to avoid memory issues
-  dbExecute(ch3_db$con, "PRAGMA max_temp_directory_size='100GiB';")
+  dbExecute(ch3_db$con, "PRAGMA max_temp_directory_size='200GiB';")
+  dbExecute(ch3_db$con, "PRAGMA threads = 8;")       # or # of physical cores
+  dbExecute(ch3_db$con, "PRAGMA memory_limit='64GB';")  # give DuckDB more headroom
   
   if (dbExistsTable(ch3_db$con, table_name) & overwrite)
     dbRemoveTable(ch3_db$con, table_name)
