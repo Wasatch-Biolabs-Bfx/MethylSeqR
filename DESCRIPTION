@@ -10,6 +10,7 @@ Authors@R:
 Description: MethylSeqR creates methylation databases and processes them with customizable options.
     Data can be summarized by positions, windows, or provided genomic annotations (e.g., BED files).
     The package includes quality control, differential methylation analysis, and sliding window support.
+Depends: R (>= 4.1.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: false
