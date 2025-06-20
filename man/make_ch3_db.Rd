@@ -11,8 +11,7 @@ make_ch3_db(
   min_read_length = 50,
   min_call_prob = 0.9,
   min_base_qual = 10,
-  flag = NULL,
-  chr_prefix = TRUE
+  flag = NULL
 )
 }
 \arguments{
@@ -36,10 +35,6 @@ Only reads with quality scores at or above this value will be included. Default 
 
 \item{flag}{An optional numeric value specifying a flag-based filter for the data. 
 If NULL, no flag filtering is applied.}
-
-\item{chr_prefix}{A boolean value stating whether or not to keep the chr prefix 
-in the chromosome column. Default is TRUE, and "chr" will be kept in front of every
-chr number.}
 }
 \value{
 A list of class `"ch3_db"`, containing:

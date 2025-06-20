@@ -16,10 +16,7 @@
 #' @param min_base_qual A numeric value representing the minimum base quality threshold. 
 #' Only reads with quality scores at or above this value will be included. Default is 30.
 #' @param flag An optional numeric value specifying a flag-based filter for the data. 
-#' If NULL, no flag filtering is applied. 
-#' @param chr_prefix A boolean value stating whether or not to keep the chr prefix 
-#' in the chromosome column. Default is TRUE, and "chr" will be kept in front of every
-#' chr number.
+#' If NULL, no flag filtering is applied.
 #'
 #' @details
 #' This function reads CH3 files stored in Parquet format and imports them into a DuckDB database. 
@@ -50,8 +47,7 @@ make_ch3_db <- function(ch3_files,
                         min_read_length = 50, 
                         min_call_prob = 0.9, 
                         min_base_qual = 10, 
-                        flag = NULL,
-                        chr_prefix = TRUE)
+                        flag = NULL)
 {
   start_time <- Sys.time()
   # Check if folder/files exist and create string for query
@@ -117,30 +113,14 @@ make_ch3_db <- function(ch3_files,
     if (length(filters) > 0) 
       paste("WHERE", paste(filters, collapse = " AND ")) else ""
   
-  # Execute the query
-  if (chr_prefix) {
-    dbExecute(ch3_db$con, 
-              paste0("CREATE TABLE calls AS 
-                   SELECT *, 
-                          CASE WHEN chrom LIKE 'chr%' THEN chrom 
-                                    ELSE 'chr' || chrom 
-                               END AS chrom_fixed 
-                   FROM read_parquet([", 
+  # Create 'calls' table, ensuring chrom is a string
+  dbExecute(ch3_db$con, 
+            paste0("CREATE TABLE calls AS 
+                  SELECT *, 
+                         CAST(chrom AS TEXT) AS chrom 
+                  FROM read_parquet([", 
                    path, "]) ", 
-                   where_clause)) 
-  } else {
-    dbExecute(ch3_db$con, 
-              paste0("CREATE TABLE calls AS 
-                   SELECT *, 
-                          CASE WHEN chrom LIKE 'chr%' THEN SUBSTRING(chrom, 4) 
-                              ELSE chrom 
-                         END AS chrom_fixed 
-                   FROM read_parquet([", 
-                   path, "]) ", 
-                   where_clause)) 
-    dbExecute(ch3_db$con, "ALTER TABLE calls DROP COLUMN chrom")
-    dbExecute(ch3_db$con, "ALTER TABLE calls RENAME COLUMN chrom_fixed TO chrom")
-  }
+                   where_clause))
   
   end_time <- Sys.time()
   
