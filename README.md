@@ -96,7 +96,7 @@ To get detailed instructions and help working through the package, build and fol
 ```{r, eval = FALSE}
 browseVignettes("MethylSeqR")
 ```
-and click on HTML in your browser. Or, to browse the vignette in your R environment, call
+in R and click on HTML in your browser. Or, to browse the vignette in your R environment, call
 
 ```{r, eval = FALSE}
 vignette("MethylSeqRWalkthrough")
