@@ -71,6 +71,9 @@ run_ch3_analysis(ch3_db,
 # Check to see what's in your database at any time
 get_ch3_dbinfo(ch3_db)
 
+# Check to see the columns in any table 
+get_ch3_tableinfo(ch3_db, "windows")
+
 # Export differentially methylated data to your computer
 export_ch3_table(ch3_db, "collapsed_windows", "/results_directory")
 
