@@ -31,17 +31,17 @@ library(MethylSeqR)
 
 Begin with CH3 files created by Wasatch Biolabs and build a database using the `make_ch3_db()`. This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
 
-#### Summarize Data
+### Summarize Data
 After a database is created, a user can summarize their data by position (`summarize_ch3_positions()`), by regions (`summarize_ch3_regions()`), by windows (`summarize_ch3_windows()`), or by reads ((`summarize_ch3_reads()`). 
 
-#### Differential Methylation
+### Differential Methylation
 A differential methylation analysis can be conducted on positional, regional, or window data using `calc_ch3_diff()`. After calculating methylation differences between windows, use `collapse_ch3_windows()` to collapse significant windows in a methylation dataset. This merges contiguous regions that meet the specified criteria.
 
-#### Get Database Stats
+### Get Database Stats
 If you would like to see key stats on your database at any time, including what unique sample names are in the data for a differential analysis, call `get_ch3_dbinfo()`. 
 To see what columns are in a table in your database and how many records (rows) there are, call `get_ch3_tableinfo()` with your database and desired table name.
 
-#### Quality Control
+### Quality Control
 `run_ch3_qc()` can be called to visually assess any data. Running a QC can take a long time on large data, so set the argument `max_rows` to a reasonable value (ex. 1000) to assess data faster. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment. Similarily, use `max_calls` if you are fine with a smaller, randomized set of data.
 
 If you would like to run everything in one command, call `run_ch3_analysis()`.
