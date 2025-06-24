@@ -63,8 +63,9 @@ make_ch3_archive <- function(file_name,
   meth_data <- 
     open_delim_dataset(
       file_name, delim = "\t") |>
+    rename(read_position = forward_read_position) |>
     select(
-      read_id, chrom, ref_position, ref_mod_strand, read_length, query_kmer,
+      read_id, chrom, read_position, ref_position, ref_mod_strand, read_length, query_kmer,
       call_prob, call_code, base_qual, flag) |>
     filter(!(ref_mod_strand == "-" & ref_position == 0)) |>
     mutate(
