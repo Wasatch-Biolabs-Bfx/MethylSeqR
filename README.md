@@ -83,7 +83,7 @@ get_ch3_dbinfo(ch3_db)
 get_ch3_tableinfo(ch3_db, "windows")
 
 # Export differentially methylated data to your computer
-export_ch3_table(ch3_db, "collapsed_windows", "/results_directory")
+export_ch3_table(ch3_db, "collapsed_windows", "../results_directory")
 
 #DONE! Data has been analyzed and exported!
 
