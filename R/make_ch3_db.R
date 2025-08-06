@@ -114,12 +114,11 @@ make_ch3_db <- function(ch3_files,
       paste("WHERE", paste(filters, collapse = " AND ")) else ""
   
   # Create 'calls' table, ensuring chrom is a string
-  dbExecute(ch3_db$con, 
-            paste0("CREATE TABLE calls AS 
-                  SELECT *, 
-                         CAST(chrom AS TEXT) AS chrom 
-                  FROM read_parquet([", 
-                   path, "]) ", 
+  dbExecute(ch3_db$con,
+            paste0("CREATE TABLE calls AS
+                  SELECT *,
+                  FROM read_parquet([",
+                   path, "]) ",
                    where_clause))
   
   end_time <- Sys.time()
