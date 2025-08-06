@@ -53,7 +53,7 @@ setwd("/home/directory/analysis")
 
 # Build database and run analysis in a pipe
 ch3_db <- make_ch3_db(
-  ch3_files = "/ch3_files_directory", 
+  ch3_files = "../ch3_files_directory", 
              db_name = "my_data") |>
   summarize_ch3_windows() |>
   calc_ch3_diff(call_type = "windows",
@@ -64,7 +64,7 @@ ch3_db <- make_ch3_db(
   collapse_ch3_windows() 
   
 # Build and analyze through separate lines
-ch3_db <- make_ch3_db(ch3_files = "/ch3_files_directory", db_name = "my_data")
+ch3_db <- make_ch3_db(ch3_files = "../ch3_files_directory", db_name = "my_data")
 ch3_db <- summarize_ch3_windows(ch3_db)
 ch3_db <- calc_ch3_diff(ch3_db, call_type = "windows", cases = c("sperm"), controls = c("blood"))
 ch3_db <- collapse_ch3_windows(ch3_db) 
