@@ -68,10 +68,10 @@ calc_ch3_diff <- function(ch3_db,
   # Label cases and controls
   in_dat <-
     tbl(ch3_db$con, call_type) |>
-    select(
+    dplyr::select(
       sample_name, any_of(c("region_name", "chrom", "start", "end")),
       num_calls, mod_counts = !!mod_counts_col) |>
-    mutate(
+    dplyr::mutate(
       exp_group = case_when(
         sample_name %in% cases ~ "case",
         sample_name %in% controls ~ "control",
@@ -159,11 +159,11 @@ calc_ch3_diff <- function(ch3_db,
   # Combine replicates and pivot wider
   dat <-
     in_dat |>
-    summarize(
+    dplyr::summarize(
       .by = c(exp_group, any_of(c("region_name", "chrom", "start", "end"))),
       num_calls = sum(num_calls, na.rm = TRUE),
       mod_counts = sum(mod_counts, na.rm = TRUE)) |>
-    mutate(
+    dplyr::mutate(
       c_counts = num_calls - mod_counts) |>
     pivot_wider(
       names_from = exp_group,
@@ -173,9 +173,9 @@ calc_ch3_diff <- function(ch3_db,
   # Extract matrix and calculate p-vals
   pvals <-
     dat |>
-    select(!any_of(c("region_name", "chrom", "start", "end"))) |>
+    dplyr::select(!any_of(c("region_name", "chrom", "start", "end"))) |>
     distinct() |>
-    mutate(
+    dplyr::mutate(
       mod_frac_case = mod_counts_case /
         (num_calls_case),
       mod_frac_control = mod_counts_control /
@@ -185,7 +185,7 @@ calc_ch3_diff <- function(ch3_db,
         mod_counts_control /
         (num_calls_control)) |>
     collect() |>
-    mutate(
+    dplyr::mutate(
       p_val = switch(
         calc_type,
         fast_fisher = .fast_fisher(
@@ -203,7 +203,8 @@ calc_ch3_diff <- function(ch3_db,
     inner_join(
       pvals,
       by = join_by(num_calls_case, num_calls_control,
-                   mod_counts_case, mod_counts_control),
+                   mod_counts_case, mod_counts_control,
+                   c_counts_case,   c_counts_control),
       copy = TRUE)
   
   
