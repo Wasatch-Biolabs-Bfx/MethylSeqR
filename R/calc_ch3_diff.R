@@ -163,9 +163,11 @@ calc_ch3_diff <- function(ch3_db,
       .by = c(exp_group, any_of(c("region_name", "chrom", "start", "end"))),
       num_calls = sum(num_calls, na.rm = TRUE),
       mod_counts = sum(mod_counts, na.rm = TRUE)) |>
+    mutate(
+      c_counts = num_calls - mod_counts) |>
     pivot_wider(
       names_from = exp_group,
-      values_from = c(num_calls, mod_counts),
+      values_from = c(num_calls, mod_counts, c_counts),
       values_fill = 0)
   
   # Extract matrix and calculate p-vals
@@ -175,13 +177,13 @@ calc_ch3_diff <- function(ch3_db,
     distinct() |>
     mutate(
       mod_frac_case = mod_counts_case /
-        (mod_counts_case + num_calls_case),
+        (num_calls_case),
       mod_frac_control = mod_counts_control /
-        (mod_counts_control + num_calls_control),
+        (num_calls_control),
       meth_diff = mod_counts_case /
-        (mod_counts_case + num_calls_case) -
+        (num_calls_case) -
         mod_counts_control /
-        (mod_counts_control + num_calls_control)) |>
+        (num_calls_control)) |>
     collect() |>
     mutate(
       p_val = switch(
@@ -189,13 +191,13 @@ calc_ch3_diff <- function(ch3_db,
         fast_fisher = .fast_fisher(
           q = mod_counts_case,
           m = mod_counts_case + mod_counts_control,
-          n = num_calls_case + num_calls_control,
-          k = mod_counts_case + num_calls_case),
+          n = c_counts_case + c_counts_control,
+          k = num_calls_case),
         r_fisher = .r_fisher(
           a = mod_counts_control,
           b = mod_counts_case,
-          c = num_calls_control,
-          d = num_calls_case)))
+          c = c_counts_control,
+          d = c_counts_case)))
   
   dat |>
     inner_join(
