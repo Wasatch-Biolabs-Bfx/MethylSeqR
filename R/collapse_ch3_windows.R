@@ -36,82 +36,94 @@
 #' @export
 
 collapse_ch3_windows <- function(ch3_db, 
-                             table_name = "collapsed_windows",
-                             max_distance = 1000,
-                             sig_cutoff = 0.05,
-                             min_diff = 0.5) 
+                                 table_name = "collapsed_windows",
+                                 max_distance = 1000,
+                                 sig_cutoff = 0.05,
+                                 min_diff = 0.5) 
 {
   start_time <- Sys.time()
   ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Check if "mod_diff" table exists
-  if (!dbExistsTable(ch3_db$con, "mod_diff_windows")) {
-    stop(glue("Error: Table 'mod_diff_windows' not found in the database. 
+  if (!DBI::dbExistsTable(ch3_db$con, "mod_diff_windows")) {
+    stop(glue::glue("Error: Table 'mod_diff_windows' not found in the database. 
                      Please run 'mod_diff()' on windows data first to generate it.\n"))
   }
   
   cat("Collapsing windows on differential analysis results...\n")
   
-  query <- 
-    glue(
-      "CREATE OR REPLACE TABLE {table_name} AS
-    WITH FilteredWindows AS (
-      SELECT *
-      FROM mod_diff_windows
-      WHERE p_adjust <= {sig_cutoff} AND ABS(meth_diff) >= {min_diff}
-    ),
-    NumberedWindows AS (
-      SELECT *,
-        CASE
-          WHEN LAG(\"end\") OVER w IS NULL 
-               OR LAG(\"end\") OVER w + {max_distance} < start 
-               OR SIGN(meth_diff) != SIGN(LAG(meth_diff) OVER w) THEN 1
-          ELSE 0
-        END AS new_region_flag
-      FROM FilteredWindows
-      WINDOW w AS (PARTITION BY chrom ORDER BY start)
-    ),
-    RegionGroups AS (
-      SELECT *,
-        SUM(new_region_flag) OVER (PARTITION BY chrom ORDER BY start 
-                                   ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS region_id
-      FROM NumberedWindows
-    )
-    SELECT 
-      chrom,
-      MIN(start) AS start,
-      MAX(\"end\") AS \"end\",
-      AVG(mh_counts_control) as avg_mh_counts_control,
-      AVG(mh_counts_case) as avg_mh_counts_case,
-      AVG(mh_frac_control) as avg_mh_frac_control,
-      AVG(mh_frac_case) as avg_mh_frac_case,
-      AVG(meth_diff) AS avg_meth_diff,
-      COUNT(*) AS num_windows
-    FROM RegionGroups
-    GROUP BY chrom, region_id
-    ORDER BY chrom, start;")
+  # --- Build AVG(...) list dynamically based on existing columns ---
+  cols <- DBI::dbListFields(ch3_db$con, "mod_diff_windows")
+  patterns <- c("_counts_control$", "_counts_case$", "_frac_control$", "_frac_case$")
+  match_cols <- cols[grepl(paste(patterns, collapse = "|"), cols)]
+  
+  # Quote identifiers safely for DuckDB
+  qi <- function(x) as.character(DBI::dbQuoteIdentifier(ch3_db$con, x))
+  
+  avg_exprs <- if (length(match_cols)) {
+    paste0("AVG(", qi(match_cols), ") AS ", qi(paste0("avg_", match_cols)))
+  } else character(0)
+  
+  # This block STARTS with a comma if nonempty; otherwise it's empty.
+  avg_select_sql <- if (length(avg_exprs)) {
+    paste0(",\n      ", paste(avg_exprs, collapse = ",\n      "))
+  } else {
+    ""
+  }
+  
+  query <- glue::glue(
+    "CREATE OR REPLACE TABLE {table_name} AS
+   WITH FilteredWindows AS (
+     SELECT *
+     FROM mod_diff_windows
+     WHERE p_adjust <= {sig_cutoff} AND ABS(meth_diff) >= {min_diff}
+   ),
+   NumberedWindows AS (
+     SELECT *,
+       CASE
+         WHEN LAG(\"end\") OVER w IS NULL 
+              OR LAG(\"end\") OVER w + {max_distance} < start 
+              OR SIGN(meth_diff) != SIGN(LAG(meth_diff) OVER w) THEN 1
+         ELSE 0
+       END AS new_region_flag
+     FROM FilteredWindows
+     WINDOW w AS (PARTITION BY chrom ORDER BY start)
+   ),
+   RegionGroups AS (
+     SELECT *,
+       SUM(new_region_flag) OVER (PARTITION BY chrom ORDER BY start 
+                                  ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS region_id
+     FROM NumberedWindows
+   )
+   SELECT 
+     {qi('chrom')},
+     MIN(start) AS start,
+     MAX({qi('end')}) AS {qi('end')}
+     {avg_select_sql}
+     , AVG(meth_diff) AS avg_meth_diff
+     , COUNT(*) AS num_windows
+   FROM RegionGroups
+   GROUP BY {qi('chrom')}, region_id
+   ORDER BY {qi('chrom')}, start;"
+  )
+  
   
   DBI::dbExecute(ch3_db$con, query)
   
   end_time <- Sys.time()
   cat("\n")
-  total_time_difftime <- end_time - start_time
-  
-  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
-  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  total_seconds <- as.numeric(end_time - start_time, units = "secs")
   
   if (total_seconds > 60) {
-    # If greater than 60 seconds, convert to numeric minutes for display
-    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    total_minutes <- as.numeric(end_time - start_time, units = "mins")
     message("Windows successfully collapsed - ", table_name, " created!",
             "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
   } else {
-    # Otherwise, display in numeric seconds
     message("Windows successfully collapsed - ", table_name, " created!", 
             "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
   }
   
-  ch3_db$current_table = table_name
+  ch3_db$current_table <- table_name
   ch3_db <- .ch3helper_cleanup(ch3_db)
   
   invisible(ch3_db)
