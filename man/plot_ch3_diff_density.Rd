@@ -9,7 +9,7 @@ plot_ch3_diff_density(
   table,
   thresh = c(0.2, 0.3),
   palette = "turbo",
-  size = 0.8
+  n_kde = 250
 )
 }
 \arguments{

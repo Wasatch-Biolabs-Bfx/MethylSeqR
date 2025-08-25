@@ -41,56 +41,47 @@ plot_ch3_diff_density <- function(ch3_db,
                                   table,
                                   thresh   = c(0.2, 0.3),
                                   palette  = "turbo",
-                                  size     = 0.8)
+                                  n_kde    = 250)
 {
   
-  t0     <- Sys.time()
   ch3_db <- .ch3helper_connectDB(ch3_db)
+  on.exit(ch3_db <- .ch3helper_closeDB(ch3_db), add = TRUE)
   
   if (!DBI::dbExistsTable(ch3_db$con, table))
     stop(table, " table does not exist.")
   
-  df <- tbl(ch3_db$con, table) %>%
-    dplyr::select(mh_frac_case, mh_frac_control) %>%
-    dplyr::filter(!is.na(mh_frac_case), !is.na(mh_frac_control)) %>%
-    collect()
+  df <- dplyr::tbl(ch3_db$con, table) |>
+    dplyr::select(mh_frac_case, mh_frac_control) |>
+    dplyr::filter(!is.na(mh_frac_case), !is.na(mh_frac_control)) |>
+    dplyr::collect()
   
-  ## ── base plot -----------------------------------------------------------------
-  p <- ggplot(df, aes(mh_frac_case, mh_frac_control)) + theme_minimal()
+  if (nrow(df) < 20) stop("Too few points to draw a density surface.")
   
-  if (use_gpd) {
-    p <- p + ggpointdensity::geom_pointdensity(size = size, adjust = 0.5) +
-      scale_colour_viridis_c(option = palette, name = "Density",
-                             guide  = guide_colorbar(frame.colour = NA))
-  } else {
-    warning("Package 'ggpointdensity' not installed – falling back to plain points.")
-    p <- p + geom_point(size = size, alpha = 0.4, colour = "#1f77b4")
-  }
+  # ── KDE surface  ---------------------------------------------------------
+  kd <- MASS::kde2d(df$mh_frac_case, df$mh_frac_control,
+                    n    = n_kde,
+                    lims = c(0, 1, 0, 1))
   
-  ## ── identity + thresholds -----------------------------------------------------
-  p <- p + geom_abline(slope = 1, intercept = 0, colour = "black")
-  if (!is.null(thresh)) {
-    p <- p + geom_abline(slope = 1, intercept =  thresh,  colour = "red",
-                         linetype = "dashed") +
-      geom_abline(slope = 1, intercept = -thresh, colour = "red",
-                  linetype = "dashed")
-  }
+  surf <- expand.grid(x = kd$x, y = kd$y)
+  surf$z <- as.vector(kd$z)
   
-  ## ── theme / labels ------------------------------------------------------------
+  # ── base plot  -----------------------------------------------------------
+  p <- ggplot2::ggplot(surf, ggplot2::aes(x, y, fill = z)) +
+    ggplot2::geom_raster(interpolate = TRUE) +
+    ggplot2::scale_fill_viridis_c(
+      option = palette, name = "Density", guide = "colourbar"
+    ) +
+    ggplot2::geom_abline(slope = 1, intercept = 0, colour = "black")
+  
   p <- p +
-    coord_equal(xlim = c(0, 1), ylim = c(0, 1), expand = FALSE) +
-    labs(
+    ggplot2::coord_equal(xlim = c(0, 1), ylim = c(0, 1), expand = FALSE) +
+    ggplot2::labs(
       title = "Case vs Control Mod Fractions",
       x = "mh_frac_case",
       y = "mh_frac_control"
     ) +
-    theme_classic()
+    ggplot2::theme_minimal()
   
   print(p)
-  
-  message(sprintf("Scatter plotted in %.2f s",
-                  as.numeric(difftime(Sys.time(), t0, units = "secs"))))
-  
-  ch3_db <- .ch3helper_closeDB(ch3_db)
   invisible(ch3_db)
 }

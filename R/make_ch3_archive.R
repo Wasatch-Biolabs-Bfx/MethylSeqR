@@ -84,6 +84,7 @@ make_ch3_archive <- function(file_name,
       .after = chrom
     ) |>
     select(-ref_mod_strand) |>
+    select(-ref_position) |>
     write_dataset(
       path = out_path, 
       basename_template = paste0(sample_name, "-{i}.ch3"),
