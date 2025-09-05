@@ -2,7 +2,7 @@
 % Please edit documentation in R/make_ch3_db.R
 \name{make_ch3_db}
 \alias{make_ch3_db}
-\title{Create a CH3 Database from Parquet Files}
+\title{Create a CH3 DuckDB from Parquet CH3 files (with optional sample naming)}
 \usage{
 make_ch3_db(
   ch3_files,
@@ -11,56 +11,114 @@ make_ch3_db(
   min_read_length = 50,
   min_call_prob = 0.9,
   min_base_qual = 10,
-  flag = NULL,
-  chr_prefix = TRUE
+  flag = NULL
 )
 }
 \arguments{
-\item{ch3_files}{A character vector of file or directory paths containing CH3 Parquet files. 
-If a directory is provided, all files within it will be processed.}
+\item{ch3_files}{Character vector of CH3 parquet file paths and/or directories.
+May be a \emph{named} vector to assign \code{sample_name}s explicitly; any
+entry of the form \code{NAME=PATH} is also accepted. Directories are scanned
+(non-recursively) for \code{*.ch3} files. Must not be empty.}
 
-\item{db_name}{A string representing the path where the CH3 database will be created. 
-The extension ".ch3.db" will be appended if not already present.}
+\item{db_name}{Path (without or with \code{.ch3.db} extension) for the DuckDB
+database to be created; \code{.ch3.db} is appended if missing.}
 
-\item{chrom}{An optional character string specifying a chromosome to filter the data. 
-If NULL, all chromosomes will be included.}
+\item{chrom}{Optional chromosome filter. Either a single string (e.g.,
+\code{"chr1"}) or a character vector (e.g., \code{c("chr1","chr2","chrX")}).
+If \code{NULL}, all chromosomes are included.}
 
-\item{min_read_length}{A numeric value specifying the minimum read length required 
-for inclusion in the database. Default is 50.}
+\item{min_read_length}{Minimum read length to keep (default \code{50}).}
 
-\item{min_call_prob}{A numeric value representing the minimum call probability threshold. 
-Only calls with a probability greater than or equal to this value will be included. Default is 0.9.}
+\item{min_call_prob}{Minimum call probability to keep (default \code{0.9}).}
 
-\item{min_base_qual}{A numeric value representing the minimum base quality threshold. 
-Only reads with quality scores at or above this value will be included. Default is 30.}
+\item{min_base_qual}{Minimum base quality to keep (default \code{10}).}
 
-\item{flag}{An optional numeric value specifying a flag-based filter for the data. 
-If NULL, no flag filtering is applied.}
-
-\item{chr_prefix}{A boolean value stating whether or not to keep the chr prefix 
-in the chromosome column. Default is TRUE, and "chr" will be kept in front of every
-chr number.}
+\item{flag}{Optional numeric flag value to require; if \code{NULL}, no flag filter.}
 }
 \value{
-A list of class `"ch3_db"`, containing:
-\item{db_file}{The path to the created DuckDB database file.}
-\item{tables}{A list of tables available in the database.}
+(Invisibly) a list of class \code{"ch3_db"} with elements:
+  \itemize{
+    \item \code{db_file}: path to the created DuckDB file,
+    \item \code{current_table}: \code{NULL} (set by downstream functions),
+    \item \code{con}: connection is closed by cleanup and set to \code{"none"}.
+  }
+  The database contains at least the \code{calls} table.
 }
 \description{
-This function processes a collection of CH3 files stored in Parquet format and creates 
-a DuckDB database containing filtered and structured methylation call data.
+Build a DuckDB database containing filtered methylation call data from one or
+more \code{.ch3} parquet files. Inputs may be individual files, directories
+(expanded to all \code{*.ch3} files), or a **named character vector** where
+names are used as \code{sample_name}s in the output.
 }
 \details{
-This function reads CH3 files stored in Parquet format and imports them into a DuckDB database. 
-The data is filtered based on user-specified criteria, including chromosome, read length, 
-call probability, base quality, and flag values. If a table already exists in the database, 
-it will be dropped and recreated.
+\strong{What it does}
+\itemize{
+  \item Expands \code{ch3_files} (handling directories and named entries) into a mapping
+        of source files and optional \code{sample_name}s.
+  \item Configures DuckDB pragmas for temp directory, thread count (all-but-one core),
+        and a memory limit (~50% of detected RAM).
+  \item Drops any existing tables in the target DB.
+  \item Reads all input \code{.ch3} parquet files in a single pass and creates a
+        table \code{calls} with columns:
+        \code{sample_name}, \code{chrom}, \code{start}, \code{end}, \code{read_position},
+        \code{call_code}, \code{read_length}, \code{call_prob}, \code{base_qual}, \code{flag}.
+        When names are not given for inputs, \code{sample_name} defaults to the file stem.
+  \item Applies pushdown filters based on \code{chrom}, \code{min_read_length},
+        \code{min_call_prob}, \code{min_base_qual}, and \code{flag}.
 }
+
+\strong{Side effects and performance}
+\itemize{
+  \item Creates (or overwrites) a DuckDB file at \code{db_name}.
+  \item Uses a temp directory for DuckDB spills under \code{tempdir()}.
+  \item A temporary in-memory table \code{file_map} may be created for input mapping.
+}
+}
+\section{Input forms}{
+
+\itemize{
+  \item \strong{Files}: \code{c("a.ch3", "b.ch3")}
+  \item \strong{Directories}: \code{c("dir_of_ch3s/")} (expands to all \code{*.ch3})
+  \item \strong{Named files/dirs}: \code{c(SampleA = "a.ch3", SampleB = "dir/")}
+        — names become \code{sample_name}. If a name is not provided, the
+        filename stem (without \code{.ch3}) is used.
+}
+}
+
 \examples{
-# Example usage
-ch3_files <- system.file("new_test_data", package = "MethylSeqR")
-db_name <- tempfile("example_ch3")
+\dontrun{
+# 1) Directory of CH3 files (non-recursive scan for *.ch3)
+make_ch3_db(ch3_files = "path/to/ch3_dir",
+            db_name   = "my_db")
 
-make_ch3_db(ch3_files, db_name)
+# 2) Explicit files (auto-sample names from stems)
+make_ch3_db(ch3_files = c("A.ch3", "B.ch3"),
+            db_name   = "two_samples.ch3.db",
+            min_read_length = 100, min_base_qual = 10)
 
+# 3) Named inputs (sample_name set from names)
+make_ch3_db(
+  ch3_files = c(
+    Sample1      = "../CH3/Sample1.ch3",
+    Sample2  = "../CH3/Sample2.ch3",
+    Sample3   = "../CH3/Sample3.combined.ch3"
+  ),
+  db_name = "My_DB",
+  min_base_qual = 10,
+  min_read_length = 100
+)
+
+# 4) Filter to specific chromosomes
+make_ch3_db(
+  ch3_files = c(S1 = "A.ch3", S2 = "B.ch3"),
+  db_name   = "chr1_chrX_only",
+  chrom     = c("chr1","chrX")
+)
+}
+
+}
+\seealso{
+\code{\link{summarize_ch3_positions}}, \code{\link{summarize_ch3_regions}},
+\code{\link{summarize_ch3_windows}}, \code{\link{get_ch3_dbinfo}},
+\code{\link{get_ch3_tableinfo}}, \code{\link{calc_ch3_diff}}
 }

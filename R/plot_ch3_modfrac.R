@@ -41,30 +41,26 @@
 #' @export
 
 plot_ch3_modfrac<- function(ch3_db,
-                          call_type = c("positions", "regions"),
-                          plot = TRUE,
-                          save_path = NULL,
-                          max_rows = NULL)
+                            call_type = c("positions", "regions"),
+                            plot = TRUE,
+                            save_path = NULL,
+                            max_rows = NULL)
 {
+  start_time <- Sys.time()
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...
-  # Finish up: update table list and close the connection
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   if (length(call_type) > 1) {
     call_type = c("positions")
   }
   
   # Check for specific table and connect to it in the database
-  if (!dbExistsTable(db_con, call_type)) {
-    stop(paste0(call_type, " Table does not exist. You can create it by..."))
+  if (!dbExistsTable(ch3_db$con, call_type)) {
+    stop(paste0(call_type, " Table does not exist in the database. Check spelling or make sure you create it first.\n"))
   }
   
   # Determine total number of rows first
-  total_rows <- tbl(db_con, call_type) |> summarise(n = n()) |> pull(n)
+  total_rows <- tbl(ch3_db$con, call_type) |> summarise(n = n()) |> pull(n)
   
   # Sample in SQL if max_rows is given and valid
   if (!is.null(max_rows)) {
@@ -73,12 +69,12 @@ plot_ch3_modfrac<- function(ch3_db,
                   ") exceeds available rows in the table (", total_rows, ")."))
     }
     
-    modseq_dat <- tbl(db_con, sql(paste0(
+    modseq_dat <- tbl(ch3_db$con, sql(paste0(
       "SELECT * FROM ", call_type, 
       " USING SAMPLE ", max_rows, " ROWS"
     )))
   } else {
-    modseq_dat <- tbl(db_con, call_type)
+    modseq_dat <- tbl(ch3_db$con, call_type)
   } 
   
   # decide if per base or per region
@@ -87,12 +83,8 @@ plot_ch3_modfrac<- function(ch3_db,
   # grab mh frac info- prioritize mh_frac over m_frac
   if ("mh_frac" %in% colnames(modseq_dat)) {
     goodMeth = 100 * pull(modseq_dat, mh_frac)
-  } else if ("mean_mh_frac" %in% colnames(modseq_dat)) {
-    goodMeth = 100 * pull(modseq_dat, mean_mh_frac)
   } else if ("m_frac" %in% colnames(modseq_dat)) {
     goodMeth = 100 * pull(modseq_dat, m_frac)
-  } else if ("mean_m_frac" %in% colnames(modseq_dat)) {
-    goodMeth = 100 * pull(modseq_dat, mean_m_frac)
   }
   
   qts <- c(seq(0, 0.9, 0.1), 0.95, 0.99, 0.995, 0.999, 1)
@@ -125,17 +117,23 @@ plot_ch3_modfrac<- function(ch3_db,
     
     # Create the histogram
     p <- ggplot(plot, aes(x = methylation_value)) +
-            geom_histogram(binwidth = 10, fill = "cornflowerblue",
-                           color = "black", linewidth = 0.25) +
-            labs(title = "Histogram of % CpG Methylation",
-                 x = x_title, y = "Frequency") +
-            theme_minimal()
+      geom_histogram(binwidth = 10, fill = "cornflowerblue",
+                     color = "black", linewidth = 0.25) +
+      labs(title = "Histogram of % CpG Methylation",
+           x = x_title, y = "Frequency") +
+      theme_minimal()
     print(p)
     
     # Save the plot if save_path is specified
     if (!is.null(save_path)) {
       ggsave(filename = save_path, plot = p, width = 8, height = 6, dpi = 300)
       cat("Statistics plot saved to ", save_path, "\n")
-      }
+    }
   }
+  
+  end_time <- Sys.time()
+  
+  message("Time elapsed: ", end_time - start_time, "\n")
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  invisible(ch3_db)
 }

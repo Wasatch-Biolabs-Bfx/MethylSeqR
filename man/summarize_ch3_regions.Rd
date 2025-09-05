@@ -2,52 +2,134 @@
 % Please edit documentation in R/summarize_ch3_regions.R
 \name{summarize_ch3_regions}
 \alias{summarize_ch3_regions}
-\title{Summarize Methylation Data by Regions}
+\title{Summarize methylation by annotated regions}
 \usage{
 summarize_ch3_regions(
   ch3_db,
+  input_table = "calls",
+  output_table = "regions",
   region_file,
-  mod_type = c("c", "m", "h", "mh"),
+  join = c("inner", "left", "right"),
   chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
     1:22), "ChrX", "ChrY", "ChrM"),
-  min_num_calls = 1
+  samples = NULL,
+  mod_code = c("m", "h", "m + h"),
+  unmod_code = "-",
+  unmod_label = "c",
+  min_num_calls = 1,
+  temp_dir = tempdir(),
+  threads = NULL,
+  memory_limit = NULL,
+  overwrite = TRUE
 )
 }
 \arguments{
-\item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
+\item{ch3_db}{Path to a \code{.ch3.db} DuckDB file or a \code{"ch3_db"} object.
+A connection is opened via internal helpers and cleaned on return.}
 
-\item{region_file}{A string representing the path to the BED or CSV file that contains the region annotations.}
+\item{input_table}{Source table containing call-level records (default \code{"calls"}).
+Must contain at least: \code{sample_name}, \code{chrom}, \code{start}, \code{end}, \code{call_code}.}
 
-\item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
-`"m"` (methylation), `"h"` (hydroxymethylation), 
-  and `"mh"` (methylated + hydroxymethylated).}
+\item{output_table}{Destination table name (default \code{"regions"}).}
 
-\item{chrs}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
-sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
+\item{region_file}{BED/TSV/CSV path with columns \code{chrom}, \code{start}, \code{end}
+and optional \code{region_name}. If missing, \code{region_name} is synthesized as
+\code{"chrom_start_end"}.}
 
-\item{min_num_calls}{An integer specifying the minimum number of calls required for inclusion in the summary.
-Default is 1.}
+\item{join}{Join type between positions and regions: one of \code{"inner"}, \code{"left"},
+or \code{"right"} (default \code{"inner"}).}
+
+\item{chrs}{Character vector of chromosome filters; rows whose \code{chrom} match any
+value are retained. Defaults to common human aliases (1–22, \code{chrX}, \code{chrY}, \code{chrM}, …).}
+
+\item{samples}{Optional character vector of \code{sample_name}s to include. If \code{NULL},
+all samples present in \code{input_table} are processed.}
+
+\item{mod_code}{Character vector of modification specs to count (single codes or
+\code{"code1 + code2"} combinations). Default \code{c("m","h","m + h")}.}
+
+\item{unmod_code}{Call code representing unmodified (default \code{"-"}).}
+
+\item{unmod_label}{Label used to name unmodified columns (default \code{"c"}).}
+
+\item{min_num_calls}{Minimum total calls required at the \emph{region} level to be written
+(default \code{1}). Regions below this threshold are skipped.}
+
+\item{temp_dir}{Directory for DuckDB temporary files (default \code{tempdir()}).}
+
+\item{threads}{Integer DuckDB thread count. If \code{NULL}, an internal heuristic
+(typically all-but-one core) is used.}
+
+\item{memory_limit}{DuckDB memory limit string (e.g. \code{"16384MB"}).
+If \code{NULL}, an internal heuristic (~80\% of RAM) is used.}
+
+\item{overwrite}{If \code{TRUE} and \code{output_table} exists, it is dropped before writing.}
 }
 \value{
-The updated `ch3_db` object with the summarized regions data added to the DuckDB database.
+(Invisibly) a \code{"ch3_db"} object pointing to the same DB file with
+  \code{current_table} set to \code{output_table}. The created table has columns:
+  \itemize{
+    \item \code{sample_name}, \code{region_name}, \code{chrom}, \code{start}, \code{end},
+          \code{num_CpGs}, \code{num_calls},
+    \item for each label in \code{c(unmod_label, parsed(mod_code))}:
+          \code{<label>_counts}, \code{<label>_frac}.
+  }
 }
 \description{
-This function summarizes methylation data from a DuckDB database based on specified regions 
-defined in a BED, TSV, or CSV file. It performs a join operation between the methylation data and 
-the regions specified in the annotation file, allowing for different types of joins.
+Aggregates call-level rows from \code{input_table} (typically \code{"calls"})
+into per-sample region summaries written to \code{output_table} (default
+\code{"regions"}). Regions are provided via a BED/TSV/CSV file with columns
+\code{chrom}, \code{start}, \code{end}, and optional \code{region_name}.
+For each region the function computes:
+number of CpG positions (rows), total calls, per-class counts, and per-class
+fractions.
 }
 \details{
-The function reads the region annotations from the regional annotation file and checks for its validity.
-It connects to the DuckDB database, creates a summarized table of methylation data based on the specified 
-regions, and performs the join operation according to the specified join type. A progress bar is displayed 
-during the summarization process. The resulting data is stored in a table called "regions" within the database.
+The function:
+\enumerate{
+  \item Reads \code{region_file} (CSV/TSV/BED) and normalizes columns. If \code{region_name}
+        is absent, it is synthesized. Basic chromosome-prefix harmonization is performed when
+        DB positions and annotation disagree on presence of a \code{"chr"} prefix.
+  \item Configures DuckDB pragmas (\code{temp_directory}, \code{threads}, \code{memory_limit}).
+  \item Builds per-position counts (one row per \code{sample_name}, \code{chrom}, \code{start})
+        for the requested classes (\code{<label>_counts}, plus fractions later).
+  \item Joins positions to regions using the chosen \code{join} type and aggregates per region:
+        \code{num_CpGs}, \code{num_calls}, \code{<label>_counts}, and
+        \code{<label>_frac} = \code{<label>_counts / num_calls}.
 }
-\examples{
- # Specify the path to the database
- ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
- region_bed = system.file("Islands_hg38_test.csv", package = "MethylSeqR")
- 
- # Summarize Regions using annotation table
- summarize_ch3_regions(ch3_db, region_bed)
+}
+\section{How modification codes work}{
 
+Pass \code{mod_code} as single codes (e.g. \code{"m"}, \code{"h"}, \code{"a"})
+or combinations with \code{"+"} (e.g. \code{"m + h"}). Labels are created by
+removing spaces and \code{"+"} (e.g. \code{"m + h"} \u2192 \code{"mh"}). For each
+label the table includes \code{<label>_counts} and \code{<label>_frac}. The
+unmodified class is defined by \code{unmod_code} (default \code{"-"}), named
+using \code{unmod_label} (default \code{"c"} \u2192 \code{c_counts}, \code{c_frac}).
+}
+
+\examples{
+\dontrun{
+# Default m/h summary by regions
+summarize_ch3_regions(
+  ch3_db      = "my_db.ch3.db",
+  region_file = "islands_hg38.bed"
+)
+
+# Novel 'a' code and m+h combination, left join to keep empty regions
+summarize_ch3_regions(
+  ch3_db      = "my_db.ch3.db",
+  region_file = "islands_hg38.csv",
+  mod_code    = c("a","m + h"),
+  join        = "left",
+  min_num_calls = 10
+)
+}
+
+}
+\seealso{
+\code{\link{make_ch3_db}},
+\code{\link{summarize_ch3_positions}},
+\code{\link{summarize_ch3_windows}},
+\code{\link{calc_ch3_diff}}
 }

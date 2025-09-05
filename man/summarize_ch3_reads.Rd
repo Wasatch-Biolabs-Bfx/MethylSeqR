@@ -4,14 +4,23 @@
 \alias{summarize_ch3_reads}
 \title{Summarize Reads in a Database}
 \usage{
-summarize_ch3_reads(ch3_db, key_table = NULL, min_CGs = 5)
+summarize_ch3_reads(
+  ch3_db,
+  input_calls_table = "calls",
+  output_reads_table = "reads",
+  regions_table = NULL,
+  min_length = 100,
+  min_CGs = 5
+)
 }
 \arguments{
 \item{ch3_db}{A character string specifying the path to the DuckDB database.}
 
-\item{key_table}{(Optional) A character string specifying the path to a key table (CSV, TSV, or BED) used for filtering reads. If NULL, no filtering is applied.}
+\item{min_length}{An integer specifying the the minimum read_length.}
 
 \item{min_CGs}{An integer specifying the minimum number of CG sites required for a read to be included in the summary.}
+
+\item{table_name}{A string specifying what the user would like the name to be called in the database. Default is "reads".}
 }
 \value{
 Invisibly returns the database object. The function also outputs a success message and the first few rows of the summarized `reads` table.

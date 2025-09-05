@@ -41,32 +41,29 @@ get_ch3_dbinfo <- function(ch3_db)
   }
   
   # Open the database connection
-  database <- .ch3helper_connectDB(ch3_db)
-  db_con <- database$db_con
-  
-  # Specify on exit what to do...close the connection
-  on.exit(.ch3helper_closeDB(database), add = TRUE)
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Get DB size
-  size_df <- dbGetQuery(db_con, "PRAGMA database_size")
+  size_df <- dbGetQuery(ch3_db$con, "PRAGMA database_size")
   size <- sum(size_df$total_blocks * size_df$block_size) / 1024 / 1024
   cat(sprintf("\nDatabase Size: %.2f MB\n", size))
   
   # What tables are in the database?
-  tables <- dbListTables(db_con)
+  tables <- dbListTables(ch3_db$con)
   cat("\nTables in Database:\n")
   cat(paste(tables, collapse = "\n"), "\n")
   
   # Unique Sample Names (if "calls" table exists)
   if ("calls" %in% tables) {
-    sample_names <- tbl(db_con, "calls") %>%
-      distinct(sample_name) %>%
-      arrange(sample_name) %>%
-      collect() %>%
+    sample_names <- tbl(ch3_db$con, "calls") |>
+      distinct(sample_name) |>
+      arrange(sample_name) |>
+      collect() |>
       pull(sample_name)
     
     cat("\nUnique Sample Names:\n")
     cat(paste(sample_names, collapse = "\n"), "\n")
+    cat("\n")
   } else {
     cat("\nNo 'calls' table found in the database.\n")
     sample_names <- character(0)
@@ -79,6 +76,7 @@ get_ch3_dbinfo <- function(ch3_db)
     num_samples = length(sample_names)
   )
   
-  return(invisible(stats))
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  return(invisible(ch3_db))
   
   }

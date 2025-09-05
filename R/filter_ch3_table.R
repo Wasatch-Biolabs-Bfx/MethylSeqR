@@ -29,6 +29,8 @@
 #' @export
 
 filter_ch3_table <- function(ch3_db, input_table, output_table, ...) {
+  start_time <- Sys.time()
+  
   if (missing(output_table)) {
     stop("Please specify an output_table name.")
   }
@@ -37,12 +39,10 @@ filter_ch3_table <- function(ch3_db, input_table, output_table, ...) {
   conditions <- enquos(...)
   
   # Connect to DuckDB
-  con <- dbConnect(duckdb(), dbdir = ch3_db)
-  on.exit(dbDisconnect(con, shutdown = TRUE))
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
   # Create a lazy DuckDB table
-  tbl_expr <- tbl(con, input_table)
-  
+  tbl_expr <- tbl(ch3_db$con, input_table)
   # Apply filters lazily via dbplyr (this generates SQL, not local evaluation)
   filtered_expr <- tryCatch({
     filter(tbl_expr, !!!conditions)
@@ -55,10 +55,16 @@ filter_ch3_table <- function(ch3_db, input_table, output_table, ...) {
   
   # Use a temp table to stage results
   temp_table <- paste0("tmp_", input_table, "_", as.integer(Sys.time()))
-  dbExecute(con, sprintf("CREATE TEMP TABLE %s AS %s", temp_table, sql_query))
+  dbExecute(ch3_db$con, sprintf("CREATE TEMP TABLE %s AS %s", temp_table, sql_query))
   
   # Write to output_table
-  dbExecute(con, sprintf("CREATE OR REPLACE TABLE %s AS SELECT * FROM %s", output_table, temp_table))
+  dbExecute(ch3_db$con, sprintf("CREATE OR REPLACE TABLE %s AS SELECT * FROM %s", output_table, temp_table))
   
+  cat("\n")
+  end_time <- Sys.time()
+  
+  message("Filter complete! Time elapsed: ", end_time - start_time, "\n")
+  
+  ch3_db <- .ch3helper_cleanup(ch3_db)
   invisible(ch3_db)
 }

@@ -77,13 +77,13 @@ make_ch3_db(ch3_files, ch3_db)
 
 After this step, a database is made and the raw calls table is included. A user 
 may continue their analysis in any direction they want. They may run a quality control 
-(`run_qc()`), summarize data by positions (`summarize_positions()`),
-regions (`summarize_regions()`), or windows (`summarize_windows()`). 
+(`run_ch3_qc()`), summarize data by positions (`summarize_ch3_positions()`),
+regions (`summarize_ch3_regions()`), or windows (`summarize_ch3_windows()`). 
 At any point in the analysis, a user can export a table in the database by calling
-`export_tables()`, or use `get_table()`to import as a tibble into the local environment.
+`export_ch3_tables()`, or use `get_ch3_table()`to import as a tibble into the local environment.
 All these functions will be explained below.
 
-## summarize_positions
+## summarize_ch3_positions
 This function summarizes methylation data (from the calls table) by each unique 
 position in the genome. A table called "positions" will be built into the database.
 
@@ -92,7 +92,7 @@ position in the genome. A table called "positions" will be built into the databa
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 
 # Summarize positions using annotation table
-summarize_positions(ch3_db)
+summarize_ch3_positions(ch3_db)
 ```
 
 A user must provide the path to the database with the argument `ch3_db`, but optionally
@@ -100,7 +100,7 @@ can include the modificaton type they want (m, h, or mh) with the argument `mod_
 the unique chromosomes with `chrs`, or the minimum number of calls required to 
 include a position in the summary with `min_num_calls` (default is 1).
 
-## summarize_regions
+## summarize_ch3_regions
 This function summarizes methylation data based on specified regions defined in 
 a BED, TSV, or CSV file. It performs a join operation between the methylation 
 data and the regions specified in the annotation file, allowing for different types of joins.
@@ -112,7 +112,7 @@ ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
 
 region_bed = system.file("Islands_hg38_test.csv", package = "MethylSeqR")
 # Summarize Regions using annotation table
-summarize_regions(ch3_db, region_bed)
+summarize_ch3_regions(ch3_db, region_file = region_bed)
 ```
 
 There are 2 required arguments. `ch3_db` is a list containing the database file 
@@ -123,7 +123,7 @@ a user can include the modificaton type they want (m, h, or mh) with the argumen
 `mod_type`, the unique chromosomes with `chrs`, or the minimum number of calls required to 
 include a region in the summary with `min_num_calls` (default is 1).
 
-## summarize_windows
+## summarize_ch3_windows
 This function summarizes methylation data from a ch3_db database by creating 
 sliding windows over the specified genomic regions. It allows for the adjustment 
 of window size and step size to control the granularity of the summarization.
@@ -134,7 +134,7 @@ A table called "windows" will be built into the database.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Calculate windows
-summarize_windows(ch3_db, window_size = 100, step_size = 100)
+summarize_ch3_windows(ch3_db, window_size = 100, step_size = 100)
 ```
 
 There is only 1 required arguments. `ch3_db` is a list containing the database 
@@ -148,7 +148,7 @@ of calls required to include a window in the summary with `min_num_calls` (defau
 `overwrite` is a logical indicating whether to overwrite the existing "windows" 
 table if it exists. Default is TRUE.
 
-## summarize_reads
+## summarize_ch3_reads
 This function summarizes methylation data from a ch3_db database by the reads.
 A table called "reads" will be built into the database.
 
@@ -157,7 +157,7 @@ A table called "reads" will be built into the database.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Calculate windows
-summarize_reads(ch3_db)
+summarize_ch3_reads(ch3_db)
 ```
 
 There is only 1 required arguments. `ch3_db` is a list containing the database 
@@ -170,7 +170,7 @@ the minimum number of CG sites for a read to be included. If a read has less tha
 that argument, it will not be included in the table.
 
 # Differential Methylation
-## calc_mod_diff
+## calc_ch3_diff
 This function calculates differential methylation between specified case and control groups using various statistical methods. 
 
 Differential methylation can be calculated from <b><i>positional</i></b>, <b><i>regional</i></b>, or <b><i>window</i></b> methylation data.
@@ -188,13 +188,13 @@ rewritten if called again on windows data).
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
   
 # Get methylation statistics for the 'positions' call type without plotting
-calc_mod_diff(ch3_db = ch3_db,
+calc_ch3_diff(ch3_db = ch3_db,
               call_type = "positions",
               cases = "blood",
               controls = "sperm")
 ``` 
 
-## collapse_windows
+## collapse_ch3_windows
 This function only works on a mod_diff_windows table already in the database.
 After a differential methylation analysis is called on windows, this will collapse 
 significant windows by merging contiguous regions that meet the specified criteria.
@@ -210,7 +210,30 @@ minimum absolute methylation difference required for inclusion in the analysis (
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
   
 # Collapse significant windows
-collapse_windows("my_data.ch3.db")
+collapse_ch3_windows("my_data.ch3.db")
+``` 
+
+## run_ch3_analysis
+This function automates an entire workflow in one command. It identifies differences in DNA methylation patterns between two groups (cases and controls) by summarizing methylation data at various genomic scales (positions, regions, or windows) and then performing statistical tests, outputting the results into organized CSV files within one directory.
+
+`run_ch3_analysis()` creates a new subdirectory named "Mod_Diff_Analysis_Results" within the out_path where all the data will be written to. It writes three CSV files into the "Mod_Diff_Analysis_Results" directory by directly copying tables from the DuckDB database:
+
+**mod_diff.csv**: Contains the results of the differential analysis (e.g., p-values, fold changes) for each position, region, or window. The source table in the database is determined by diff_table_name.
+
+**All_CpGs.csv**: Contains all the summarized methylation data for the chosen call_type (positions, regions, or windows) across all samples. The source table in the database is determined by call_type.
+
+**Sig_CpGs.csv**: Contains summarized methylation data for only those positions/regions/windows that are deemed significantly differentially methylated, based on the p_val_max threshold.
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+  
+# Collapse significant windows
+run_ch3_analysis(ch3_db, 
+             out_path = "/Users/analysis",
+             call_type = "windows",
+             cases = c("sperm"),
+             controls = c("blood"))
 ``` 
 
 # Quality Control 
@@ -218,7 +241,7 @@ collapse_windows("my_data.ch3.db")
 A variety of quality control functions are available to visually assess 
 methylation data. 
 
-## get_cov_stats
+## plot_ch3_cov
 This function calculates and optionally plots statistics for coverage data from
 methylation sequencing experiments. It can handle both positional and regional
 methylation data.
@@ -228,10 +251,10 @@ methylation data.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Get coverage statistics for the 'positions' call type
-get_cov_stats(ch3_db = ch3_db, call_type = "positions")
+plot_ch3_cov(ch3_db = ch3_db, call_type = "positions")
 ``` 
 
-## get_mod_stats
+## plot_ch3_modfrac
 This function retrieves and calculates methylation statistics (mean methylation 
 fractions) from a specified table in the ch3 database. It can either return 
 summary statistics or plot a histogram of the methylation values, depending on 
@@ -242,10 +265,10 @@ the user's preference.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Get methylation statistics for the 'positions' call type without plotting
-get_mod_stats(ch3_db = ch3_db, call_type = "positions")
+plot_ch3_modfrac(ch3_db = ch3_db, call_type = "positions")
 ``` 
 
-## cor_modseq
+## calc_ch3_samplecor
 This function calculates and optionally plots a correlation matrix for 
 methylation or other modification fraction data from genomic positions. 
 It can handle both position-based and region-based calls and supports 
@@ -256,10 +279,10 @@ visualization using ggplot2.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Run the correlation matrix function using the 'positions' call type and plot the results
-cor_modseq(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
+calc_ch3_samplecor(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
 ``` 
 
-## pca_modseq
+## plot_ch3_pca
 This function performs Principal Component Analysis (PCA) on methylation data 
 retrieved from the database.It aggregates the methylation fraction data 
 based on the specified call type and prepares it for PCA analysis.
@@ -268,13 +291,13 @@ based on the specified call type and prepares it for PCA analysis.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Calculate PCA
-pca_modseq(ch3_db)
+plot_ch3_pca(ch3_db)
 ``` 
 
 
-## run_qc
+## run_ch3_qc
 
-Combining all functions above, the `run_qc()`` function computes all QC checks
+Combining all functions above, the `run_ch3_qc()`` function computes all QC checks
 on methylation data at the same time. 
 
 ```{r}
@@ -282,15 +305,15 @@ on methylation data at the same time.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Calculate windows
-run_qc(ch3_db)
+run_ch3_qc(ch3_db)
 ``` 
  
 # Retrieving and Exporting Tables
 You can access data in your database with two different functions.
 
-## get_table
+## get_ch3_table
 To retrieve a single table into your local environment for further analysis within R, 
-using `get_table` will transform it into a tibble and store it into a variable.
+using `get_ch3_table` will transform it into a tibble and store it into a variable.
 Arguments required includes the database, and name of the table to be retrieved.
 
 ```{r, eval=FALSE}
@@ -298,15 +321,15 @@ Arguments required includes the database, and name of the table to be retrieved.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Get any table in your database and create a variable in R to work with
-positions = get_table("my_data.ch3.db", "positions")
-regions = get_table("my_data.ch3.db", "regions")
+positions = get_ch3_table("my_data.ch3.db", "positions")
+regions = get_ch3_table("my_data.ch3.db", "regions")
 
-mod_diff_regions = get_table("my_data.ch3.db", "mod_diff_regions")
-collapsed_windows = get_table("my_data.ch3.db", "collapsed_windows")
+mod_diff_regions = get_ch3_table("my_data.ch3.db", "mod_diff_regions")
+collapsed_windows = get_ch3_table("my_data.ch3.db", "collapsed_windows")
 ```
 
-## export_table
-To export one or more tables into a CSV file, use `export_table`. This function 
+## export_ch3_table
+To export one or more tables into a CSV file, use `export_ch3_table`. This function 
 takes three arguments, the database, which tables to export, and the path where 
 the CSV files will be saved. 
 
@@ -315,11 +338,11 @@ the CSV files will be saved.
 ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
  
 # Export the table to your computer
-export_table("my_data.ch3.db", 
+export_ch3_table("my_data.ch3.db", 
              table = "windows", 
              out_path = "/Desktop/My_Folder/windows.csv")
 
-export_table("my_data.ch3.db", 
+export_ch3_table("my_data.ch3.db", 
              table = "mod_diff_windows", 
              out_path = "/Desktop/My_Folder/mod_diff_windows.csv")
 ```

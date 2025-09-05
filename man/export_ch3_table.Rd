@@ -11,7 +11,7 @@ export_ch3_table(ch3_db, table = "positions", out_path)
 
 \item{table}{A character vector specifying the table to be exported from the database. Default is "positions".}
 
-\item{out_path}{A string. The path where the CSV files will be saved.}
+\item{out_path}{A string. The path to the directory where the CSV files will be saved. The file will automatically be named "{table name}.csv".}
 }
 \value{
 NULL. The function writes the specified tables to CSV files.

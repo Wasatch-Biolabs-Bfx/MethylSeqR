@@ -19,8 +19,16 @@
 #' @export
 
 get_ch3_cols <- function(ch3_db, table_name) {
-  con <- dbConnect(duckdb(), dbdir = ch3_db)
-  on.exit(dbDisconnect(con, shutdown = TRUE))
+  ch3_db <- .ch3helper_connectDB(ch3_db)
   
-  dbListFields(con, table_name)
+  # Check if table exists
+  if (!(table_name %in% dbListTables(ch3_db$con))) {
+    stop(paste("Table", table_name, "does not exist in the database."))
+  }
+  
+  cat(paste0("Columns in ", table_name, " table:\n"))
+  print(dbListFields(ch3_db$con, table_name))
+  
+  ch3_db <- .ch3helper_closeDB(ch3_db)
+  invisible(ch3_db)
 }

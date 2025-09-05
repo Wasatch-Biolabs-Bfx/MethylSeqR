@@ -27,15 +27,24 @@
 #' @export
 
 run_ch3_qc <- function(ch3_db, 
-                       call_type = "calls", 
+                       call_type = "positions", 
                        plot = TRUE, 
                        max_rows = NULL) {
-  message(paste0("running quality control on ", call_type, " table."))
-  message("\n")
+  
+  accepted_tables = c("calls", "positions", "regions", "windows")
+  
+  if (!(call_type %in% accepted_tables)) {
+    stop("Quality control plots can currently only be made for calls, positions, regions, or a windows table in your database. Please select one of these.\n")
+  }
+  
+  cat(paste0("Running quality control on ", call_type, " table."))
+  cat("\n")
+  
+  start_time = Sys.time()
   
   if (call_type == "calls") {
     suppressMessages(suppressWarnings(
-      summarize_positions(ch3_db = ch3_db)
+      summarize_ch3_positions(ch3_db)
     ))
     call_type = "positions" # switch call_type to positions now
   }
@@ -48,4 +57,22 @@ run_ch3_qc <- function(ch3_db,
   calc_ch3_samplecor(ch3_db, call_type, plot = plot, max_rows = max_rows)
   message("running pca...")
   plot_ch3_pca(ch3_db, call_type, max_rows = max_rows)
+  
+  end_time = Sys.time()
+  
+  total_time_difftime <- end_time - start_time
+  
+  # Convert the total_time_difftime object to numeric seconds for a reliable comparison
+  total_seconds <- as.numeric(total_time_difftime, units = "secs")
+  
+  if (total_seconds > 60) {
+    # If greater than 60 seconds, convert to numeric minutes for display
+    total_minutes <- as.numeric(total_time_difftime, units = "mins")
+    message("QC complete!",
+            "\nTime elapsed: ", round(total_minutes, 2), " minutes\n")
+  } else {
+    # Otherwise, display in numeric seconds
+    message("QC complete!", 
+            "\nTime elapsed: ", round(total_seconds, 2), " seconds\n")
+  }
 }
