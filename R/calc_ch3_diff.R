@@ -51,70 +51,79 @@ calc_ch3_diff <- function(ch3_db,
 
   # check for windows function
   if (!dbExistsTable(ch3_db$con, call_type)) { # add db_con into object and put in every function...
-    stop(paste0(call_type, " table does not exist. Build it with summarize_positions, summarize_regions, or summarize_windows."))
+    stop(call_type, " table does not exist. Build it with summarize_ch3_positions(), ",
+         "summarize_ch3_regions(), or summarize_ch3_windows().")
+  }
+  
+  # Discover available *_counts columns and validate mod_type
+  cols <- colnames(dplyr::tbl(ch3_db$con, call_type))
+  counts_cols <- grep("_counts$", cols, value = TRUE)
+  available_labels <- sub("_counts$", "", counts_cols)
+  
+  mod_type <- mod_type[1]
+  mod_counts_col <- paste0(mod_type, "_counts")
+  if (!mod_counts_col %in% cols) {
+    stop("Requested mod_type '", mod_type, "' not found in ", call_type, ". ",
+         "Available mod types are: ",
+         paste(sort(available_labels), collapse = ", "), ".\n",
+         "Tip: rebuild ", call_type, " with summarize_* and include mod_code = '", mod_type, "'.")
+  }
+  if (!"num_calls" %in% cols) {
+    stop(call_type, " is missing required column 'num_calls'. ",
+         "Recreate it with the latest summarize_* function.")
   }
   
   mod_diff_table <- paste0("mod_diff_", call_type)
-  
-  if (dbExistsTable(ch3_db$con, mod_diff_table)) {
-    dbRemoveTable(ch3_db$con, mod_diff_table)
+  if (DBI::dbExistsTable(ch3_db$con, mod_diff_table)) {
+    DBI::dbRemoveTable(ch3_db$con, mod_diff_table)
   }
   
-  cat("Running differential analysis...")
-  cat("\n")
-  # Set stat to use
-  mod_counts_col <- paste0(mod_type[1], "_counts")
+  cat("Running differential analysis...\n")
   
-  # Label cases and controls
   in_dat <-
-    tbl(ch3_db$con, call_type) |>
+    dplyr::tbl(ch3_db$con, call_type) |>
     dplyr::select(
-      sample_name, any_of(c("region_name", "chrom", "start", "end")),
-      num_calls, mod_counts = !!mod_counts_col) |>
+      sample_name,
+      dplyr::any_of(c("region_name", "chrom", "start", "end")),
+      num_calls,
+      mod_counts = dplyr::all_of(mod_counts_col)
+    ) |>
     dplyr::mutate(
-      exp_group = case_when(
+      exp_group = dplyr::case_when(
         sample_name %in% cases ~ "case",
         sample_name %in% controls ~ "control",
-        TRUE ~ NA)) |>
-    filter(
-      !is.na(exp_group))
+        TRUE ~ NA_character_
+      )
+    ) |>
+    dplyr::filter(!is.na(exp_group))
   
-  # Get unique sample names in the data
-  all_samples <- unique(pull(in_dat, sample_name))
+  # Check sample names present
+  all_samples <- unique(dplyr::pull(in_dat, sample_name))
   if (any(!cases %in% all_samples)) {
-    stop(paste(
-      "Check case names - some case samples are missing from the data:",
-      paste(cases[!cases %in% all_samples], collapse = ", ")
-    ))
+    missing <- paste(cases[!cases %in% all_samples], collapse = ", ")
+    stop("Check case names - some case samples are missing from the data: ", missing)
   }
-  
   if (any(!controls %in% all_samples)) {
-    stop(paste(
-      "Check control names- some control samples are not in the data:",
-      paste(controls[!controls %in% all_samples], collapse = ", ")
-    ))
+    missing <- paste(controls[!controls %in% all_samples], collapse = ", ")
+    stop("Check control names - some control samples are not in the data: ", missing)
   }
   
-  # Calculate p-vals and diffs
+  # Compute p-values / diffs
   result <- switch(calc_type,
-                   fast_fisher = .calc_diff_fisher(in_dat,
-                                                   calc_type = "fast_fisher"),
-                   r_fisher    = .calc_diff_fisher(in_dat,
-                                                   calc_type = "r_fisher"),
-                   log_reg     = .calc_diff_logreg(in_dat)) |>
-    rename_with(
-      ~ gsub("mod", mod_type[1], .x))
+                   fast_fisher = .calc_diff_fisher(in_dat, calc_type = "fast_fisher"),
+                   r_fisher    = .calc_diff_fisher(in_dat, calc_type = "r_fisher"),
+                   log_reg     = .calc_diff_logreg(in_dat),
+                   stop("Unknown calc_type: ", calc_type, ". Use 'fast_fisher', 'r_fisher', or 'log_reg'.")
+  ) |>
+    # rename mod_* columns to e.g. a_* or mh_* to reflect the chosen mod_type
+    dplyr::rename_with(~ gsub("^mod", mod_type, .x))
   
   
   result |>
-    collect() |>
-    mutate(p_adjust = p.adjust(p_val, method = "BH")) |>
-    arrange(p_adjust) |>
-    dbWriteTable(
-      conn = ch3_db$con, 
-      name = mod_diff_table, 
-      append = TRUE
-    )
+    dplyr::collect() |>
+    dplyr::mutate(p_adjust = stats::p.adjust(p_val, method = "BH")) |>
+    dplyr::arrange(p_adjust) |>
+    DBI::dbWriteTable(conn = ch3_db$con, name = mod_diff_table, append = TRUE)
 
   end_time <- Sys.time()
   total_time_difftime <- end_time - start_time
@@ -137,14 +146,8 @@ calc_ch3_diff <- function(ch3_db,
     message("Call collapse_ch3_windows() to collapse significant windows.\n")
   } 
   
-  # if (call_type == "windows" && collapse_windows == TRUE) {
-  #   cat("\nCollapsing Windows...\n")
-  #   .collapse_windows(db_con)
-  #   message("collapsed_windows table successfully created!\n")
-  # }
-  
   # Print a preview of what table looks like
-  print(head(tbl(ch3_db$con, mod_diff_table)))
+  print(head(dplyr::tbl(ch3_db$con, mod_diff_table)))
   
   ch3_db$current_table = mod_diff_table
   ch3_db <- .ch3helper_cleanup(ch3_db)

@@ -158,6 +158,22 @@ make_ch3_db <- function(ch3_files,
   )
   if (nrow(df_files) == 0) stop("No .ch3 files found.")
   
+  # --- derive robust fallback names in R (not SQL) -------------------------------
+  derive_sample_from_path <- function(p) {
+    b <- basename(p)
+    # strip case-insensitive ".ch3"
+    stem <- sub("(?i)\\.ch3$", "", b, perl = TRUE)
+    # then strip a trailing "-<digits>" if present
+    stem <- sub("-[0-9]+$", "", stem, perl = TRUE)
+    stem
+  }
+  
+  need_name <- is.na(df_files$sample_name) | !nzchar(df_files$sample_name)
+  df_files$sample_name[need_name] <- vapply(df_files$file[need_name], derive_sample_from_path, character(1))
+  
+  # also store basename to make the SQL JOIN robust across path formats
+  df_files$base <- basename(df_files$file)
+  
   # --- DB setup -------------------------------------------------------------------
   if (!grepl("\\.ch3\\.db$", db_name)) db_name <- paste0(db_name, ".ch3.db")
   cat("Building Database...\n")
@@ -236,21 +252,17 @@ make_ch3_db <- function(ch3_files,
     CREATE TABLE calls AS
     WITH src AS (
       SELECT *
-      FROM read_parquet({file_list_sql}, filename = TRUE)  -- add union_by_name=TRUE if schemas vary
+      FROM read_parquet({file_list_sql}, filename = TRUE)
     ),
     tagged AS (
       SELECT
-        COALESCE(m.sample_name,
-          REGEXP_REPLACE(
-            REGEXP_EXTRACT(s.filename, '[^/\\\\\\\\]+$'),
-            '\\\\.ch3$',
-            ''
-          )
-        ) AS sample_name,
+        -- use the sample_name we computed in R
+        m.sample_name AS sample_name,
         {wanted_sql}
       FROM src s
       LEFT JOIN file_map m
         ON m.file = s.filename
+        OR m.base = REGEXP_REPLACE(s.filename, '^.*[/\\\\\\\\]', '')
     )
     SELECT *
     FROM tagged
