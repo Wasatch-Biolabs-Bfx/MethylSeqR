@@ -6,7 +6,7 @@
 # MethylSeqR
 
 ## Version 0.8.1 
-**(Updated August 6 2025)**
+**(Updated September 5th 2025)**
 
 ***Note***: *This is an early release - changes may occur that significantly change the functionality and structure of the data and functions. The user should be aware that subsequent releases may break code written using earlier releases.*
 
