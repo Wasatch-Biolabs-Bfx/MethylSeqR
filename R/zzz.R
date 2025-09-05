@@ -28,21 +28,29 @@
 
 .onAttach <- function(lib, pkg)
 {
-  msg1 <- paste0(
-    "========================================\n",    
-    "  ╔╦╗╔═╗╔╦╗╦ ╦╦ ╦╦  ╔═╗╔═╗╔═╗ ╦═╗\n",
-    "  ║║║║╣  ║ ╠═╣╚╦╝║  ╚═╗║╣ ║═╬╗╠╦╝\n",
-    "  ╩ ╩╚═╝ ╩ ╩ ╩ ╩ ╩═╝╚═╝╚═╝╚═╝╚╩╚═", packageVersion(pkg), "\n",
-    "========================================\n",
-    "Created by Wasatch Biolabs\n",
-    "Research & Clinical Nanopore Sequencing\n",
-    "www.wasatchbiolabs.com\n")
+  pv <- packageVersion(pkg)
+  msg1 <- 
+    glue::glue("========================================",    
+               "  ╔╦╗╔═╗╔╦╗╦ ╦╦ ╦╦  ╔═╗╔═╗╔═╗ ╦═╗       ",
+               "  ║║║║╣  ║ ╠═╣╚╦╝║  ╚═╗║╣ ║═╬╗╠╦╝       ",
+               "  ╩ ╩╚═╝ ╩ ╩ ╩ ╩ ╩═╝╚═╝╚═╝╚═╝╚╩╚═{pv}   ",
+               "========================================",
+               .sep = "\n")
   
-  msg2 <- paste("MethylSeqR", packageVersion(pkg), "www.wasatchbiolabs.com")
+  msg2 <- paste("MethylSeqR v", packageVersion(pkg))
   
   if (interactive()) {
     packageStartupMessage(msg1)
   } else {
     packageStartupMessage(msg2)
   }
+  
+  packageStartupMessage("Created by Wasatch Biolabs")
+  packageStartupMessage("Research & Clinical Nanopore Sequencing")
+  packageStartupMessage("www.wasatchbiolabs.com")
+  packageStartupMessage("")
+  packageStartupMessage("This package is licensed for personal") 
+  packageStartupMessage("and internal research use only.")
+  packageStartupMessage("See the LICENSE file or visit")
+  packageStartupMessage("https://your-website-or-repo/LICENSE.")
 }
