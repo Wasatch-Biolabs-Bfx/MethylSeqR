@@ -2,53 +2,136 @@
 % Please edit documentation in R/summarize_ch3_positions.R
 \name{summarize_ch3_positions}
 \alias{summarize_ch3_positions}
-\title{Summarize Methylation Positions from Calls Table}
+\title{Summarize per-position methylation calls into a DuckDB table}
 \usage{
 summarize_ch3_positions(
   ch3_db,
-  table_name = "positions",
-  mod_type = c("c", "m", "h", "mh"),
+  input_table = "calls",
+  output_table = "positions",
   chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
     1:22), "ChrX", "ChrY", "ChrM"),
-  min_num_calls = 1
+  samples = NULL,
+  mod_code = c("m", "h", "m + h"),
+  unmod_code = "-",
+  unmod_label = "c",
+  min_num_calls = 1,
+  temp_dir = tempdir(),
+  threads = NULL,
+  memory_limit = NULL,
+  overwrite = TRUE
 )
 }
 \arguments{
-\item{ch3_db}{A DuckDB database connection or file path (character) to the `.ch3.db` file.}
+\item{ch3_db}{A path to a \code{.ch3.db} DuckDB file or a \code{"ch3_db"} object; a connection
+is opened via internal helpers and closed on return.}
 
-\item{table_name}{A string specifying what the user would like the name to be called in the database. Default is "positions".}
+\item{input_table}{Name of the source table containing call-level records (default \code{"calls"}).
+Must include at least: \code{sample_name}, \code{chrom}, \code{start}, \code{call_code}.}
 
-\item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
-`"m"` (methylation), `"h"` (hydroxymethylation), 
-  and `"mh"` (methylated + hydroxymethylated).}
+\item{output_table}{Name of the destination positions table to create/extend (default \code{"positions"}).}
 
-\item{chrs}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
-sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
+\item{chrs}{Character vector of chromosome/name filters. Rows whose \code{chrom} match any value
+are retained. Defaults to common human aliases (1–22, \code{chrX}, \code{chrY}, \code{chrM}, etc.).}
 
-\item{min_num_calls}{Minimum number of calls required to include a position in the summary. Default is 1.}
+\item{samples}{Optional character vector of \code{sample_name}s to include. If \code{NULL},
+all samples present in \code{input_table} are processed.}
+
+\item{mod_code}{Character vector of modification specifications to count. Each entry is either
+a single code (e.g., \code{"m"}, \code{"h"}, \code{"a"}) or a \code{"code1 + code2"} combination.
+Default: \code{c("m","h","m + h")}.}
+
+\item{unmod_code}{The call code representing unmodified calls (default \code{"-"}).}
+
+\item{unmod_label}{Label used to name unmodified columns (default \code{"c"} yielding
+\code{c_counts} and \code{c_frac}).}
+
+\item{min_num_calls}{Minimum total calls required at a position to be written (default \code{1}).}
+
+\item{temp_dir}{Directory for DuckDB temporary files (default \code{tempdir()}).}
+
+\item{threads}{Integer DuckDB thread count. If \code{NULL}, uses an internal heuristic
+(typically all-but-one core).}
+
+\item{memory_limit}{DuckDB memory limit string (e.g., \code{"16384MB"}). If \code{NULL},
+an internal heuristic (~80\% of RAM) is used.}
+
+\item{overwrite}{If \code{TRUE} and \code{output_table} exists, it is dropped before writing.}
 }
 \value{
-The modified `ch3_db` object with the updated `positions` table.
+(Invisibly) a \code{"ch3_db"} object pointing to the same DB file with
+  \code{current_table} set to \code{output_table}. The created table has columns:
+  \itemize{
+    \item \code{sample_name}, \code{chrom}, \code{start}, \code{end},
+          \code{num_calls},
+    \item for each label in \code{c(unmod_label, parsed(mod_code))}: \code{<label>_counts}, \code{<label>_frac}.
+  }
 }
 \description{
-This function processes methylation call data from a DuckDB database, summarizing 
-coverage and call counts into a `positions` table.
+Aggregates row-level CH3 calls (from \code{input_table}, typically \code{"calls"})
+into a per-sample, per-genomic-position table (\code{output_table}, default \code{"positions"}).
+Counts and fractions are created for the unmodified class and for any set of
+user-defined modification codes and/or combinations (e.g., \code{"m"}, \code{"h"},
+\code{"m + h"}, \code{"a"}).
 }
 \details{
 The function:
-- Connects to the DuckDB database.
-- Summarizes methylation calls by `sample_name`, `chrom`, `start`, and `end`.
-- Computes coverage and call counts (`m`, `h`, `mh`, `c`).
-- Filters based on `min_num_calls`.
-- Creates a `positions` table in the database.
-
-A progress bar is displayed during execution.
+\enumerate{
+  \item Opens a DB connection and configures DuckDB pragmas (\code{temp_directory}, \code{threads}, \code{memory_limit}).
+  \item Determines the list of samples to process (all by default, or the intersection with \code{samples}).
+  \item Builds dynamic SQL to compute, per sample and position (\code{chrom}, \code{start}):
+        \code{num_calls}, \code{<label>_counts} for each requested code/combination, and
+        \code{<label>_frac} = \code{<label>_counts / num_calls}.
+  \item Pre-creates the \code{output_table} schema with the appropriate dynamic columns, then
+        inserts rows per sample. \code{end} is set equal to \code{start}.
 }
+Positions with \code{num_calls < min_num_calls} are skipped. Chromosome filtering is done in SQL.
+}
+\section{How modification codes work}{
+
+Pass \code{mod_code} as character values (single codes) or \code{"code1 + code2"} to
+build combinations. Column labels are derived by removing spaces and \code{"+"}. For example:
+\itemize{
+  \item \code{mod_code = c("m", "h", "m + h")} produces columns \code{m_counts}, \code{h_counts}, \code{mh_counts}
+  \item \code{mod_code = "a"} produces \code{a_counts}
+}
+The unmodified class is controlled by \code{unmod_code} (e.g., \code{"-"}), with a column
+name prefix set by \code{unmod_label} (default \code{"c"} for \code{c_counts}, \code{c_frac}).
+}
+
 \examples{
-# Specify the path to the database
-ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+\dontrun{
+# From a calls table, build per-position summaries for default m/h classes:
+summarize_ch3_positions(
+  ch3_db       = "my_db.ch3.db",
+  input_table  = "calls",
+  output_table = "positions"
+)
 
-# Summarize Positions
-summarize_ch3_positions(ch3_db)
+# Restrict to specific samples and chromosomes, require at least 5 calls:
+summarize_ch3_positions(
+  ch3_db       = "my_db.ch3.db",
+  samples      = c("Cortical_Neurons","Astrocytes"),
+  chrs         = c("chr1","chrX"),
+  min_num_calls = 5
+)
 
+# Count a novel code "a" and an m+h combination; rename unmodified to 'u':
+summarize_ch3_positions(
+  ch3_db       = "my_db.ch3.db",
+  mod_code     = c("a", "m + h"),
+  unmod_code   = "-",
+  unmod_label  = "u"
+)
+
+# Recreate positions table (drop if exists):
+summarize_ch3_positions(
+  ch3_db       = "my_db.ch3.db",
+  overwrite    = TRUE
+)
+}
+
+}
+\seealso{
+\code{\link{make_ch3_db}}, \code{\link{summarize_ch3_regions}},
+\code{\link{summarize_ch3_windows}}, \code{\link{calc_ch3_diff}}
 }
