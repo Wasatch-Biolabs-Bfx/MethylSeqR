@@ -2,61 +2,139 @@
 % Please edit documentation in R/summarize_ch3_windows.R
 \name{summarize_ch3_windows}
 \alias{summarize_ch3_windows}
-\title{Summarize Methylation Data using a Sliding Window}
+\title{Summarize methylation in sliding windows}
 \usage{
 summarize_ch3_windows(
   ch3_db,
-  table_name = "windows",
+  input_table = "calls",
+  output_table = "windows",
   window_size = 1000,
   step_size = 10,
-  mod_type = c("c", "m", "h", "mh"),
   chrs = c(as.character(1:22), paste0("chr", 1:22), "chrX", "chrY", "chrM", paste0("Chr",
     1:22), "ChrX", "ChrY", "ChrM"),
+  samples = NULL,
+  mod_code = c("m", "h", "m + h"),
+  unmod_code = "-",
+  unmod_label = "c",
   min_num_calls = 1,
+  temp_dir = tempdir(),
+  threads = NULL,
+  memory_limit = NULL,
   overwrite = TRUE
 )
 }
 \arguments{
-\item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
+\item{ch3_db}{Path to a \code{.ch3.db} DuckDB file or a \code{"ch3_db"} object.
+A connection is opened via internal helpers and closed/cleaned on return.}
 
-\item{table_name}{A string specifying what the user would like the name to be called in the database. Default is "windows".}
+\item{input_table}{Source table containing call-level records (default \code{"calls"}).
+Must contain at least: \code{sample_name}, \code{chrom}, \code{start}, \code{call_code}.}
 
-\item{window_size}{An integer specifying the size of the sliding window in base pairs. Default is 1000.}
+\item{output_table}{Destination window table name (default \code{"windows"}).}
 
-\item{step_size}{An integer specifying the number of base pairs to step forward with each window. Default is 10.}
+\item{window_size}{Integer window width in bases (default \code{1000}).}
 
-\item{mod_type}{A character vector specifying the modification types to include. Options are  `"c"` (unmodified cytosine),
-`"m"` (methylation), `"h"` (hydroxymethylation), 
-  and `"mh"` (methylated + hydroxymethylated).}
+\item{step_size}{Step, in bases, used to create staggered window offsets
+(default \code{10}). Offsets are \code{seq(1, window_size - 1, by = step_size)}.}
 
-\item{chrs}{A character vector specifying which chromosomes to include. Default includes all autosomes, 
-sex chromosomes (chrX, chrY), and mitochondrial chromosome (chrM).}
+\item{chrs}{Character vector of chromosome filters; rows whose \code{chrom} match any
+value are retained. Defaults to common human aliases (1–22, \code{chrX}, \code{chrY}, \code{chrM}, …).}
 
-\item{overwrite}{A logical indicating whether to overwrite the existing "windows" table if it exists. Default is TRUE.}
+\item{samples}{Optional character vector of \code{sample_name}s to include. If \code{NULL},
+all samples present in \code{input_table} are processed.}
 
-\item{call_type}{A string indicating the type of data to summarize. Default is "positions".}
+\item{mod_code}{Character vector of modification specs to count (single codes or
+\code{"code1 + code2"} combinations). Default \code{c("m","h","m + h")}.}
+
+\item{unmod_code}{Call code representing unmodified (default \code{"-"}).}
+
+\item{unmod_label}{Label used to name unmodified columns (default \code{"c"}).}
+
+\item{min_num_calls}{Minimum total calls required for a window to be written
+(default \code{1}). Windows below this threshold are skipped.}
+
+\item{temp_dir}{Directory for DuckDB temporary files (default \code{tempdir()}).}
+
+\item{threads}{Integer DuckDB thread count. If \code{NULL}, an internal heuristic
+(typically all-but-one core) is used.}
+
+\item{memory_limit}{DuckDB memory limit string (e.g. \code{"16384MB"}).
+If \code{NULL}, an internal heuristic (~80\% of RAM) is used.}
+
+\item{overwrite}{If \code{TRUE} and \code{output_table} exists, it is dropped before writing.}
 }
 \value{
-The updated `ch3_db` object with the summarized windows data added to the DuckDB database.
+(Invisibly) a \code{"ch3_db"} object pointing to the same DB file with
+  \code{current_table} set to \code{output_table}. The created table has columns:
+  \itemize{
+    \item \code{sample_name}, \code{chrom}, \code{start}, \code{end},
+          \code{num_CpGs}, \code{num_calls},
+    \item for each label in \code{c(unmod_label, parsed(mod_code))}:
+          \code{<label>_counts}, \code{<label>_frac}.
+  }
 }
 \description{
-This function summarizes methylation data from a DuckDB database by creating 
-sliding windows over the specified genomic regions. It allows for the adjustment 
-of window size and step size to control the granularity of the summarization.
+Aggregates call-level rows from \code{input_table} (typically \code{"calls"})
+into per-sample window summaries written to \code{output_table} (default \code{"windows"}).
+Windows are created using a \strong{tiling + offsets} strategy so that every
+\code{start} position is assigned to one or more windows depending on the
+\code{step_size}. For each window the function computes:
+total CpG sites, total calls, per-class counts, and per-class fractions.
 }
 \details{
-The function connects to a DuckDB database and removes any existing "windows" and "temp_table" tables if necessary. 
-It creates a sequence of offsets based on the specified window and step sizes, and then it iterates through 
-these offsets to generate sliding windows of methylation data. A progress bar is displayed during the operation.
-
-The function utilizes the helper function `.make_window` to perform the actual window calculation and summarization.
-The resulting summarized data is stored in a table called "windows" within the database.
+For each sample, the function first aggregates per-position counts from
+\code{input_table} (\code{num_calls} plus dynamically generated
+\code{<label>_counts} per \code{mod_code}/\code{unmod_code}). It then creates
+sliding windows by assigning each position to a window start computed as:
+\deqn{temp\_start = start - ((start - offset) \bmod window\_size).}
+For each \code{offset} in \code{seq(1, window_size - 1, by = step_size)}, it
+sums counts over \code{[temp_start, temp_start + window_size - 1]} and writes:
+\itemize{
+  \item \code{num_CpGs}: number of positions aggregated in the window
+  \item \code{num_calls}: sum of \code{num_calls}
+  \item \code{<label>_counts}: summed counts for each label
+  \item \code{<label>_frac}: \code{<label>_counts / num_calls} (NULL if \code{num_calls == 0})
 }
+Resource pragmas (\code{temp_directory}, \code{threads}, \code{memory_limit}) are set
+via internal heuristics unless overridden.
+}
+\section{How modification codes work}{
+
+Pass \code{mod_code} as single codes (e.g. \code{"m"}, \code{"h"}, \code{"a"})
+or combinations with \code{"+"} (e.g. \code{"m + h"}). Labels are created by
+removing spaces and \code{"+"} (e.g. \code{"m + h"} \u2192 \code{"mh"}). For each
+label the table includes \code{<label>_counts} and \code{<label>_frac}. The
+unmodified class is defined by \code{unmod_code} (default \code{"-"}), named
+using \code{unmod_label} (default \code{"c"} \u2192 \code{c_counts}, \code{c_frac}).
+}
+
 \examples{
- # Specify the path to the database
-ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+\dontrun{
+# Default m/h windows (1kb windows, 10bp staggered offsets)
+summarize_ch3_windows("my_db.ch3.db")
 
-# Summarize Windows
-summarize_ch3_windows(ch3_db, window_size = 100, step_size = 100)
+# Custom mod codes with a novel 'a' code and stricter filtering
+summarize_ch3_windows(
+  ch3_db        = "my_db.ch3.db",
+  mod_code      = c("a", "m + h"),
+  min_num_calls = 25,
+  window_size   = 2000,
+  step_size     = 20
+)
 
+# Limit to selected samples and chromosomes; recreate table if present
+summarize_ch3_windows(
+  ch3_db       = "my_db.ch3.db",
+  samples      = c("Astrocytes","Blood_Plasma"),
+  chrs         = c("chr1","chrX"),
+  overwrite    = TRUE
+)
+}
+
+}
+\seealso{
+\code{\link{make_ch3_db}},
+\code{\link{summarize_ch3_positions}},
+\code{\link{summarize_ch3_regions}},
+\code{\link{calc_ch3_diff}}
 }
