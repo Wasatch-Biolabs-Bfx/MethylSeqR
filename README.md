@@ -91,7 +91,14 @@ export_ch3_table(ch3_db, "collapsed_windows", "../results_directory")
 
 ***Warning*** *- If using samples other than human or with unique chromosome names, remember to adjust the chrs argument in each function!*
 
-## Vignette
+## Get Help
+To see detail documentation on a specific function in R, call `?{function}`. Example:
+```{r, eval = FALSE}
+?make_ch3_db()
+```
+This will render development documentation for that function in the Help tab in Rstudio
+
+### Vignette
 To get detailed instructions and help working through the package, build and follow along the vignette by calling:
 ```{r, eval = FALSE}
 browseVignettes("MethylSeqR")
