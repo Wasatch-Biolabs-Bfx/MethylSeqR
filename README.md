@@ -109,6 +109,8 @@ in R and click on HTML in your browser. Or, to browse the vignette in your R env
 vignette("MethylSeqRWalkthrough")
 ```
 
+If you have any suggestions or requested features, please email Jonathon Hill at jhill@byu.edu.
+
 #### Developed by Wasatch Biolabs.
 #### Visit us on [our website](https://www.wasatchbiolabs.com/) for more details.
 
