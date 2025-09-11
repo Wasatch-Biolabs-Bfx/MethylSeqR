@@ -91,7 +91,7 @@ export_ch3_table(ch3_db, "collapsed_windows", "../results_directory")
 
 ***Warning*** *- If using samples other than human or with unique chromosome names, remember to adjust the chrs argument in each function!*
 
-## Get Help
+## Getting Help
 To see detail documentation on a specific function in R, call `?{function}`. Example:
 ```{r, eval = FALSE}
 ?make_ch3_db()
