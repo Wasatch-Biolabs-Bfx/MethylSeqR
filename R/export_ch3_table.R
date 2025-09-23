@@ -19,10 +19,7 @@
 #' 
 #' @return NULL. The function writes the specified tables to CSV files.
 #' 
-#' @importFrom DBI dbConnect dbDisconnect dbListTables
-#' @importFrom duckdb duckdb
-#' @importFrom dplyr tbl
-#' @importFrom utils write.csv
+#' @importFrom DBI dbExistsTable dbQuoteIdentifier dbQuoteString dbExecute
 #'
 #' @export
 
