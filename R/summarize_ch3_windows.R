@@ -10,10 +10,10 @@
 #' @section How modification codes work:
 #' Pass \code{mod_code} as single codes (e.g. \code{"m"}, \code{"h"}, \code{"a"})
 #' or combinations with \code{"+"} (e.g. \code{"m + h"}). Labels are created by
-#' removing spaces and \code{"+"} (e.g. \code{"m + h"} \u2192 \code{"mh"}). For each
+#' removing spaces and \code{"+"} (e.g. \code{"m + h"} → \code{"mh"}). For each
 #' label the table includes \code{<label>_counts} and \code{<label>_frac}. The
 #' unmodified class is defined by \code{unmod_code} (default \code{"-"}), named
-#' using \code{unmod_label} (default \code{"c"} \u2192 \code{c_counts}, \code{c_frac}).
+#' using \code{unmod_label} (default \code{"c"} → \code{c_counts}, \code{c_frac}).
 #'
 #' @param ch3_db Path to a \code{.ch3.db} DuckDB file or a \code{"ch3_db"} object.
 #'   A connection is opened via internal helpers and closed/cleaned on return.
