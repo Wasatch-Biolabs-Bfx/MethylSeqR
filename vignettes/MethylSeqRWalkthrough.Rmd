@@ -165,6 +165,82 @@ will be filtered for just those windows from the key_table.Lastly, `min_CGs` spe
 the minimum number of CG sites for a read to be included. If a read has less than 
 that argument, it will not be included in the table.
 
+# Convenience utilities (inspect, rename, and tidy)
+
+Sometimes you just want to peek at what’s in your database, check a table’s
+shape, or quickly fix sample names. The helpers below are lightweight wrappers
+around DuckDB/DBI that do exactly that.
+
+## get_ch3_dbinfo()
+
+Prints a quick summary of the database: on-disk size, a list of tables, and the
+distinct sample_names (if a calls table exists). Invisibly returns the
+closed ch3_db object.
+
+```{r eval=FALSE}
+# Path or ch3_db object both work
+get_ch3_dbinfo("my_data.ch3.db")
+```
+
+## get_ch3_tableinfo()
+
+Summarizes a single table: total rows, per-sample row counts (if the table has a
+sample_name column), and a list of columns. Good first check after creating a
+table.
+
+```{r eval=FALSE}
+get_ch3_tableinfo("my_data.ch3.db", table_name = "positions")
+```
+
+## get_ch3_cols()
+
+Returns (and prints) the column names for a given table. Handy when you’re about
+to write a query and can’t remember exact column names.
+
+```{r eval=FALSE}
+get_ch3_cols("my_data.ch3.db", "windows")
+```
+
+## get_ch3_cpg_count()
+
+Counts unique CpG sites in a table, where uniqueness is defined by distinct
+(start, end) pairs. Prints a small summary and invisibly returns the count.
+
+```{r eval=FALSE}
+n_cpg <- get_ch3_cpg_count("my_data.ch3.db", table_name = "calls")
+```
+
+## rename_ch3_samples()
+
+Renames sample_names directly in a specified table (e.g., positions,
+windows, regions, calls). You provide a mapping from old → new names as a
+named character vector (c(old = "new", ...)) or a two-column data frame
+with old and new. The function validates inputs, updates in place, and
+(optionally) prints a before/after list of distinct names.
+
+```{r eval=FALSE}
+# Rename in the 'positions' table
+rename_ch3_samples(
+  "my_data.ch3.db",
+  table       = "positions",
+  samples_map = c("Cortical_Neurons" = "Cortex", "Blood" = "PBMC"),
+  preview     = TRUE
+)
+```
+
+## remove_ch3_table()
+
+Deletes a table by name if it exists, with a clear message either way (no error
+if the table is missing). Useful to clean up experiments.
+
+```{r eval=FALSE}
+remove_ch3_table("my_data.ch3.db", "tmp_debug_table")
+```
+
+
+*Tip*: All helpers accept either a path to the *.ch3.db file or an existing
+ch3_db object. They open a connection, do the work, and close it for you.*
+
 # Differential Methylation
 ## calc_ch3_diff
 This function calculates differential methylation between specified case and control groups using various statistical methods. 
