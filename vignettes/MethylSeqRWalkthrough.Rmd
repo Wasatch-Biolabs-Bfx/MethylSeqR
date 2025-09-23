@@ -26,14 +26,61 @@ opts_chunk$set(tidy=FALSE, tidy.opts=list(width.cutoff=70))
 The `MethylSeqR` package provides basic functions for importing and 
 working with third-generation methylation sequencing data.
 
-This vignette will walk you through a typical workflow using CH3 files created 
-by Wasatch Biolabs (https://www.wasatchbiolabs.com/). These files contain results 
-from a third-generation sequencing run. A CH3 file will be created for each sample within 
-a run, and is meant as an intermediate existing to compress large amounts of 
-data into a usable form. 
+This vignette will walk you through a typical workflow. If sequencing data is coming from
+Wasatch Biolabs (https://www.wasatchbiolabs.com/), `.ch3` files will be delivered directly if requested
+for your batch. These `.ch3` files contain methylation calls from a third-generation sequencing run. 
+A `.ch3` file will typically be created for each sample within a run, and is meant 
+as an intermediate existing to compress large amounts of data into a usable form.
+
+If not delivered through Wasatch Biolabs, `.ch3` files can be built using this package.
 
 It's most helpful to store all the sample CH3 files from a run you want to 
 analyze within a single directory to get started. 
+
+# Creating `.ch3` files from a TSV (optional)
+
+If your methylation calls are in a delimited text file (e.g., from a `modkit extract-calls` TSV),
+you can convert them into compressed `.ch3` archives using `make_ch3_archive()`. 
+This will dramatically reduce file size and allow use of the MethylSeqR package.
+
+`make_ch3_archive()` reads a tab-delimited calls file, selects and transforms the 
+required columns, and writes a compressed Arrow dataset to `out_path` using zstd compression. 
+The function derives `start`/`end` coordinates per CpG (accounting for strand and the CG k-mer), 
+optionally shortens long `read_id`'s to shrink file size (`short_ids = TRUE`), and embeds 
+your `sample_name` into the output filenames. The output may be sharded into multiple 
+files (e.g., `SampleA-0.ch3`, `SampleA-1.ch3`, …) depending on Arrow’s writer.
+
+## Coordinate convention:
+The `.ch3` files use 0-based, half-open coordinates for `start`/`end` (like BED format). This means the `start` column is inclusive and `end` is exclusive. Keep this in mind if you compare `.ch3` positions to genome browsers or annotation files that use 1-based inclusive coordinates (e.g., GTF/GFF). Conversion may be required when joining with external annotations.
+
+## Expected input columns (typical from modkit):
+`read_id`,`forward_read_position`, `ref_position`, `ref_mod_strand`, `chrom`,
+`read_length`, `query_kmer`, `call_prob`, `call_code`, `base_qual`, `flag`.
+
+After the `.ch3` files are written, point `make_ch3_db()` at the directory containing them (or pass their paths directly), and the package will take care of the rest.
+
+```{r eval=FALSE}
+# Convert a modkit TSV to a compressed .ch3 archive
+make_ch3_archive(
+  file_name   = "/path/to/modkit_calls.tsv",  # tab-delimited input
+  sample_name = "Astrocytes",                 # used in output filenames
+  out_path    = "/path/to/ch3_out",           # directory to write .ch3 files
+  short_ids   = TRUE                          # shorten read_id to reduce size
+)
+
+# The directory now contains e.g.: Astrocytes-0.ch3, Astrocytes-1.ch3, ...
+# Build a DB from those .ch3 files:
+make_ch3_db(
+  ch3_files = "/path/to/ch3_out",   # a directory OR a vector of file paths
+  db_name   = "astro_db"
+)
+```
+
+## Notes & tips
+* If your input file contains unplaced minus-strand rows at position 0 (common in some extract outputs), those are filtered automatically.
+* If you already have concise read IDs, set short_ids = FALSE.
+* You can run make_ch3_archive() for each sample TSV, all writing into the same out_path; make_ch3_db() can then ingest the whole directory in one call.
+* The .ch3 files are standard Parquet—fast to read, compact on disk, and splittable for parallel import.
 
 # Loading Data
 The first step of a workflow will be to upload data from a directory holding 
