@@ -26,48 +26,36 @@
 #'
 #' @export
 
-export_ch3_table <- function(ch3_db,
-                         table = "positions",
-                        out_path) 
-{
-  # Open the database connection
+export_ch3_table <- function(ch3_db, 
+                             table = "positions", 
+                             out_path) {
+  # Open DB connection
   ch3_db <- .ch3helper_connectDB(ch3_db)
+  on.exit({ .ch3helper_closeDB(ch3_db) }, add = TRUE)
   
-  # If the out_path does not end with ".csv", append "_<tablename>.csv"
-  if (!grepl("\\.csv$", out_path)) {
-    
-    # If out_path is a directory, make sure it ends with a "/"
-    if (grepl("/$", out_path) == FALSE) {
-      out_path <- paste0(out_path, "/")
-    }
-    
+  # Build output path
+  if (!grepl("\\.csv$", out_path, ignore.case = TRUE)) {
+    if (!grepl("/$", out_path)) out_path <- paste0(out_path, "/")
     out_path <- paste0(out_path, table, ".csv")
   }
   
-  all_tables <- dbListTables(ch3_db$con)
+  if (!DBI::dbExistsTable(ch3_db$con, table)) {
+    message("Table '", table, "' does not exist.")
+    return(invisible(ch3_db))
+  }
   
-  if (table %in% all_tables) {
-      # Print the table name
-      message(paste0("Writing out ", table, " table to ", out_path))
-      # Specify the file path
-      
-    #  FUTURE CODE TO IMPLEMENT...
-    # dbExecute(ch3_db$con, 
-    #           paste("COPY (SELECT * FROM", table, 
-    #                 ") TO '", out_path, 
-    #                 "' WITH (FORMAT CSV, HEADER TRUE);", sep = ""))
-    #   
-    #   
-      # write out table to path given
-      write.csv(tbl(ch3_db$con, table),
-                file = out_path,
-                row.names = FALSE,
-                quote = FALSE)
-    } else {
-      # Print a message if the table does not exist
-      message(paste0("Table '", tbl, "' does not exist in the database."))
-    }
+  tbl_id  <- as.character(DBI::dbQuoteIdentifier(ch3_db$con, table))
+  file_q  <- as.character(DBI::dbQuoteString(ch3_db$con, out_path))
   
-  ch3_db <- .ch3helper_closeDB(ch3_db)
+  # COPY is executed entirely inside DuckDB (fast + avoids R memory)
+  sql <- sprintf(
+    "COPY (SELECT * FROM %s) TO %s WITH (FORMAT CSV, HEADER, DELIMITER ',', QUOTE '\"');",
+    tbl_id, file_q
+  )
+  
+  message("Exporting '", table, "' to: ", out_path)
+  n <- DBI::dbExecute(ch3_db$con, sql)
+  message("Rows written: ", n)
+  
   invisible(ch3_db)
 }
