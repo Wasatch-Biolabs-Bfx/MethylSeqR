@@ -52,5 +52,5 @@
   packageStartupMessage("This package is licensed for personal") 
   packageStartupMessage("and internal research use only.")
   packageStartupMessage("See the LICENSE file or visit")
-  packageStartupMessage("https://your-website-or-repo/LICENSE.")
+  packageStartupMessage("https://github.com/Wasatch-Biolabs-Bfx/MethylSeqR/blob/main/LICENSE.")
 }
