@@ -27,9 +27,35 @@ library(MethylSeqR)
 
 ***For Linux Users:*** *System packages may need to be intalled in order to use devtools. Instructions can be found online. An example guide for this can be found [here](https://www.digitalocean.com/community/tutorials/how-to-install-r-packages-using-devtools-on-ubuntu-16-04).*
 
-## Instructions
+## Creating .ch3 Files
+
+If your sequencing data is coming from [Wasatch Biolabs](https://www.wasatchbiolabs.com/), 
+`.ch3` files can be delivered directly with your batch upon request. 
+These files contain methylation calls from a third-generation sequencing run. 
+Typically, one .ch3 file is created per sample, and each file compresses large amounts of raw data into a usable intermediate format.
+
+If .ch3 files were not provided, you can build them yourself using the make_ch3_archive() function in this package. 
+This takes a tab-delimited file of methylation calls (such as the output of modkit extract-calls) and compresses it into .ch3 format for downstream use.
+
+```{r, eval=FALSE}
+# Convert a calls.tsv file to compressed .ch3 format
+make_ch3_archive(
+  file_name   = "calls.tsv",   # input modkit calls file
+  sample_name = "sample1",     # will be embedded in output filenames
+  out_path    = "output_dir/", # where to write .ch3 files
+  short_ids   = TRUE           # optionally shorten read_id to reduce size
+)
+```
+
+### Important:
+
+* .ch3 files use 0-based, half-open genome coordinates (like BED files).
+* Example: a CpG at base 1000 (1-based) will appear as start=999, end=1001.
+* Each output archive is written in compressed Parquet format (zstd), typically producing multiple .ch3 files per sample (e.g., sample1-0.ch3, sample1-1.ch3).
 
 Begin with CH3 files created by Wasatch Biolabs and build a database using the `make_ch3_db()`. This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
+
+## Instructions
 
 ### Summarize Data
 After a database is created, a user can summarize their data by position (`summarize_ch3_positions()`), by regions (`summarize_ch3_regions()`), by windows (`summarize_ch3_windows()`), or by reads ((`summarize_ch3_reads()`). 
