@@ -165,7 +165,7 @@ will be filtered for just those windows from the key_table.Lastly, `min_CGs` spe
 the minimum number of CG sites for a read to be included. If a read has less than 
 that argument, it will not be included in the table.
 
-# Convenience utilities (inspect, rename, and tidy)
+# Convenience utilities (inspect/rename/tidy)
 
 Sometimes you just want to peek at what’s in your database, check a table’s
 shape, or quickly fix sample names. The helpers below are lightweight wrappers
