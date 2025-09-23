@@ -161,6 +161,16 @@ in R and click on HTML in your browser. Or, to browse the vignette in your R env
 vignette("MethylSeqRWalkthrough")
 ```
 
+## License
+
+This package is distributed under the **Personal and Internal Research License (v1.1)**, based on the [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0), with an additional grant of rights for internal research use provided by Wasatch Biolabs.
+
+- ✅ Free for personal use, academic research, educational, and other noncommercial purposes.  
+- ✅ Commercial organizations may also use it internally for research and evaluation.  
+- ❌ Not permitted for commercial services, fee-for-service analysis, redistribution, or production use.  
+
+See the full license text in the [LICENSE](./LICENSE) file included with this repository.
+
 If you have any suggestions or requested features, please email Jonathon Hill at jhill@byu.edu.
 
 #### Developed by Wasatch Biolabs.
