@@ -53,9 +53,10 @@ make_ch3_archive(
 * Example: a CpG at base 1000 (1-based) will appear as start=999, end=1001.
 * Each output archive is written in compressed Parquet format (zstd), typically producing multiple .ch3 files per sample (e.g., sample1-0.ch3, sample1-1.ch3).
 
-Begin with CH3 files created by Wasatch Biolabs and build a database using the `make_ch3_db()`. This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
-
 ## Instructions
+Begin with CH3 files created by Wasatch Biolabs, or yourself, and build a database using `make_ch3_db()`. 
+This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
+
 
 ### Summarize Data
 After a database is created, a user can summarize their data by position (`summarize_ch3_positions()`), by regions (`summarize_ch3_regions()`), by windows (`summarize_ch3_windows()`), or by reads ((`summarize_ch3_reads()`). 
