@@ -46,6 +46,31 @@ To see what columns are in a table in your database and how many records (rows) 
 
 If you would like to run everything in one command, call `run_ch3_analysis()`.
 
+### Convenience Functions
+
+MethylSeqR also provides a few helper utilities to make it easier to inspect and manage your database:
+
+```{r, eval=FALSE}
+# View all column names in a given table
+get_ch3_cols(ch3_db, "calls")
+
+# Count unique CpG sites (based on start/end)
+get_ch3_cpg_count(ch3_db, table_name = "calls")
+
+# Show high-level database statistics (size, tables, sample names)
+get_ch3_dbinfo(ch3_db)
+
+# Get detailed information about a specific table
+get_ch3_tableinfo(ch3_db, "positions")
+
+# Rename sample names inside any table
+rename_ch3_samples(ch3_db, "positions",
+                   samples_map = c("old_name" = "new_name"))
+
+# Remove a table from the database
+remove_ch3_table(ch3_db, "temp_table")
+```
+
 ## Paradigm
 You can pipe your functions together, or feel free to call each function one line at a time. Below are two examples of this.
 ```{r, eval = FALSE}
