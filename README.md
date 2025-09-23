@@ -54,7 +54,7 @@ make_ch3_archive(
 * Each output archive is written in compressed Parquet format (zstd), typically producing multiple .ch3 files per sample (e.g., sample1-0.ch3, sample1-1.ch3).
 
 ## Instructions
-Begin with .ch3 files created by Wasatch Biolabs, or yourself, and build a database using `make_ch3_db()`. 
+Begin with .ch3 files created by Wasatch Biolabs or individually, and build a database using `make_ch3_db()`. 
 This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
 
 
