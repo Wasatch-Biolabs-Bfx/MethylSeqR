@@ -15,7 +15,7 @@ MethylSeqR is an R package managing Direct Whole Methylome Sequencing (dWMS) dat
 ## Installation
 
 For easy visualization and data management, we encourage you to download and use RStudio.
-RStudio downlaod instructions can be found [here](https://posit.co/download/rstudio-desktop/).
+RStudio download instructions can be found [here](https://posit.co/download/rstudio-desktop/).
 
 ```{r, eval = FALSE}
 # Install the devtools package if necessary
