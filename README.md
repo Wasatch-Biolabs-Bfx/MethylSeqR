@@ -140,6 +140,11 @@ get_ch3_tableinfo(ch3_db, "windows")
 # Export differentially methylated data to your computer
 export_ch3_table(ch3_db, "collapsed_windows", "../results_directory")
 
+# OR, to work with your data locally in your R environment
+positions <- get_ch3_table(ch3_db, "positions")
+windows <- get_ch3_table(ch3_db, "windows")
+regions <- get_ch3_table(ch3_db, "regions")
+
 #DONE! Data has been analyzed and exported!
 
 ```
