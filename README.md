@@ -12,6 +12,8 @@
 
 MethylSeqR is an R package managing Direct Whole Methylome Sequencing (dWMS) data. It creates a database, and processes it with unique options. Data can be summarized by positions, windows, or provided an annotation bed file, by unique genomic regions. The package also offers quality control functions, differential methylation, and a sliding window analysis.
 
+
+
 ## Installation
 
 For easy visualization and data management, we encourage you to download and use RStudio.
@@ -29,6 +31,8 @@ library(MethylSeqR)
 ```
 
 ***For Linux Users:*** *System packages may need to be intalled in order to use devtools. Instructions can be found online. An example guide for this can be found [here](https://www.digitalocean.com/community/tutorials/how-to-install-r-packages-using-devtools-on-ubuntu-16-04).*
+
+
 
 ## Creating .ch3 Files
 
@@ -56,50 +60,34 @@ make_ch3_archive(
 * Example: a CpG at base 1000 (1-based) will appear as start=999, end=1001.
 * Each output archive is written in compressed Parquet format (zstd), typically producing multiple .ch3 files per sample (e.g., sample1-0.ch3, sample1-1.ch3).
 
+
+
 ## Instructions
 Begin with .ch3 files created by Wasatch Biolabs or individually, and build a database using `make_ch3_db()`. 
 This will at first hold a calls table. If you would like to see key stats on your CH3 file, call `get_ch3_stats()`. This shows information like CpG coverage, calls by flag value, high confidence calls, high quality calls, and average read length.
 
-
 ### Summarize Data
 After a database is created, a user can summarize their data by position (`summarize_ch3_positions()`), by regions (`summarize_ch3_regions()`), by windows (`summarize_ch3_windows()`), or by reads ((`summarize_ch3_reads()`). 
+
+
 
 ### Differential Methylation
 A differential methylation analysis can be conducted on positional, regional, or window data using `calc_ch3_diff()`. After calculating methylation differences between windows, use `collapse_ch3_windows()` to collapse significant windows in a methylation dataset. This merges contiguous regions that meet the specified criteria.
 
+
+
 ### Get Database Stats
 If you would like to see key stats on your database at any time, including what unique sample names are in the data for a differential analysis, call `get_ch3_dbinfo()`. 
 To see what columns are in a table in your database and how many records (rows) there are, call `get_ch3_tableinfo()` with your database and desired table name.
+
+
 
 ### Quality Control
 `run_ch3_qc()` can be called to visually assess any data. Running a QC can take a long time on large data, so set the argument `max_rows` to a reasonable value (ex. 1000) to assess data faster. To view and extract a table, call `export_table()` to export any data table from the database to a file, or use `get_table()` to import as a tibble into your local environment. Similarily, use `max_calls` if you are fine with a smaller, randomized set of data.
 
 If you would like to run everything in one command, call `run_ch3_analysis()`.
 
-### Convenience Functions
 
-MethylSeqR also provides a few helper utilities to make it easier to inspect and manage your database:
-
-```{r, eval=FALSE}
-# View all column names in a given table
-get_ch3_cols(ch3_db, "calls")
-
-# Count unique CpG sites (based on start/end)
-get_ch3_cpg_count(ch3_db, table_name = "calls")
-
-# Show high-level database statistics (size, tables, sample names)
-get_ch3_dbinfo(ch3_db)
-
-# Get detailed information about a specific table
-get_ch3_tableinfo(ch3_db, "positions")
-
-# Rename sample names inside any table
-rename_ch3_samples(ch3_db, "positions",
-                   samples_map = c("old_name" = "new_name"))
-
-# Remove a table from the database
-remove_ch3_table(ch3_db, "temp_table")
-```
 
 ## Paradigm
 You can pipe your functions together, or feel free to call each function one line at a time. Below are two examples of this.
@@ -150,6 +138,34 @@ regions <- get_ch3_table(ch3_db, "regions")
 ```
 
 ***Warning*** *- If using samples other than human or with unique chromosome names, remember to adjust the chrs argument in each function!*
+
+
+
+
+### Convenience Functions
+
+MethylSeqR also provides a few helper utilities to make it easier to inspect and manage your database:
+
+```{r, eval=FALSE}
+# View all column names in a given table
+get_ch3_cols(ch3_db, "calls")
+
+# Count unique CpG sites (based on start/end)
+get_ch3_cpg_count(ch3_db, table_name = "calls")
+
+# Show high-level database statistics (size, tables, sample names)
+get_ch3_dbinfo(ch3_db)
+
+# Get detailed information about a specific table
+get_ch3_tableinfo(ch3_db, "positions")
+
+# Rename sample names inside any table
+rename_ch3_samples(ch3_db, "positions",
+                   samples_map = c("old_name" = "new_name"))
+
+# Remove a table from the database
+remove_ch3_table(ch3_db, "temp_table")
+```
 
 ## Getting Help
 To see detailed documentation on a specific function in R, call `?{function}`. Example:
