@@ -18,7 +18,8 @@
 #'
 #' @importFrom dplyr filter mutate select if_else rename
 #' @importFrom arrow write_dataset open_delim_dataset
-#'
+#' @importFrom rlang .data
+#' 
 #' @examples
 #' \dontrun{
 #' make_ch3_archive("calls.tsv", "sample1", "output/", short_ids = TRUE)
@@ -69,7 +70,7 @@ make_ch3_archive <- function(file_name,
       call_prob, call_code, base_qual, flag) |>
     filter(!(ref_mod_strand == "-" & ref_position == 0)) |>
     mutate(
-      sample_name = sample_name, 
+      sample_name = !!sample_name, 
       .before = read_id) |>
     mutate( # create shrot read IDs if TRUE, compresses file size.
       read_id = if_else(short_ids, gsub(".*-", "", read_id), read_id),
