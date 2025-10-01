@@ -17,7 +17,7 @@
 #' and writes the result as a compressed Arrow dataset with `zstd` compression.
 #'
 #' @importFrom dplyr filter mutate select if_else rename
-#' @importFrom arrow write_dataset
+#' @importFrom arrow write_dataset open_delim_dataset
 #'
 #' @examples
 #' \dontrun{
