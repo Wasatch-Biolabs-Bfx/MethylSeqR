@@ -27,6 +27,13 @@ https://www.wasatchbiolabs.com/
 For bug reports and feature requests:  
 https://github.com/Wasatch-Biolabs-Bfx/MethylSeqR
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/Wasatch-Biolabs-Bfx/MethylSeqR}
+}
+
+}
 \author{
 Jonathon Hill \email{jonathon@wasatchbiolabs.com} (aut, cre)
 Hailey Zimmerman \email{hailey@renewbt.com} (aut)

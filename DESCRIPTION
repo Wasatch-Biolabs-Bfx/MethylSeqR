@@ -33,4 +33,6 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
+URL: https://github.com/Wasatch-Biolabs-Bfx/MethylSeqR
+biocViews: Software, Sequencing, Epigenetics, Methylation
 Config/testthat/edition: 3
