@@ -16,7 +16,7 @@
 #' The function filters out unplaced '-' strand reads with position 0, adds new fields like `start` and `end`,
 #' and writes the result as a compressed Arrow dataset with `zstd` compression.
 #'
-#' @importFrom dplyr filter mutate select if_else
+#' @importFrom dplyr filter mutate select if_else rename
 #' @importFrom arrow write_dataset
 #'
 #' @examples
