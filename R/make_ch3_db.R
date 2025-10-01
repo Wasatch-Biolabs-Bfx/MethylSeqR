@@ -266,7 +266,7 @@ make_ch3_db <- function(ch3_files,
     )
     SELECT *
     FROM tagged
-    {SQL(where_clause)}
+    {where_clause}
   ")
   DBI::dbExecute(ch3_db$con, sql)
   
