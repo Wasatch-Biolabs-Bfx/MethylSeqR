@@ -240,7 +240,7 @@ make_ch3_db <- function(ch3_files,
   where_clause <- if (length(filters)) paste("WHERE", paste(filters, collapse = " AND ")) else ""
   
   # ⬅️ Include read_position here
-  wanted_sql <- paste(c("chrom","start","\"end\"",# "read_position",
+  wanted_sql <- paste(c("read_id", "chrom","start","\"end\"",# "read_position",
                         "call_code","read_length","call_prob","base_qual","flag"),
                       collapse = ", ")
   
