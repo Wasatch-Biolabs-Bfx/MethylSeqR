@@ -177,6 +177,8 @@ summarize_ch3_regions <- function(ch3_db,
   countsS <- cntsql$select_counts_pos
   labels  <- cntsql$labels_all
   
+  cat("Summarizing Regions...\n")
+  
   # ---- Prepare output schema with dynamic columns ------------------------------
   count_nulls <- paste(sprintf("CAST(NULL AS BIGINT) AS %s_counts", labels), collapse = ",\n      ")
   frac_nulls  <- paste(sprintf("CAST(NULL AS DOUBLE) AS %s_frac",  labels), collapse = ",\n      ")

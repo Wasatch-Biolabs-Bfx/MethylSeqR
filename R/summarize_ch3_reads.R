@@ -67,7 +67,8 @@ summarize_ch3_reads <- function(ch3_db,
     DBI::dbWriteTable(ch3_db$con, "temp_regions_table", annotation, temporary = TRUE)
   }
   
-  cat("Building reads table...")
+  cat("Summarizing Reads...\n")
+  
   if (dbExistsTable(ch3_db$con, output_reads_table))
     dbRemoveTable(ch3_db$con, output_reads_table)
   
