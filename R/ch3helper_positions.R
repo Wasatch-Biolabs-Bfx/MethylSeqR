@@ -55,28 +55,75 @@
 
 
 
+# # Build SQL snippets for per-position counts for unmodified and mods/combinations
+# .build_pos_count_sql <- function(unmod_code, unmod_label, specs_df) {
+#   esc <- function(x) gsub("'", "''", x)
+#   pieces <- c(sprintf("SUM(CASE WHEN call_code = '%s' THEN 1 ELSE 0 END) AS %s_counts",
+#                       esc(unmod_code), unmod_label))
+#   for (i in seq_len(nrow(specs_df))) {
+#     lab <- specs_df$label[i]
+#     codes <- specs_df$codes[[i]]
+#     if (length(codes) == 1) {
+#       pieces <- c(pieces, sprintf(
+#         "SUM(CASE WHEN call_code = '%s' THEN 1 ELSE 0 END) AS %s_counts",
+#         esc(codes), lab))
+#     } else {
+#       pieces <- c(pieces, sprintf(
+#         "SUM(CASE WHEN call_code IN ('%s') THEN 1 ELSE 0 END) AS %s_counts",
+#         paste(esc(codes), collapse = "','"), lab))
+#     }
+#   }
+#   labels_all <- c(unmod_label, specs_df$label)
+#   list(select_counts_pos = paste(pieces, collapse = ",\n          "),
+#        labels_all = labels_all)
+# }
+
 # Build SQL snippets for per-position counts for unmodified and mods/combinations
 .build_pos_count_sql <- function(unmod_code, unmod_label, specs_df) {
   esc <- function(x) gsub("'", "''", x)
-  pieces <- c(sprintf("SUM(CASE WHEN call_code = '%s' THEN 1 ELSE 0 END) AS %s_counts",
-                      esc(unmod_code), unmod_label))
+  
+  # --- helpers to make identifiers safe only if numeric ---
+  .is_numeric_code <- function(x) grepl("^[0-9]+$", x)
+  .make_safe_label <- function(x) if (.is_numeric_code(x)) paste0("m_", x) else x
+  
+  pieces <- character()
+  
+  # Unmodified base (make it safe too just in case)
+  unmod_lab_raw  <- unmod_label
+  unmod_lab_safe <- .make_safe_label(unmod_lab_raw)
+  pieces <- c(pieces,
+              sprintf("SUM(CASE WHEN call_code = '%s' THEN 1 ELSE 0 END) AS %s_counts",
+                      esc(unmod_code), unmod_lab_safe)
+  )
+  
+  # Modified codes and combinations
   for (i in seq_len(nrow(specs_df))) {
-    lab <- specs_df$label[i]
-    codes <- specs_df$codes[[i]]
-    if (length(codes) == 1) {
+    lab_raw   <- specs_df$label[i]
+    lab_safe  <- .make_safe_label(lab_raw)
+    codes_vec <- specs_df$codes[[i]]
+    
+    if (length(codes_vec) == 1) {
       pieces <- c(pieces, sprintf(
         "SUM(CASE WHEN call_code = '%s' THEN 1 ELSE 0 END) AS %s_counts",
-        esc(codes), lab))
+        esc(codes_vec), lab_safe))
     } else {
       pieces <- c(pieces, sprintf(
         "SUM(CASE WHEN call_code IN ('%s') THEN 1 ELSE 0 END) AS %s_counts",
-        paste(esc(codes), collapse = "','"), lab))
+        paste(esc(codes_vec), collapse = "','"), lab_safe))
     }
   }
-  labels_all <- c(unmod_label, specs_df$label)
-  list(select_counts_pos = paste(pieces, collapse = ",\n          "),
-       labels_all = labels_all)
+  
+  # Return both the SQL and the safe labels
+  labels_raw  <- c(unmod_lab_raw,  specs_df$label)
+  labels_safe <- c(unmod_lab_safe, vapply(specs_df$label, .make_safe_label, character(1)))
+  
+  list(
+    select_counts_pos = paste(pieces, collapse = ",\n          "),
+    labels_all        = labels_safe,                         # safe labels for downstream use
+    label_map         = setNames(labels_safe, labels_raw)     # optional: map raw -> safe
+  )
 }
+
 
 
 
