@@ -21,7 +21,7 @@
 #'
 #' @importFrom DBI dbConnect dbDisconnect dbListTables
 #' @importFrom duckdb duckdb
-#' @importFrom dplyr tbl collect
+#' @importFrom dplyr tbl collect slice_sample
 #' @importFrom tibble tibble
 #' 
 #' @export
