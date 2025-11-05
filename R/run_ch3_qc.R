@@ -31,10 +31,10 @@ run_ch3_qc <- function(ch3_db,
   value_sym <- rlang::ensym(value)
   value_col <- rlang::as_name(value_sym)  # e.g., "m_frac"
   
-  accepted_tables <- c("calls","positions","regions","windows")
-  if (!(call_type %in% accepted_tables)) {
-    stop("Quality control plots can currently only be made for calls, positions, regions, or windows.")
-  }
+  # accepted_tables <- c("calls","positions","regions","windows")
+  # if (!(call_type %in% accepted_tables)) {
+  #   stop("Quality control plots can currently only be made for calls, positions, regions, or windows.")
+  # }
   
   cat(paste0("Running quality control on ", call_type, " table.\n"))
   start_time <- Sys.time()
