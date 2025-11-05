@@ -7,6 +7,8 @@
 calc_ch3_samplecor(
   ch3_db,
   call_type = c("positions"),
+  value = m_frac,
+  agg_fun = mean,
   plot = TRUE,
   save_path = NULL,
   plot_sample_order = NULL,
@@ -17,44 +19,45 @@ calc_ch3_samplecor(
 \arguments{
 \item{ch3_db}{A string. The path to the database containing ch3 files from nanopore data.}
 
-\item{call_type}{A character vector specifying the type of data to retrieve from the database. Options are "positions", 
-"regions", or "windows". Default is "positions".}
+\item{call_type}{A character vector specifying the type of data to retrieve from the database.
+Options are "positions", "regions", or "windows". Default is "positions".}
 
-\item{plot}{A logical value. If TRUE, a correlation heatmap with correlation values is plotted. Default is FALSE.}
+\item{value}{Column in the table to use as the measurement (e.g., mh_frac, m_frac).
+Accepts a bare column name or a string. Default: mh_frac.}
 
-\item{save_path}{A string. The file path to save the plot (e.g., .pdf or .png). If NULL, the plot is not saved. Default is NULL.}
+\item{agg_fun}{Function used to aggregate when multiple rows map to the same cell during pivot
+(e.g., duplicates in regions or windows). Default: mean.}
 
-\item{plot_sample_order}{A character vector specifying the desired order of samples in the plot. Default is NULL, 
-which uses the default order.}
+\item{plot}{Logical. If TRUE, plot a correlation heatmap. Default: TRUE.}
 
-\item{plot_title}{A string. The title of the correlation heatmap. Default is "Sample Correlation Matrix".}
+\item{save_path}{Optional file path to save the plot.}
 
-\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
+\item{plot_sample_order}{Optional character vector setting sample order in the heatmap.}
+
+\item{plot_title}{Title for the heatmap.}
+
+\item{max_rows}{Optional integer to randomly sample rows from the table for faster runs.}
 }
 \value{
-A correlation matrix of modification fractions across samples. If `plot = TRUE`, a ggplot object of the correlation 
-matrix heatmap is also printed. If `save_path` is specified, the plot is saved to the given file path.
+Invisibly returns the connection wrapper; prints the correlation matrix and (optionally)
+  a ggplot heatmap.
 }
 \description{
-This function calculates and optionally plots a correlation matrix for methylation or other modification fraction data 
-from genomic positions. It supports position-based, region-based, and window-based calls and provides visualization 
-using ggplot2.
+This function calculates and optionally plots a correlation matrix for methylation or other
+modification fraction data from genomic positions. It supports position-based, region-based,
+and window-based calls and provides visualization using ggplot2.
 }
 \details{
-This function connects to the ch3 files database, retrieves data based on the `call_type` parameter, and computes the 
-Pearson correlation matrix for each sample. For "regions", data is aggregated by sample and region name. For "windows", 
-data is aligned to common genomic windows before computing the correlation matrix. If `plot = TRUE`, the function 
-generates a ggplot2 heatmap with correlation values displayed. Optionally, the plot can be saved to a specified file path.
-}
-\note{
-The function assumes that the database contains tables named according to the `call_type` parameter (e.g., "positions", 
-"regions", "windows"). It calculates the correlation matrix using the `pairwise.complete.obs` method, which handles missing data.
+The function connects to the ch3 database, pulls data for the selected `call_type`, reshapes
+to a samples x samples matrix, and computes Pearson correlations using
+`use = "pairwise.complete.obs"`. The `value` column controls which measurement is used.
 }
 \examples{
-# Specify the path to the database
-ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
-
-# Run the correlation matrix function using the 'positions' call type and plot the results
-calc_ch3_samplecor(ch3_db = ch3_db, call_type = "positions")
+# Use mh_frac (default)
+calc_ch3_samplecor(ch3_db = "my_data.ch3.db", call_type = "positions")
+# Use m_frac
+calc_ch3_samplecor(ch3_db = "my_data.ch3.db", call_type = "regions", value = m_frac)
+# Or as a string
+calc_ch3_samplecor(ch3_db = "my_data.ch3.db", call_type = "windows", value = "m_frac")
 
 }
