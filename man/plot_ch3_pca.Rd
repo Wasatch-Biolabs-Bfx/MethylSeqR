@@ -7,6 +7,7 @@
 plot_ch3_pca(
   ch3_db,
   call_type = "positions",
+  value = m_frac,
   save_path = NULL,
   max_rows = NULL
 )
@@ -14,31 +15,37 @@ plot_ch3_pca(
 \arguments{
 \item{ch3_db}{A list containing the database file path. This should be a valid "ch3_db" class object.}
 
-\item{call_type}{A string representing the name of the table in the database from which to pull the data. 
+\item{call_type}{A string representing the name of the table in the database from which to pull the data.
 Default is "positions".}
 
-\item{save_path}{Pathway to save the plot to. Usually .pdf or .png.}
+\item{value}{Column to use as the measurement for PCA (e.g., `mh_frac`, `m_frac`). Accepts a bare column
+name or a single string. Default: `m_frac`.}
 
-\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
+\item{save_path}{Path to save the plot (e.g., .pdf or .png). If NULL, the plot is not saved.}
+
+\item{max_rows}{Optional maximum number of rows to sample from the table (for speed on large datasets).}
 }
 \value{
-A PCA plot is produced, showing the first two principal components of the methylation data.
-The function also prints a summary of the PCA results and the PCA data used for plotting.
+Produces a PCA plot (PC1 vs PC2) and prints a PCA summary and the PCA scores.
 }
 \description{
-This function performs Principal Component Analysis (PCA) on methylation data retrieved from a DuckDB database.
-It aggregates the methylation fraction data based on the specified call type and prepares it for PCA analysis.
+This function performs Principal Component Analysis (PCA) on methylation (or other) data
+retrieved from a DuckDB database. It aggregates the chosen value column based on the
+specified call type and prepares it for PCA analysis.
 }
 \details{
-The function connects to the specified DuckDB database, retrieves the methylation data from the specified call type table, 
-and aggregates the data either by regions or chromosomal positions. PCA is then performed on the aggregated data, and 
-a scatter plot of the first two principal components is generated.
+The function connects to the specified DuckDB database, retrieves data from `call_type`, reshapes
+to a features × samples matrix (features are regions/windows/positions; columns are samples), scales
+features, then runs PCA on samples (transpose before `prcomp`).
 }
 \examples{
- # Specify the path to the database
- ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
- 
- # Calculate PCA
+\dontrun{
+# Default (m_frac)
  plot_ch3_pca(ch3_db)
+ # Use mh_frac instead
+ plot_ch3_pca(ch3_db, call_type = "regions", value = mh_frac)
+ # Or as a string
+ plot_ch3_pca(ch3_db, call_type = "windows", value = "mh_frac")
+}
 
 }

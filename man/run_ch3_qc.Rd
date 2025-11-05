@@ -4,37 +4,39 @@
 \alias{run_ch3_qc}
 \title{Quality Control Wrapper for Methylation Data}
 \usage{
-run_ch3_qc(ch3_db, call_type = "positions", plot = TRUE, max_rows = NULL)
+run_ch3_qc(
+  ch3_db,
+  call_type = "positions",
+  plot = TRUE,
+  max_rows = NULL,
+  value = m_frac
+)
 }
 \arguments{
 \item{ch3_db}{A database connection or object containing methylation data.}
 
 \item{call_type}{A character string indicating the type of call to retrieve data (e.g., "positions", "regions").}
 
-\item{plot}{A logical value indicating whether to generate plots for the statistical analyses.
-Defaults to TRUE. Set to FALSE to suppress plots.}
+\item{plot}{Logical; whether to generate plots. Defaults to TRUE.}
 
-\item{max_rows}{The maximum amount of rows wanted for calculation. This argument can help analysis run faster when there is a lot of data.}
+\item{max_rows}{Optional maximum number of rows to use (sampling) for speed on large datasets.}
+
+\item{value}{Column to use for analyses that take a value input (e.g., correlations/PCA).
+Accepts a bare column name or a string. Default: m_frac.}
 }
 \value{
-This function does not return a value. It performs calculations and may produce plots based on the
-        results of the analysis.
+Invisibly returns nothing; produces plots and console output.
 }
 \description{
 This function serves as a wrapper for various quality control analyses on methylation data.
 It sequentially calculates coverage statistics, modification statistics, correlation analysis,
 and performs principal component analysis (PCA).
 }
-\details{
-The function first calculates coverage statistics using `get_cov_stats()`, then computes modification
-         statistics with `get_mod_stats()`, follows up with correlation analysis via `cor_modseq()`, and finally
-         runs principal component analysis with `pca_modseq()`.
-}
 \examples{
- # Specify the path to the database
+\dontrun{
  ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
- 
- # Run quality control wrapper
- run_ch3_qc(ch3_db, call_type = "positions")
-  
+ run_ch3_qc(ch3_db, call_type = "positions")                 # uses m_frac
+ run_ch3_qc(ch3_db, call_type = "regions", value = mh_frac)  # use mh_frac
+}
+
 }

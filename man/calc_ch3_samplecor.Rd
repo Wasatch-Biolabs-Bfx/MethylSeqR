@@ -53,11 +53,13 @@ to a samples x samples matrix, and computes Pearson correlations using
 `use = "pairwise.complete.obs"`. The `value` column controls which measurement is used.
 }
 \examples{
+\dontrun{
 # Use mh_frac (default)
 calc_ch3_samplecor(ch3_db = "my_data.ch3.db", call_type = "positions")
 # Use m_frac
 calc_ch3_samplecor(ch3_db = "my_data.ch3.db", call_type = "regions", value = m_frac)
 # Or as a string
 calc_ch3_samplecor(ch3_db = "my_data.ch3.db", call_type = "windows", value = "m_frac")
+}
 
 }
