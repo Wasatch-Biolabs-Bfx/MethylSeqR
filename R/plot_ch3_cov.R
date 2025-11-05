@@ -85,22 +85,23 @@ plot_ch3_cov <- function(ch3_db,
   
   qts <- c(seq(0, 0.9, 0.1), 0.95, 0.99, 0.995, 0.999, 1)
   
-  if (!plot) {
-    title <- "read coverage statistics per base\n"
+  # PLOT COVERAGE STATS
+  title <- "read coverage statistics per base\n"
+  
+  if (regional_dat) {
+    title <- "read coverage statistics per region\n"
+  } else if (call_type == "windows") {
+    title <- "read coverage statistics per window\n"
+  }
+  
+  cat(title)
+  cat("summary:\n")
+  print( summary( num_calls ) )
+  cat("percentiles:\n")
+  print(quantile(num_calls, p=qts ))
+  cat("\n")
     
-    if (regional_dat) {
-      title <- "read coverage statistics per region\n"
-    } else if (call_type == "windows") {
-      title <- "read coverage statistics per window\n"
-    }
-    
-    cat(title)
-    cat("summary:\n")
-    print( summary( num_calls ) )
-    cat("percentiles:\n")
-    print(quantile(num_calls, p=qts ))
-    cat("\n")
-  } else {
+  if (plot) {
     x_title <- "log10 of read coverage per base"
     if (regional_dat) {
       x_title <- "log10 of read coverage per region"

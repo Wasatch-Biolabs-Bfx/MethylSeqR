@@ -89,22 +89,22 @@ plot_ch3_modfrac<- function(ch3_db,
   
   qts <- c(seq(0, 0.9, 0.1), 0.95, 0.99, 0.995, 0.999, 1)
   
-  if (!plot) { # if only stats are wanted
-    title <- "Methylation statistics per base\n"
-    if (regional_dat) {
-      title <- "Methylation statistics per region\n"
-    } else if (call_type == "windows") {
-      title <- "Methylation statistics per window\n"
-    }
+  title <- "Methylation statistics per base\n"
+  if (regional_dat) {
+    title <- "Methylation statistics per region\n"
+  } else if (call_type == "windows") {
+    title <- "Methylation statistics per window\n"
+  }
+  
+  cat(title)
+  cat("Summary:\n")
+  print(summary(goodMeth, p=qts))
+  cat("percentiles:\n")
+  print(quantile(goodMeth, p=qts))
+  cat("\n")
     
-    cat(title)
-    cat("Summary:\n")
-    print(summary(goodMeth, p=qts))
-    cat("percentiles:\n")
-    print(quantile(goodMeth, p=qts))
-    cat("\n")
     
-  } else if (plot) { # if they want a plot
+  if (plot) { # if they want a plot
     x_title <- "% methylation per base"
     if (regional_dat) {
       x_title <- "% methylation per region"
