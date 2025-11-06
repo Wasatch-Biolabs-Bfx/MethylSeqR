@@ -70,9 +70,11 @@ You can download these example .ch3 files directly from the GitHub repository un
 
 These test files can be used to practice building a database and running the full analysis workflow.
 
+```{r, eval = FALSE}
 # Example: build a test database using included example files
 example_path <- system.file("extdata/ch3_files", package = "MethylSeqR")
 ch3_db <- make_ch3_db(example_path, db_name = "example_db")
+```
 
 
 ## Instructions
