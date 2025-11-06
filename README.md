@@ -62,7 +62,7 @@ make_ch3_archive(
 
 ## Example Data
 
-If you’d like to test the package without generating your own .ch3 files, example data are included with the package in:
+If you’d like to test the package without generating your own .ch3 files, small example data are included with the package in:
 
 `MethylSeqR/inst/extdata/ch3_files/`
 
