@@ -60,6 +60,19 @@ make_ch3_archive(
 * Example: a CpG at base 1000 (1-based) will appear as start=999, end=1001.
 * Each output archive is written in compressed Parquet format (zstd), typically producing multiple .ch3 files per sample (e.g., sample1-0.ch3, sample1-1.ch3).
 
+## Example Data
+
+If you’d like to test the package without generating your own .ch3 files, example data are included with the package in:
+
+`MethylSeqR/inst/extdata/ch3_files/`
+
+You can download these example .ch3 files directly from the GitHub repository under the inst/extdata/ch3_files folder.
+
+These test files can be used to practice building a database and running the full analysis workflow.
+
+# Example: build a test database using included example files
+example_path <- system.file("extdata/ch3_files", package = "MethylSeqR")
+ch3_db <- make_ch3_db(example_path, db_name = "example_db")
 
 
 ## Instructions
