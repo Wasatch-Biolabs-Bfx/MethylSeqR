@@ -114,11 +114,20 @@ plot_ch3_cov <- function(ch3_db,
     
     # Create the histogram
     p <- ggplot(plot, aes(x = coverage)) +
-      geom_histogram(binwidth = 0.25, fill = "chartreuse4",
-                     color = "black", linewidth = 0.25) +
-      labs(title = "Histogram of CpG Coverage",
-           x = x_title, y = "Frequency") +
-      theme_minimal()
+      geom_histogram(
+        binwidth = 0.25, 
+        fill = "chartreuse4",
+        color = "black", 
+        linewidth = 0.25) +
+      labs(
+        title = "Histogram of CpG Coverage",
+        x = x_title, 
+        y = "Frequency") +
+      theme_minimal() +
+      theme(
+        #panel.grid = element_blank(),              # removes all gridlines
+        plot.title = element_text(hjust = 0.5)     # centers the plot title
+      )
     print(p)
     
     # Save the plot if save_path is specified
