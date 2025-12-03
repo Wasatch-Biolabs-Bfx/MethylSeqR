@@ -294,13 +294,40 @@ This function calculates differential methylation between specified case and con
 
 Differential methylation can be calculated from <b><i>positional</i></b>, <b><i>regional</i></b>, or <b><i>window</i></b> methylation data.
 
-Calling this function creates a unique mod_diff table within the database, where 
-differential methylation data can be found. Depending on what type of data is called, 
-the table output will be named accordingly. For example, if calc_mod_diff is called 
-on positional data, the data will be named `mod_diff_positions`. If called on windows 
-data, it will be `mod_diff_windows`, etc. Calling `calc_mod_diff` again on the same set of data 
-will overwrite previous data in the `mod_diff_{type}` table (ex. mod_diff_windows will be 
-rewritten if called again on windows data).
+Calling this function creates a unique `mod_diff_*` table within the database, where differential methylation results are stored.
+
+The table name depends on the input `call_type`:
+* `call_type = "positions"` → `mod_diff_positions`
+* `call_type = "regions"` → `mod_diff_regions`
+* `call_type = "windows"` → `mod_diff_windows`
+
+Calling `calc_ch3_diff()` again on the same type of data will overwrite the existing `mod_diff_{type}` table (e.g. `mod_diff_windows` will be rewritten if you run it again on window data).
+
+### Automatic choice of statistical test (calc_type)
+
+The argument `calc_type` controls which statistical method is used to test for differential methylation.
+It can be set manually to one of:
+* `"wilcox"` – Wilcoxon rank-sum test on per-sample methylation fractions
+* `"fast_fisher"` – fast Fisher’s exact test on aggregated counts
+* `"r_fisher"` – Fisher’s exact test via base R
+* `"log_reg"` – logistic regression–based test
+
+If `calc_type` is left as `NULL` (the default), the function automatically chooses an appropriate method based on how many samples are in each group:
+* **If there is more than one sample in either the case or control group**
+→ `calc_type` is set to `"wilcox"`
+→ the function compares the distribution of methylation fractions across samples between groups.
+
+* **If there is exactly one sample in the case group and one in the control group**
+→ `calc_type` is set to `"fast_fisher"`
+→ the function aggregates counts and performs a Fisher’s exact test on the resulting 2×2 contingency table.
+
+A message is printed indicating which method was chosen.
+
+### Why this behavior?
+* With replicates (more than one sample in a group), the Wilcoxon rank-sum test is preferred because it uses the variation between samples and compares the distributions of methylation fractions across samples. This better reflects biological variability.
+* With only one sample per group, there is no between-sample variation to model. In that case, collapsing to counts and using Fisher’s exact test is more appropriate and statistically well-defined.
+
+You can always override this behavior by explicitly setting `calc_type` yourself.
 
 ```{r eval=FALSE}
 # Specify the path to the database
