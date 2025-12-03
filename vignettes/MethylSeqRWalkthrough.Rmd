@@ -297,8 +297,11 @@ Differential methylation can be calculated from <b><i>positional</i></b>, <b><i>
 Calling this function creates a unique `mod_diff_*` table within the database, where differential methylation results are stored.
 
 The table name depends on the input `call_type`:
+
 * `call_type = "positions"` → `mod_diff_positions`
+
 * `call_type = "regions"` → `mod_diff_regions`
+
 * `call_type = "windows"` → `mod_diff_windows`
 
 Calling `calc_ch3_diff()` again on the same type of data will overwrite the existing `mod_diff_{type}` table (e.g. `mod_diff_windows` will be rewritten if you run it again on window data).
@@ -307,12 +310,18 @@ Calling `calc_ch3_diff()` again on the same type of data will overwrite the exis
 
 The argument `calc_type` controls which statistical method is used to test for differential methylation.
 It can be set manually to one of:
+
 * `"wilcox"` – Wilcoxon rank-sum test on per-sample methylation fractions
+
 * `"fast_fisher"` – fast Fisher’s exact test on aggregated counts
+
 * `"r_fisher"` – Fisher’s exact test via base R
+
 * `"log_reg"` – logistic regression–based test
 
+
 If `calc_type` is left as `NULL` (the default), the function automatically chooses an appropriate method based on how many samples are in each group:
+
 * **If there is more than one sample in either the case or control group**
 → `calc_type` is set to `"wilcox"`
 → the function compares the distribution of methylation fractions across samples between groups.

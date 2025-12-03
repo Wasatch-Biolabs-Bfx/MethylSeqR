@@ -2164,10 +2164,15 @@ case and control groups using various statistical methods.</p>
 <p>Calling this function creates a unique <code>mod_diff_*</code> table
 within the database, where differential methylation results are
 stored.</p>
-<p>The table name depends on the input <code>call_type</code>: *
-<code>call_type = &quot;positions&quot;</code> → <code>mod_diff_positions</code> *
-<code>call_type = &quot;regions&quot;</code> → <code>mod_diff_regions</code> *
-<code>call_type = &quot;windows&quot;</code> → <code>mod_diff_windows</code></p>
+<p>The table name depends on the input <code>call_type</code>:</p>
+<ul>
+<li><p><code>call_type = &quot;positions&quot;</code> →
+<code>mod_diff_positions</code></p></li>
+<li><p><code>call_type = &quot;regions&quot;</code> →
+<code>mod_diff_regions</code></p></li>
+<li><p><code>call_type = &quot;windows&quot;</code> →
+<code>mod_diff_windows</code></p></li>
+</ul>
 <p>Calling <code>calc_ch3_diff()</code> again on the same type of data
 will overwrite the existing <code>mod_diff_{type}</code> table
 (e.g. <code>mod_diff_windows</code> will be rewritten if you run it
@@ -2176,23 +2181,27 @@ again on window data).</p>
 <h3>Automatic choice of statistical test (calc_type)</h3>
 <p>The argument <code>calc_type</code> controls which statistical method
 is used to test for differential methylation. It can be set manually to
-one of: * <code>&quot;wilcox&quot;</code> – Wilcoxon rank-sum test on per-sample
-methylation fractions * <code>&quot;fast_fisher&quot;</code> – fast Fisher’s exact
-test on aggregated counts * <code>&quot;r_fisher&quot;</code> – Fisher’s exact
-test via base R * <code>&quot;log_reg&quot;</code> – logistic regression–based
-test</p>
+one of:</p>
+<ul>
+<li><p><code>&quot;wilcox&quot;</code> – Wilcoxon rank-sum test on per-sample
+methylation fractions</p></li>
+<li><p><code>&quot;fast_fisher&quot;</code> – fast Fisher’s exact test on
+aggregated counts</p></li>
+<li><p><code>&quot;r_fisher&quot;</code> – Fisher’s exact test via base R</p></li>
+<li><p><code>&quot;log_reg&quot;</code> – logistic regression–based test</p></li>
+</ul>
 <p>If <code>calc_type</code> is left as <code>NULL</code> (the default),
 the function automatically chooses an appropriate method based on how
-many samples are in each group: * <strong>If there is more than one
-sample in either the case or control group</strong> →
-<code>calc_type</code> is set to <code>&quot;wilcox&quot;</code> → the function
-compares the distribution of methylation fractions across samples
-between groups.</p>
+many samples are in each group:</p>
 <ul>
-<li><strong>If there is exactly one sample in the case group and one in
-the control group</strong> → <code>calc_type</code> is set to
+<li><p><strong>If there is more than one sample in either the case or
+control group</strong> → <code>calc_type</code> is set to
+<code>&quot;wilcox&quot;</code> → the function compares the distribution of
+methylation fractions across samples between groups.</p></li>
+<li><p><strong>If there is exactly one sample in the case group and one
+in the control group</strong> → <code>calc_type</code> is set to
 <code>&quot;fast_fisher&quot;</code> → the function aggregates counts and performs
-a Fisher’s exact test on the resulting 2×2 contingency table.</li>
+a Fisher’s exact test on the resulting 2×2 contingency table.</p></li>
 </ul>
 <p>A message is printed indicating which method was chosen.</p>
 </div>
