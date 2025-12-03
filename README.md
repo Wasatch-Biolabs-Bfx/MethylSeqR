@@ -190,7 +190,9 @@ To see detailed documentation on a specific function in R, call `?{function}`. E
 This will render development documentation for that function in the Help tab in Rstudio
 
 ### Vignette
-To get detailed instructions and help working through the package, build and follow along the vignette by calling:
+To get detailed instructions and help working through the package, download and view our vignette in this github repo at `docs/MethylSeqRWalkthrough.html`.
+
+Or, build and follow along the vignette by calling:
 ```{r, eval = FALSE}
 browseVignettes("MethylSeqR")
 ```
