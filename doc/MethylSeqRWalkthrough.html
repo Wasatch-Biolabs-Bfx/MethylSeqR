@@ -2194,14 +2194,20 @@ aggregated counts</p></li>
 the function automatically chooses an appropriate method based on how
 many samples are in each group:</p>
 <ul>
-<li><p><strong>If there is more than one sample in either the case or
-control group</strong> → <code>calc_type</code> is set to
-<code>&quot;wilcox&quot;</code> → the function compares the distribution of
-methylation fractions across samples between groups.</p></li>
-<li><p><strong>If there is exactly one sample in the case group and one
-in the control group</strong> → <code>calc_type</code> is set to
-<code>&quot;fast_fisher&quot;</code> → the function aggregates counts and performs
-a Fisher’s exact test on the resulting 2×2 contingency table.</p></li>
+<li><strong>If there is more than one sample in either the case or
+control group</strong>
+<ul>
+<li><code>calc_type</code> is set to <code>&quot;wilcox&quot;</code></li>
+<li>The function compares the distribution of methylation fractions
+across samples between groups.</li>
+</ul></li>
+<li><strong>If there is exactly one sample in the case group and one in
+the control group</strong>
+<ul>
+<li><code>calc_type</code> is set to <code>&quot;fast_fisher&quot;</code></li>
+<li>The function aggregates counts and performs a Fisher’s exact test on
+the resulting 2×2 contingency table.</li>
+</ul></li>
 </ul>
 <p>A message is printed indicating which method was chosen.</p>
 </div>

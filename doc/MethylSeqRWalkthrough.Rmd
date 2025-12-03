@@ -323,12 +323,12 @@ It can be set manually to one of:
 If `calc_type` is left as `NULL` (the default), the function automatically chooses an appropriate method based on how many samples are in each group:
 
 * **If there is more than one sample in either the case or control group**
-→ `calc_type` is set to `"wilcox"`
-→ the function compares the distribution of methylation fractions across samples between groups.
+  * `calc_type` is set to `"wilcox"`
+  * The function compares the distribution of methylation fractions across samples between groups.
 
 * **If there is exactly one sample in the case group and one in the control group**
-→ `calc_type` is set to `"fast_fisher"`
-→ the function aggregates counts and performs a Fisher’s exact test on the resulting 2×2 contingency table.
+  * `calc_type` is set to `"fast_fisher"`
+  * The function aggregates counts and performs a Fisher’s exact test on the resulting 2×2 contingency table.
 
 A message is printed indicating which method was chosen.
 
