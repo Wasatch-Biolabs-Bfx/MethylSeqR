@@ -1,0 +1,474 @@
+---
+title: "Using the MethylSeqR package"
+author: "Hailey Zimmerman and Jonathon T. Hill, PhD"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    css: "bioconductor2.css"
+vignette: >
+  %\VignetteIndexEntry{Using the MethylSeqR package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+---
+  
+```{r, include=FALSE}
+library(knitr, quietly=TRUE)
+library(MethylSeqR, quietly=TRUE)
+# library(Biostrings, quietly=TRUE)
+opts_chunk$set(tidy=FALSE, tidy.opts=list(width.cutoff=70))
+```
+
+# Introduction
+
+The `MethylSeqR` package provides basic functions for importing and 
+working with third-generation methylation sequencing data.
+
+This vignette will walk you through a typical workflow. If sequencing data is coming from
+Wasatch Biolabs (https://www.wasatchbiolabs.com/), `.ch3` files will be delivered directly if requested
+for your batch. These `.ch3` files contain methylation calls from a third-generation sequencing run. 
+A `.ch3` file will typically be created for each sample within a run, and is meant 
+as an intermediate existing to compress large amounts of data into a usable form.
+
+If not delivered through Wasatch Biolabs, `.ch3` files can be built using this package.
+
+It's most helpful to store all the sample CH3 files from a run you want to 
+analyze within a single directory to get started. 
+
+# Creating `.ch3` files from a TSV (optional)
+
+If your methylation calls are in a delimited text file (e.g., from a `modkit extract-calls` TSV),
+you can convert them into compressed `.ch3` archives using `make_ch3_archive()`. 
+This will dramatically reduce file size and allow use of the MethylSeqR package.
+
+`make_ch3_archive()` reads a tab-delimited calls file, selects and transforms the 
+required columns, and writes a compressed Arrow dataset to `out_path` using zstd compression. 
+The function derives `start`/`end` coordinates per CpG (accounting for strand and the CG k-mer), 
+optionally shortens long `read_id`'s to shrink file size (`short_ids = TRUE`), and embeds 
+your `sample_name` into the output filenames. The output may be sharded into multiple 
+files (e.g., `SampleA-0.ch3`, `SampleA-1.ch3`, …) depending on Arrow’s writer.
+
+## Coordinate convention:
+The `.ch3` files use 0-based, half-open coordinates for `start`/`end` (like BED format). This means the `start` column is inclusive and `end` is exclusive. Keep this in mind if you compare `.ch3` positions to genome browsers or annotation files that use 1-based inclusive coordinates (e.g., GTF/GFF). Conversion may be required when joining with external annotations.
+
+## Expected input columns (typical from modkit):
+`read_id`,`forward_read_position`, `ref_position`, `ref_mod_strand`, `chrom`,
+`read_length`, `query_kmer`, `call_prob`, `call_code`, `base_qual`, `flag`.
+
+After the `.ch3` files are written, point `make_ch3_db()` at the directory containing them (or pass their paths directly), and the package will take care of the rest.
+
+```{r eval=FALSE}
+# Convert a modkit TSV to a compressed .ch3 archive
+make_ch3_archive(
+  file_name   = "/path/to/modkit_calls.tsv",  # tab-delimited input
+  sample_name = "Astrocytes",                 # used in output filenames
+  out_path    = "/path/to/ch3_out",           # directory to write .ch3 files
+  short_ids   = TRUE                          # shorten read_id to reduce size
+)
+
+# The directory now contains e.g.: Astrocytes-0.ch3, Astrocytes-1.ch3, ...
+# Build a DB from those .ch3 files:
+make_ch3_db(
+  ch3_files = "/path/to/ch3_out",   # a directory OR a vector of file paths
+  db_name   = "astro_db"
+)
+```
+
+## Notes & tips
+* If your input file contains unplaced minus-strand rows at position 0 (common in some extract outputs), those are filtered automatically.
+* If you already have concise read IDs, set short_ids = FALSE.
+* You can run make_ch3_archive() for each sample TSV, all writing into the same out_path; make_ch3_db() can then ingest the whole directory in one call.
+* The .ch3 files are standard Parquet—fast to read, compact on disk, and splittable for parallel import.
+
+# Loading Data
+The first step of a workflow will be to upload data from a directory holding 
+sample sequencing data in the form of CH3 files. These files are typically 
+created by Wasatch Biolabs.
+
+Once data is obtained in this format, the first step is done using the 
+`make_ch3_db()` function. This function directly imports a directory of CH3 
+files, and creates a database in the form of a local file.
+
+## make_ch3_db
+`make_ch3_db()` builds the DuckDB database from one or more `.ch3` Parquet files. 
+
+It requires two arguments: `ch3_files`, which can be a directory or a vector of file paths, and `db_name`, which is the path where the DuckDB file will be created (the .ch3.db suffix is added if missing). 
+
+You may optionally pass a named character vector to assign explicit `sample_name`s; otherwise, `sample_name` is derived from the file’s basename by removing a trailing -<digits> (if present) and the .ch3 extension (e.g., Astrocytes-12.ch3 → Astrocytes, M1.combined.ch3 → M1.combined). Additional filters include `chrom` (vector of chromosomes to keep), `min_read_length` (default 50), `min_call_prob` (default 0.9), `min_base_qual` (default 10), and an optional `flag` filter. The function configures DuckDB pragmas for performance (temp directory, threads ≈ all-but-one core, memory ≈ 50% RAM), drops any existing tables, and creates a `calls` table with: `sample_name`, `chrom`, `start`, `end`,`read_position`, `call_code`, `read_length`, `call_prob`, `base_qual`, and `flag`.
+
+Here is an example:
+
+```{r eval=FALSE}
+# Example: directory of CH3 files; auto-derived sample names
+ch3_files <- system.file("TEST_DATA", package = "MethylSeqR")   # adjust as needed
+ch3_db    <- tempfile("example_db")
+make_ch3_db(ch3_files, ch3_db)
+
+# Example: explicit sample names override the fallback
+make_ch3_db(
+  ch3_files = c(
+    sample1  = "/data/sample1-0.ch3",
+    sample2     = "/data/sample2.ch3"
+  ),
+  db_name   = "named_samples"
+)
+```
+
+
+After this step, a database is made and the raw calls table is included. A user 
+may continue their analysis in any direction they want. They may run a quality control 
+(`run_ch3_qc()`), summarize data by positions (`summarize_ch3_positions()`),
+regions (`summarize_ch3_regions()`), or windows (`summarize_ch3_windows()`). 
+At any point in the analysis, a user can export a table in the database by calling
+`export_ch3_tables()`, or use `get_ch3_table()`to import as a tibble into the local environment.
+All these functions will be explained below.
+
+## summarize_ch3_positions
+This function summarizes methylation data (from the calls table) by each unique 
+position in the genome. A table called "positions" will be built into the database.
+
+`summarize_ch3_positions()` aggregates the `calls` table at each genomic position for each sample and writes a `positions` table. It always produces `num_calls`, and, for each unique modification you request, a `<label>_counts` and `<label>_frac` column (ex. methylation would be m_counts and m_frac). You control modification types via `mod_code` (e.g., c("m","h","m + h") or a novel "a"). 
+
+Labels are formed by removing spaces/“+” (so `"m + h"` becomes `mh`). The unmodified class is defined by `unmod_code` (default `"-"`) and named by `unmod_label` (default `"c"`, yielding `c_counts` and `c_frac`). Optional `chrs`, `samples`, and `min_num_calls` let you filter chromosomes, samples, and minimum coverage per position.
+
+```{r eval=FALSE}
+# Minimal usage: default m/h classes
+summarize_ch3_positions(ch3_db)
+
+# Custom classes, including a novel code 'a', with stricter filtering
+summarize_ch3_positions(
+  ch3_db,
+  mod_code      = c("a", "m + h"),
+  unmod_code    = "-",
+  unmod_label   = "c",
+  min_num_calls = 5
+)
+```
+
+## summarize_ch3_regions
+`summarize_ch3_regions()` joins per-position counts to an annotation file of regions (BED/TSV/CSV with `chrom`, `start`, `end`, and optional `region_name`) and writes a `regions` table. If `region_name` is missing, it is synthesized as `chrom_start_end`. 
+
+You choose the join type via `join = "inner" | "left" | "right"`; inner keeps only overlapping positions/regions, left keeps all regions (filling zeros where appropriate), and right keeps all positions with region matches. 
+
+As with positions, you specify any set of `mod_code` values (single or combined like "m + h"), `unmod_code`, `unmod_label`, and filters (`chrs`, `samples`, `min_num_calls`). Output columns include `sample_name`, `region_name`, `chrom`, `start`, `end`, `num_CpGs` (number of positions aggregated), `num_calls`, and the `<label>_counts/<label>_frac` columns for all requested labels.
+
+```{r eval=FALSE}
+region_bed = system.file("Islands_hg38_test.csv", package = "MethylSeqR")
+# Minimal call
+summarize_ch3_regions(ch3_db, region_file = region_bed)
+
+# Custom call
+summarize_ch3_regions(
+  ch3_db,
+  region_file   = region_bed,
+  join          = "inner",
+  mod_code      = c("m","h","m + h"),   # supports novel codes too, e.g., "a"
+  min_num_calls = 5
+)
+```
+
+## summarize_ch3_windows
+`summarize_ch3_windows()` produces sliding/offset windows from per-position counts and writes a windows table. 
+
+By default it tiles with 1,000 bp windows and 10 bp offsets so positions are assigned to multiple staggered windows. The output contains `num_CpGs`, `num_calls`, and `<label>_counts/<label>_frac` for all requested modification labels (as defined by `mod_code`, `unmod_code`, and `unmod_label`). 
+
+You can adjust `window_size`, `step_size`, `min_num_calls`, limit to particular `chrs` or `samples`, and choose to `overwrite` an existing table. Default overwrite is TRUE.
+
+```{r eval=FALSE}
+# 100 bp windows, non-overlapping (step_size = window_size)
+summarize_ch3_windows(ch3_db, window_size = 100, step_size = 100)
+
+# 2 kb windows with offsets; include a novel 'a' class
+summarize_ch3_windows(
+  ch3_db,
+  window_size   = 2000,
+  step_size     = 20,
+  mod_code      = c("a", "m + h"),
+  min_num_calls = 25,
+  overwrite     = TRUE
+)
+```
+
+## summarize_ch3_reads
+This function summarizes methylation data from a ch3_db database by the reads.
+A table called "reads" will be built into the database.
+
+```{r eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Calculate windows
+summarize_ch3_reads(ch3_db)
+```
+
+There is only 1 required arguments. `ch3_db` is a list containing the database 
+file path. This should be a string representing a path to the database, or a valid
+"ch3_db" class object. Optionally, `key_table` is a path to an external table which
+can be used to filter for unique windows of interest. It should have a "chrom", 
+"start", and "end" column to specify which windows are of interest. The reads table 
+will be filtered for just those windows from the key_table.Lastly, `min_CGs` specifies
+the minimum number of CG sites for a read to be included. If a read has less than 
+that argument, it will not be included in the table.
+
+# Convenience utilities (inspect/rename/tidy)
+
+Sometimes you just want to peek at what’s in your database, check a table’s
+shape, or quickly fix sample names. The helpers below are lightweight wrappers
+around DuckDB/DBI that do exactly that.
+
+## get_ch3_dbinfo()
+
+Prints a quick summary of the database: on-disk size, a list of tables, and the
+distinct sample_names (if a calls table exists). Invisibly returns the
+closed ch3_db object.
+
+```{r eval=FALSE}
+# Path or ch3_db object both work
+get_ch3_dbinfo("my_data.ch3.db")
+```
+
+## get_ch3_tableinfo()
+
+Summarizes a single table: total rows, per-sample row counts (if the table has a
+sample_name column), and a list of columns. Good first check after creating a
+table.
+
+```{r eval=FALSE}
+get_ch3_tableinfo("my_data.ch3.db", table_name = "positions")
+```
+
+## get_ch3_cols()
+
+Returns (and prints) the column names for a given table. Handy when you’re about
+to write a query and can’t remember exact column names.
+
+```{r eval=FALSE}
+get_ch3_cols("my_data.ch3.db", "windows")
+```
+
+## get_ch3_cpg_count()
+
+Counts unique CpG sites in a table, where uniqueness is defined by distinct
+(start, end) pairs. Prints a small summary and invisibly returns the count.
+
+```{r eval=FALSE}
+n_cpg <- get_ch3_cpg_count("my_data.ch3.db", table_name = "calls")
+```
+
+## rename_ch3_samples()
+
+Renames sample_names directly in a specified table (e.g., positions,
+windows, regions, calls). You provide a mapping from old → new names as a
+named character vector (c(old = "new", ...)) or a two-column data frame
+with old and new. The function validates inputs, updates in place, and
+(optionally) prints a before/after list of distinct names.
+
+```{r eval=FALSE}
+# Rename in the 'positions' table
+rename_ch3_samples(
+  "my_data.ch3.db",
+  table       = "positions",
+  samples_map = c("Cortical_Neurons" = "Cortex", "Blood" = "PBMC"),
+  preview     = TRUE
+)
+```
+
+## remove_ch3_table()
+
+Deletes a table by name if it exists, with a clear message either way (no error
+if the table is missing). Useful to clean up experiments.
+
+```{r eval=FALSE}
+remove_ch3_table("my_data.ch3.db", "tmp_debug_table")
+```
+
+
+*Tip*: All helpers accept either a path to the *.ch3.db file or an existing
+ch3_db object. They open a connection, do the work, and close it for you.*
+
+# Differential Methylation
+## calc_ch3_diff
+This function calculates differential methylation between specified case and control groups using various statistical methods. 
+
+Differential methylation can be calculated from <b><i>positional</i></b>, <b><i>regional</i></b>, or <b><i>window</i></b> methylation data.
+
+Calling this function creates a unique mod_diff table within the database, where 
+differential methylation data can be found. Depending on what type of data is called, 
+the table output will be named accordingly. For example, if calc_mod_diff is called 
+on positional data, the data will be named `mod_diff_positions`. If called on windows 
+data, it will be `mod_diff_windows`, etc. Calling `calc_mod_diff` again on the same set of data 
+will overwrite previous data in the `mod_diff_{type}` table (ex. mod_diff_windows will be 
+rewritten if called again on windows data).
+
+```{r eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+  
+# Get methylation statistics for the 'positions' call type without plotting
+calc_ch3_diff(ch3_db = ch3_db,
+              call_type = "positions",
+              cases = "blood",
+              controls = "sperm")
+``` 
+
+## collapse_ch3_windows
+This function only works on a mod_diff_windows table already in the database.
+After a differential methylation analysis is called on windows, this will collapse 
+significant windows by merging contiguous regions that meet the specified criteria.
+
+The only required parameter is the link to the database. Optionally, a user may specify
+the following arguments.`max_distance`is the maximum allowable distance between consecutive
+significant windows for merging (default: 1000). `sig_cutoff` is the significance 
+threshold for adjusted p-values (default: 0.05). Lastly, `min_diff` specifies the
+minimum absolute methylation difference required for inclusion in the analysis (default: 0.5).
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+  
+# Collapse significant windows
+collapse_ch3_windows("my_data.ch3.db")
+``` 
+
+## run_ch3_analysis
+This function automates an entire workflow in one command. It identifies differences in DNA methylation patterns between two groups (cases and controls) by summarizing methylation data at various genomic scales (positions, regions, or windows) and then performing statistical tests, outputting the results into organized CSV files within one directory.
+
+`run_ch3_analysis()` creates a new subdirectory named "Mod_Diff_Analysis_Results" within the out_path where all the data will be written to. It writes three CSV files into the "Mod_Diff_Analysis_Results" directory by directly copying tables from the DuckDB database:
+
+**mod_diff.csv**: Contains the results of the differential analysis (e.g., p-values, fold changes) for each position, region, or window. The source table in the database is determined by diff_table_name.
+
+**All_CpGs.csv**: Contains all the summarized methylation data for the chosen call_type (positions, regions, or windows) across all samples. The source table in the database is determined by call_type.
+
+**Sig_CpGs.csv**: Contains summarized methylation data for only those positions/regions/windows that are deemed significantly differentially methylated, based on the p_val_max threshold.
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+  
+# Collapse significant windows
+run_ch3_analysis(ch3_db, 
+             out_path = "/Users/analysis",
+             call_type = "windows",
+             cases = c("sperm"),
+             controls = c("blood"))
+``` 
+
+# Quality Control 
+
+A variety of quality control functions are available to visually assess 
+methylation data. 
+
+## plot_ch3_cov
+This function calculates and optionally plots statistics for coverage data from
+methylation sequencing experiments. It can handle both positional and regional
+methylation data.
+
+```{r eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Get coverage statistics for the 'positions' call type
+plot_ch3_cov(ch3_db = ch3_db, call_type = "positions")
+``` 
+
+## plot_ch3_modfrac
+This function retrieves and calculates methylation statistics (mean methylation 
+fractions) from a specified table in the ch3 database. It can either return 
+summary statistics or plot a histogram of the methylation values, depending on 
+the user's preference. 
+
+```{r eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Get methylation statistics for the 'positions' call type without plotting
+plot_ch3_modfrac(ch3_db = ch3_db, call_type = "positions")
+``` 
+
+## calc_ch3_samplecor
+This function calculates and optionally plots a correlation matrix for 
+methylation or other modification fraction data from genomic positions. 
+It can handle both position-based and region-based calls and supports 
+visualization using ggplot2.
+
+```{r eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Run the correlation matrix function using the 'positions' call type and plot the results
+calc_ch3_samplecor(ch3_db = ch3_db, call_type = "positions", plot = TRUE)
+``` 
+
+## plot_ch3_pca
+This function performs Principal Component Analysis (PCA) on methylation data 
+retrieved from the database.It aggregates the methylation fraction data 
+based on the specified call type and prepares it for PCA analysis.
+```{r eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Calculate PCA
+plot_ch3_pca(ch3_db)
+``` 
+
+
+## run_ch3_qc
+
+Combining all functions above, the `run_ch3_qc()`` function computes all QC checks
+on methylation data at the same time. 
+
+```{r eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Calculate windows
+run_ch3_qc(ch3_db)
+``` 
+ 
+# Retrieving and Exporting Tables
+You can access data in your database with two different functions.
+
+## get_ch3_table
+To retrieve a single table into your local environment for further analysis within R, 
+using `get_ch3_table` will transform it into a tibble and store it into a variable.
+Arguments required includes the database, and name of the table to be retrieved.
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Get any table in your database and create a variable in R to work with
+positions = get_ch3_table("my_data.ch3.db", "positions")
+regions = get_ch3_table("my_data.ch3.db", "regions")
+
+mod_diff_regions = get_ch3_table("my_data.ch3.db", "mod_diff_regions")
+collapsed_windows = get_ch3_table("my_data.ch3.db", "collapsed_windows")
+```
+
+## export_ch3_table
+To export one or more tables into a CSV file, use `export_ch3_table`. This function 
+takes three arguments, the database, which tables to export, and the path where 
+the CSV files will be saved. 
+
+```{r, eval=FALSE}
+# Specify the path to the database
+ch3_db <- system.file("my_data.ch3.db", package = "MethylSeqR")
+ 
+# Export the table to your computer
+export_ch3_table("my_data.ch3.db", 
+             table = "windows", 
+             out_path = "/Desktop/My_Folder/windows.csv")
+
+export_ch3_table("my_data.ch3.db", 
+             table = "mod_diff_windows", 
+             out_path = "/Desktop/My_Folder/mod_diff_windows.csv")
+```
+
+
+# Conclusion
+In this vignette, we have walked you through the basic functions in the 
+`MethylSeqR` package. This work is a work in progress and we hope to 
+improve its functionality. If you have any suggestions or 
+requested features, please email Jonathon Hill at jhill@byu.edu.
