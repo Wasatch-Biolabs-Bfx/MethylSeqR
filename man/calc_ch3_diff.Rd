@@ -10,7 +10,7 @@ calc_ch3_diff(
   cases,
   controls,
   mod_type = "mh",
-  calc_type = "fast_fisher"
+  calc_type = NULL
 )
 }
 \arguments{
@@ -27,7 +27,9 @@ Default is "positions".}
 Default is "mh" for methylation/hydroxymethylation.}
 
 \item{calc_type}{A string specifying the statistical method to use for calculating p-values. 
-Options include "fast_fisher", "r_fisher", and "log_reg". Default is "fast_fisher".}
+Options include "wilcox", "fast_fisher", "r_fisher", and "log_reg". 
+Default is NULL, in which case "wilcox" is used if there are replicates in either
+group, otherwise "fast_fisher" is used.}
 }
 \value{
 A list containing the updated "ch3_db" object with the latest tables in the database, including "meth_diff".

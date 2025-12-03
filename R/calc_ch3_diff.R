@@ -11,7 +11,9 @@
 #' @param mod_type A string indicating the type of modification to analyze. 
 #' Default is "mh" for methylation/hydroxymethylation.
 #' @param calc_type A string specifying the statistical method to use for calculating p-values. 
-#' Options include "fast_fisher", "r_fisher", and "log_reg". Default is "fast_fisher".
+#' Options include "wilcox", "fast_fisher", "r_fisher", and "log_reg". 
+#' Default is NULL, in which case "wilcox" is used if there are replicates in either
+#' group, otherwise "fast_fisher" is used.
 #'
 #' @details
 #' The function connects to the specified DuckDB database and retrieves methylation data from the specified call type table. 
@@ -43,9 +45,10 @@ calc_ch3_diff <- function(ch3_db,
                           cases,
                           controls,
                           mod_type = "mh",
-                          calc_type = "fast_fisher")
+                          calc_type = NULL)
 {
   start_time <- Sys.time()
+
   # Open the database connection
   ch3_db <- .ch3helper_connectDB(ch3_db)
 
@@ -78,8 +81,6 @@ calc_ch3_diff <- function(ch3_db,
     DBI::dbRemoveTable(ch3_db$con, mod_diff_table)
   }
   
-  cat("Running differential analysis...\n")
-  
   in_dat <-
     dplyr::tbl(ch3_db$con, call_type) |>
     dplyr::select(
@@ -108,8 +109,28 @@ calc_ch3_diff <- function(ch3_db,
     stop("Check control names - some control samples are not in the data: ", missing)
   }
   
+  # Auto-select calc_type if not provided --------------------------------------
+  if (is.null(calc_type)) {
+    n_case    <- length(cases)
+    n_control <- length(controls)
+    
+    if (n_case > 1 || n_control > 1) {
+      calc_type <- "wilcox"
+    } else {
+      calc_type <- "fast_fisher"
+    }
+    
+    message(
+      "Using '", calc_type, "' statistical method",
+      " (cases = ", n_case, ", controls = ", n_control, ")..."
+    )
+  }
+  
+  message("Running differential analysis...\n")
+  
   # Compute p-values / diffs
   result <- switch(calc_type,
+                   wilcox      = .calc_diff_wilcox(in_dat),
                    fast_fisher = .calc_diff_fisher(in_dat, calc_type = "fast_fisher"),
                    r_fisher    = .calc_diff_fisher(in_dat, calc_type = "r_fisher"),
                    log_reg     = .calc_diff_logreg(in_dat),
@@ -153,6 +174,70 @@ calc_ch3_diff <- function(ch3_db,
   ch3_db <- .ch3helper_cleanup(ch3_db)
   invisible(ch3_db)
 }
+
+
+
+## Calculate p-values using Wilcoxon rank-sum test on per-sample methylation fractions.
+## This compares the distribution of m_frac between case and control samples per region/window.
+.calc_diff_wilcox <- function(in_dat)
+{
+  # Work at the per-sample level: compute methylation fraction for each sample x region
+  frac_dat <-
+    in_dat |>
+    dplyr::mutate(
+      mod_frac = dplyr::if_else(
+        num_calls > 0,
+        mod_counts / num_calls,
+        NA_real_
+      )
+    ) |>
+    dplyr::collect()
+  
+  # Figure out which columns define the genomic unit (region/window/position)
+  group_vars <- setdiff(
+    colnames(frac_dat),
+    c("sample_name", "exp_group", "num_calls", "mod_counts", "mod_frac")
+  )
+  
+  # Summarize per region/window and run Wilcoxon tests
+  frac_dat |>
+    dplyr::group_by(dplyr::across(dplyr::all_of(group_vars))) |>
+    dplyr::summarise(
+      num_samples_case    = sum(exp_group == "case"),
+      num_samples_control = sum(exp_group == "control"),
+      
+      num_calls_case      = sum(num_calls[exp_group == "case"],    na.rm = TRUE),
+      num_calls_control   = sum(num_calls[exp_group == "control"], na.rm = TRUE),
+      
+      mod_counts_case     = sum(mod_counts[exp_group == "case"],    na.rm = TRUE),
+      mod_counts_control  = sum(mod_counts[exp_group == "control"], na.rm = TRUE),
+      
+      mod_frac_case = mean(mod_frac[exp_group == "case"],    na.rm = TRUE),
+      mod_frac_control = mean(mod_frac[exp_group == "control"], na.rm = TRUE),
+      
+      meth_diff = mean(mod_frac[exp_group == "case"],    na.rm = TRUE) -
+        mean(mod_frac[exp_group == "control"], na.rm = TRUE),
+      
+      p_val = {
+        case_vals <- mod_frac[exp_group == "case"]
+        ctrl_vals <- mod_frac[exp_group == "control"]
+        
+        case_vals <- case_vals[is.finite(case_vals)]
+        ctrl_vals <- ctrl_vals[is.finite(ctrl_vals)]
+        
+        if (length(case_vals) > 0 && length(ctrl_vals) > 0) {
+          suppressWarnings(
+            stats::wilcox.test(case_vals, ctrl_vals)$p.value
+          )
+        } else {
+          NA_real_
+        }
+      },
+      
+      .groups = "drop"
+    )
+}
+
 
 ## Calculate p-values using fisher exact tests. If there are multiple samples,
 ## they will be combined.

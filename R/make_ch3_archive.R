@@ -36,30 +36,6 @@ make_ch3_archive <- function(file_name,
   stopifnot("Invalid file_name" = 
               file.exists(file_name))
   
-  # UNUSED NOW as of 03/25/25 : was in , col_types = col_types in open_delim_dataset()
-  # Setup Call Types. Important because genome references sometimes use 1 or chr1
-  # col_types <- schema(read_id = string(),
-  #                     forward_read_position	= uint32(),
-  #                     ref_position = uint64(),
-  #                     chrom = string(),
-  #                     mod_strand = string(),
-  #                     ref_strand = string(),
-  #                     ref_mod_strand = string(),
-  #                     fw_soft_clipped_start	= uint32(),
-  #                     fw_soft_clipped_end	= uint32(),
-  #                     read_length	= uint32(),
-  #                     call_prob	= float(),
-  #                     call_code	= string(),
-  #                     base_qual	= uint8(),
-  #                     ref_kmer = string(),
-  #                     query_kmer = string(),
-  #                     canonical_base = string(),
-  #                     modified_primary_base = string(),
-  #                     fail = string(),
-  #                     inferred = string(),
-  #                     within_alignment = string(),
-  #                     flag = uint16())
-  
   # Read data as arrow table
   meth_data <- 
     open_delim_dataset(

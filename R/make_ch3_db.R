@@ -239,13 +239,37 @@ make_ch3_db <- function(ch3_files,
   if (!is.null(flag)) filters <- c(filters, paste0("flag = ", as.numeric(flag)))
   where_clause <- if (length(filters)) paste("WHERE", paste(filters, collapse = " AND ")) else ""
   
-  # ⬅️ Include read_position here
-  wanted_sql <- paste(c("read_id", "chrom","start","\"end\"", "read_position",
-                        "call_code","read_length","call_prob","base_qual","flag"),
-                      collapse = ", ")
-  
   # Paths for read_parquet
   file_list_sql <- paste0("['", paste(esc(df_files$file), collapse = "','"), "']")
+  
+  # Get the schema of the parquet files (no data, just column names)
+  schema <- DBI::dbGetQuery(
+    ch3_db$con,
+    sprintf("SELECT * FROM read_parquet(%s, filename = TRUE) LIMIT 0", file_list_sql)
+  )
+  
+  has_read_position <- "read_position" %in% names(schema)
+  
+  wanted_sql <- paste(
+    c(
+      "read_id",
+      "chrom",
+      "start",
+      "\"end\"",
+      if (has_read_position) "read_position" else NULL,
+      "query_kmer", #added
+      "call_code",
+      "read_length",
+      "call_prob",
+      "base_qual",
+      "flag"
+    ),
+    collapse = ", "
+  )
+  
+  # wanted_sql <- paste(c("read_id", "chrom","start","\"end\"", "read_position",
+  #                       "call_code","read_length","call_prob","base_qual","flag"),
+  #                     collapse = ", ")
   
   # --- one parallel scan; join to mapping; fallback name from filename -----------
   sql <- glue::glue("
