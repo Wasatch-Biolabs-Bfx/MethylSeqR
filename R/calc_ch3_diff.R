@@ -6,6 +6,7 @@
 #' @param ch3_db A list containing the database file path. This should be a valid "ch3_db" class object.
 #' @param call_type A string representing the name of the table in the database from which to pull the data. 
 #' Default is "positions".
+#' @param output_table Destination table name for results. If NULL, defaults to paste0("mod_diff_", call_type).
 #' @param cases A character vector containing the sample names for the case group.
 #' @param controls A character vector containing the sample names for the control group.
 #' @param mod_type A string indicating the type of modification to analyze. 
@@ -14,6 +15,7 @@
 #' Options include "wilcox", "fast_fisher", "r_fisher", and "log_reg". 
 #' Default is NULL, in which case "wilcox" is used if there are replicates in either
 #' group, otherwise "fast_fisher" is used.
+#' @param overwrite If TRUE and output_table exists, it is dropped before writing.
 #'
 #' @details
 #' The function connects to the specified DuckDB database and retrieves methylation data from the specified call type table. 
@@ -42,10 +44,12 @@
 
 calc_ch3_diff <- function(ch3_db,
                           call_type = "positions",
+                          output_table = NULL,
                           cases,
                           controls,
                           mod_type = "mh",
-                          calc_type = NULL)
+                          calc_type = NULL,
+                          overwrite = TRUE)
 {
   start_time <- Sys.time()
 
@@ -76,9 +80,18 @@ calc_ch3_diff <- function(ch3_db,
          "Recreate it with the latest summarize_* function.")
   }
   
-  mod_diff_table <- paste0("mod_diff_", call_type)
+  if (is.null(output_table) || !nzchar(output_table)) {
+    mod_diff_table <- paste0("mod_diff_", call_type)
+  } else {
+    mod_diff_table <- output_table
+  }
+  
   if (DBI::dbExistsTable(ch3_db$con, mod_diff_table)) {
-    DBI::dbRemoveTable(ch3_db$con, mod_diff_table)
+    if (overwrite) {
+      DBI::dbRemoveTable(ch3_db$con, mod_diff_table)
+    } else {
+      stop("Output table '", mod_diff_table, "' already exists. Set overwrite = TRUE or choose a different output_table.")
+    }
   }
   
   in_dat <-

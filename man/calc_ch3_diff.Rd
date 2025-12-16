@@ -7,10 +7,12 @@
 calc_ch3_diff(
   ch3_db,
   call_type = "positions",
+  output_table = NULL,
   cases,
   controls,
   mod_type = "mh",
-  calc_type = NULL
+  calc_type = NULL,
+  overwrite = TRUE
 )
 }
 \arguments{
@@ -18,6 +20,8 @@ calc_ch3_diff(
 
 \item{call_type}{A string representing the name of the table in the database from which to pull the data. 
 Default is "positions".}
+
+\item{output_table}{Destination table name for results. If NULL, defaults to paste0("mod_diff_", call_type).}
 
 \item{cases}{A character vector containing the sample names for the case group.}
 
@@ -30,6 +34,8 @@ Default is "mh" for methylation/hydroxymethylation.}
 Options include "wilcox", "fast_fisher", "r_fisher", and "log_reg". 
 Default is NULL, in which case "wilcox" is used if there are replicates in either
 group, otherwise "fast_fisher" is used.}
+
+\item{overwrite}{If TRUE and output_table exists, it is dropped before writing.}
 }
 \value{
 A list containing the updated "ch3_db" object with the latest tables in the database, including "meth_diff".
