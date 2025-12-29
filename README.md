@@ -6,7 +6,7 @@
 # MethylSeqR
 
 # IMPORTANT PACKAGE UPDATE (12/29/25):
-We have decided to update the name from "MethylSeqR" to "ModSeqR". This is 1. Due to other similar package names
+We have decided to update the name from `MethylSeqR` to `ModSeqR`. This is 1. Due to other similar package names
 in R and 2. We wanted to reflect how this package analyzes and processes more modifications than just methylation 
 (for example, 5HmC, 6mA, and other unique RNA and DNA modifcations).
 
